@@ -159,7 +159,14 @@ export default function CameraScanner({ navigation }) {
         t('detectionTips', language),
         [
           { text: t('tryAgain', language), onPress: () => scanAgain() },
-          { text: t('addManually', language), style: 'default' },
+          { 
+            text: t('addManually', language), 
+            style: 'default',
+            onPress: () => {
+              scanAgain();
+              navigation.navigate('Pantry', { screen: 'ManualEntry' });
+            }
+          },
         ]
       );
     }
@@ -783,13 +790,19 @@ export default function CameraScanner({ navigation }) {
       ) : (
         // Mobile: Show camera view
         <>
-          {/* Loading overlay for video processing - show over camera */}
+          {/* Loading overlay for processing - show over camera */}
           {isLoading && !photoUri && (
             <View style={styles.loadingOverlay}>
               <View style={styles.loadingContent}>
                 <ActivityIndicator size="large" color="#E53E3E" />
-                <Text style={styles.loadingText}>{t('processingVideo', language)}</Text>
-                <Text style={styles.loadingSubtext}>{t('extractingFrame', language)}</Text>
+                <Text style={styles.loadingText}>
+                  {captureMode === 'video' 
+                    ? t('processingVideo', language)
+                    : t('analyzing', language)}
+                </Text>
+                {captureMode === 'video' && (
+                  <Text style={styles.loadingSubtext}>{t('extractingFrame', language)}</Text>
+                )}
               </View>
             </View>
           )}
@@ -833,24 +846,24 @@ export default function CameraScanner({ navigation }) {
             {/* Capture Button at bottom */}
             <View style={styles.buttonContainer}>
               {isRecording ? (
-                <View style={styles.recordingIndicator}>
-                  <ActivityIndicator size="large" color="#FF0000" />
-                  <View style={styles.recordingRow}>
+                <>
+                  <TouchableOpacity 
+                    style={styles.stopButtonOuter}
+                    onPress={stopVideoRecording}
+                  >
+                    <View style={styles.stopButtonInner}>
+                      {/* Small red square for stop */}
+                    </View>
+                  </TouchableOpacity>
+                  <View style={styles.recordingInfo}>
+                    <View style={styles.recordingRow}>
                       <MaterialCommunityIcons name="record-circle" size={18} color="#FF3B30" style={styles.recordDot} />
                       <Text style={styles.recordingText}>
                         {t('recording', language)} {recordingDuration}s / 10s
                       </Text>
                     </View>
-                  <TouchableOpacity 
-                    style={styles.stopButton} 
-                    onPress={stopVideoRecording}
-                  >
-                    <View style={styles.stopButtonContent}>
-                      <MaterialCommunityIcons name="stop-circle" size={20} color="#fff" style={{ marginRight: 8 }} />
-                      <Text style={styles.stopButtonText}>{t('stop', language)}</Text>
-                    </View>
-                  </TouchableOpacity>
-                </View>
+                  </View>
+                </>
               ) : (
                 <>
                   <TouchableOpacity 
@@ -1167,10 +1180,28 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   videoButtonInner: {
-    width: 28,
-    height: 28,
-    backgroundColor: '#fff',
-    borderRadius: 4,
+    width: 50,
+    height: 50,
+    backgroundColor: '#FF3B30',
+    borderRadius: 25,
+  },
+  stopButtonOuter: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: '#666',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  stopButtonInner: {
+    width: 35,
+    height: 35,
+    backgroundColor: '#FF3B30',
+    borderRadius: 6,
+  },
+  recordingInfo: {
+    marginTop: 15,
+    alignItems: 'center',
   },
   captureHint: {
     color: '#fff',
@@ -1200,10 +1231,8 @@ const styles = StyleSheet.create({
   },
   recordingText: {
     color: '#fff',
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: 'bold',
-    marginTop: 10,
-    marginBottom: 15,
   },
   stopButton: {
     backgroundColor: '#FF0000',
