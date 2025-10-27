@@ -2,8 +2,8 @@
 import 'react-native-gesture-handler';
 
 // 1. Import necessary components from React, React Native, and Expo
-import React, { useState } from 'react';
-import { StyleSheet, View, TouchableOpacity, Text } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { StyleSheet, View, TouchableOpacity, Text, ActivityIndicator } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -16,7 +16,8 @@ import LanguageSelector from './components/LanguageSelector';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
 import { t } from './contexts/translations';
 import { getFirestore, collection, query, onSnapshot } from 'firebase/firestore';
-import { app } from './firebase.config';
+import { onAuthStateChanged, signInAnonymously } from 'firebase/auth';
+import { app, auth } from './firebase.config';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -28,11 +29,26 @@ function RecipeWrapper() {
   const db = getFirestore(app);
 
   React.useEffect(() => {
-    const q = query(collection(db, 'pantry'));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      setIngredientCount(snapshot.size);
+    // Wait for auth to be ready
+    const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        console.log('RecipeWrapper: Waiting for user authentication...');
+        return;
+      }
+
+      const userId = user.uid;
+      console.log('RecipeWrapper: Querying pantry for user:', userId);
+
+      // Query user-specific pantry collection
+      const q = query(collection(db, `users/${userId}/pantry`));
+      const unsubscribe = onSnapshot(q, (snapshot) => {
+        setIngredientCount(snapshot.size);
+      });
+      
+      return () => unsubscribe();
     });
-    return () => unsubscribe();
+
+    return () => unsubscribeAuth();
   }, []);
 
   return (
@@ -196,6 +212,56 @@ function PantryStack() {
 
 // 2. Create the main App component
 export default function App() {
+  const [user, setUser] = useState(null);
+  const [authLoading, setAuthLoading] = useState(true);
+
+  useEffect(() => {
+    // Listen for authentication state changes
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      if (currentUser) {
+        // User is signed in
+        console.log('User signed in:', currentUser.uid);
+        setUser(currentUser);
+        setAuthLoading(false);
+      } else {
+        // No user signed in, create anonymous user
+        console.log('No user found, signing in anonymously...');
+        signInAnonymously(auth)
+          .then((result) => {
+            console.log('Anonymous sign-in successful:', result.user.uid);
+            setUser(result.user);
+            setAuthLoading(false);
+          })
+          .catch((error) => {
+            console.error('Authentication error:', error);
+            setAuthLoading(false);
+          });
+      }
+    });
+    
+    return () => unsubscribe();
+  }, []);
+
+  // Show loading screen while authenticating
+  if (authLoading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#E53E3E" />
+        <Text style={styles.loadingText}>Loading Shelfze...</Text>
+      </View>
+    );
+  }
+
+  // Show error if authentication failed
+  if (!user) {
+    return (
+      <View style={styles.loadingContainer}>
+        <Text style={styles.errorText}>⚠️ Authentication Error</Text>
+        <Text style={styles.errorSubtext}>Please restart the app</Text>
+      </View>
+    );
+  }
+
   return (
     <LanguageProvider>
       <NavigationContainer>
@@ -253,5 +319,27 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     textAlign: 'center',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#F5F5F5',
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    color: '#666',
+    fontWeight: '600',
+  },
+  errorText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#E53E3E',
+    marginBottom: 8,
+  },
+  errorSubtext: {
+    fontSize: 14,
+    color: '#999',
   },
 });

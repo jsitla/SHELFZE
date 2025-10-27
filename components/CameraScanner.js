@@ -24,10 +24,10 @@ import { t } from '../contexts/translations';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { getFirestore, doc, deleteDoc, updateDoc } from 'firebase/firestore';
-import { app } from '../firebase.config';
+import { app, auth } from '../firebase.config';
 
 // 2. Create a functional component named CameraScanner.
-export default function CameraScanner() {
+export default function CameraScanner({ navigation }) {
   // 3. Add state variables to manage camera permission, the camera reference, and the captured image URI.
   const [permission, requestPermission] = useCameraPermissions();
   const [photoUri, setPhotoUri] = useState(null);
@@ -96,12 +96,20 @@ export default function CameraScanner() {
       throw new Error('Failed to convert image to base64');
     }
 
+    // Get authenticated user ID
+    const userId = auth.currentUser?.uid;
+    
+    if (!userId) {
+      throw new Error('No authenticated user found');
+    }
+
     const response = await fetch(CLOUD_FUNCTION_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         image: base64,
         language,
+        userId, // Pass userId to Cloud Function
       }),
     });
 
@@ -449,7 +457,14 @@ export default function CameraScanner() {
 
   const deleteDetectedItem = async (itemId) => {
     try {
-      await deleteDoc(doc(db, 'pantry', itemId));
+      const userId = auth.currentUser?.uid;
+      
+      if (!userId) {
+        Alert.alert('Error', 'No authenticated user found');
+        return;
+      }
+
+      await deleteDoc(doc(db, `users/${userId}/pantry`, itemId));
       // Remove from local state
       setDetectedItems(prev => ({
         ...prev,
@@ -474,7 +489,14 @@ export default function CameraScanner() {
     }
 
     try {
-      const itemRef = doc(db, 'pantry', editingItemId);
+      const userId = auth.currentUser?.uid;
+      
+      if (!userId) {
+        Alert.alert('Error', 'No authenticated user found');
+        return;
+      }
+
+      const itemRef = doc(db, `users/${userId}/pantry`, editingItemId);
       await updateDoc(itemRef, {
         name: editItemName.trim(),
         itemName: editItemName.trim(),
@@ -508,18 +530,31 @@ export default function CameraScanner() {
 
   const confirmReview = () => {
     const remainingItems = detectedItems?.items.length || 0;
+    
+    // Close the review modal first
+    setShowReviewModal(false);
+    
     if (remainingItems === 0) {
       Alert.alert('All Items Removed', 'You removed all detected items. Scan again?');
       scanAgain();
     } else {
-      Alert.alert(
-        '✅ Success!',
-        `${remainingItems} item(s) added to your pantry!\n\n💡 Edit details in the Pantry tab`,
-        [
-          { text: 'Scan More', onPress: () => scanAgain() },
-          { text: 'View Pantry', onPress: () => scanAgain() }
-        ]
-      );
+      // Small delay to ensure modal closes before alert shows
+      setTimeout(() => {
+        Alert.alert(
+          '✅ Success!',
+          `${remainingItems} item(s) added to your pantry!\n\n💡 Edit details in the Pantry tab`,
+          [
+            { text: 'Scan More', onPress: () => scanAgain() },
+            { 
+              text: 'View Pantry', 
+              onPress: () => {
+                scanAgain();
+                navigation.navigate('Pantry');
+              }
+            }
+          ]
+        );
+      }, 300);
     }
   };
 

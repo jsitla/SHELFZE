@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { getFirestore, collection, addDoc } from 'firebase/firestore';
+import { app, auth } from '../firebase.config';
 import { useLanguage } from '../contexts/LanguageContext';
 import { t } from '../contexts/translations';
 
@@ -78,9 +79,19 @@ export default function ManualEntry({ navigation, onItemAdded }) {
     setLoading(true);
 
     try {
-      console.log('🔵 Getting Firestore instance');
+      // Get authenticated user ID
+      const userId = auth.currentUser?.uid;
+      
+      if (!userId) {
+        console.error('❌ No authenticated user found');
+        Alert.alert(t('error', language), t('pleaseRestart', language));
+        setLoading(false);
+        return;
+      }
+
+      console.log('🔵 Getting Firestore instance for user:', userId);
       const db = getFirestore();
-      const pantryRef = collection(db, 'pantry');
+      const pantryRef = collection(db, `users/${userId}/pantry`);
 
       const newItem = {
         name: foodName.trim(),

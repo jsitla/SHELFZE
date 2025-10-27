@@ -46,9 +46,15 @@ exports.analyzeImage = functions.https.onRequest(async (req, res) => {
     // 5. Get the base64 image data from the request body.
     const imageData = req.body.image;
     const targetLanguage = req.body.language || "en"; // Get language from request
+    const userId = req.body.userId; // Get userId from request
 
     if (!imageData) {
       res.status(400).json({error: "No image data provided"});
+      return;
+    }
+
+    if (!userId) {
+      res.status(400).json({error: "No userId provided. User must be authenticated."});
       return;
     }
 
@@ -162,22 +168,26 @@ exports.analyzeImage = functions.https.onRequest(async (req, res) => {
     const savedItems = [];
     for (const foodItem of foodItems) {
       if (foodItem.name && foodItem.name !== "Unknown Item") {
-        // 5. Save to Firestore with enhanced data
-        const docRef = await admin.firestore().collection("pantry").add({
-          name: foodItem.name, // Updated to 'name' for consistency
-          itemName: foodItem.name, // Keep for backward compatibility
-          category: foodItem.category,
-          confidence: foodItem.confidence,
-          detectionSource: foodItem.source || "Vision API",
-          geminiDetails: foodItem.details || null,
-          detectedLabels: detectedLabels.slice(0, 5), // Top 5 AI labels
-          detectedObjects: detectedObjects.slice(0, 5), // Top 5 objects
-          expiryDate: formattedDate || null, // Optional expiry date from OCR
-          quantity: 1, // Default quantity
-          unit: "pcs", // Default unit
-          fullText: fullText.substring(0, 500),
-          addedAt: admin.firestore.FieldValue.serverTimestamp(),
-        });
+        // 5. Save to Firestore with enhanced data in user-specific collection
+        const docRef = await admin.firestore()
+            .collection("users")
+            .doc(userId)
+            .collection("pantry")
+            .add({
+              name: foodItem.name, // Updated to 'name' for consistency
+              itemName: foodItem.name, // Keep for backward compatibility
+              category: foodItem.category,
+              confidence: foodItem.confidence,
+              detectionSource: foodItem.source || "Vision API",
+              geminiDetails: foodItem.details || null,
+              detectedLabels: detectedLabels.slice(0, 5), // Top 5 AI labels
+              detectedObjects: detectedObjects.slice(0, 5), // Top 5 objects
+              expiryDate: formattedDate || null, // Optional expiry date
+              quantity: 1, // Default quantity
+              unit: "pcs", // Default unit
+              fullText: fullText.substring(0, 500),
+              addedAt: admin.firestore.FieldValue.serverTimestamp(),
+            });
         savedItems.push({
           id: docRef.id,
           ...foodItem,

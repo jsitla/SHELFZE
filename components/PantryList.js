@@ -16,9 +16,10 @@ import {
   ScrollView,
 } from 'react-native';
 import { getFirestore, collection, query, orderBy, onSnapshot, deleteDoc, doc, updateDoc } from 'firebase/firestore';
+import { onAuthStateChanged } from 'firebase/auth';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useFocusEffect } from '@react-navigation/native';
-import { app } from '../firebase.config';
+import { app, auth } from '../firebase.config';
 import { useLanguage } from '../contexts/LanguageContext';
 import { t } from '../contexts/translations';
 
@@ -88,46 +89,61 @@ export default function PantryList({ navigation }) {
   useEffect(() => {
     console.log('🔵 Setting up Firestore listener for pantry items');
     
-    // The query should order items by 'expiryDate' in ascending order.
-    const q = query(
-      collection(db, 'pantry'),
-      orderBy('expiryDate', 'asc')
-    );
-
-    // Use the onSnapshot() method.
-    const unsubscribe = onSnapshot(
-      q,
-      (querySnapshot) => {
-        console.log('📦 Received pantry snapshot, items count:', querySnapshot.size);
-        
-        // In the callback, map the query snapshot to an array of objects and update the 'items' state.
-        const pantryItems = [];
-        querySnapshot.forEach((doc) => {
-          pantryItems.push({
-            id: doc.id,
-            ...doc.data()
-          });
-        });
-        
-        console.log('✅ Pantry items updated:', pantryItems.length);
-        
-        // Log unique categories for debugging
-        const uniqueCategories = [...new Set(pantryItems.map(item => item.category))];
-        console.log('📊 Unique categories in data:', uniqueCategories);
-        
-        setItems(pantryItems);
-        setFilteredItems(pantryItems);
+    // Wait for authentication state to be ready
+    const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        console.log('⏳ Waiting for user authentication...');
         setLoading(false);
-      },
-      (error) => {
-        console.error('❌ Error fetching pantry items:', error);
-        Alert.alert('Error', 'Failed to load pantry items');
-        setLoading(false);
+        return;
       }
-    );
+      
+      const userId = user.uid;
+      console.log('👤 Loading pantry for user:', userId);
+      
+      // The query should order items by 'expiryDate' in ascending order.
+      // NOW USING USER-SPECIFIC PATH: users/{userId}/pantry
+      const q = query(
+        collection(db, `users/${userId}/pantry`),
+        orderBy('expiryDate', 'asc')
+      );
+
+      // Use the onSnapshot() method.
+      const unsubscribe = onSnapshot(
+        q,
+        (querySnapshot) => {
+          console.log('📦 Received pantry snapshot, items count:', querySnapshot.size);
+          
+          // In the callback, map the query snapshot to an array of objects and update the 'items' state.
+          const pantryItems = [];
+          querySnapshot.forEach((doc) => {
+            pantryItems.push({
+              id: doc.id,
+              ...doc.data()
+            });
+          });
+          
+          console.log('✅ Pantry items updated:', pantryItems.length);
+          
+          // Log unique categories for debugging
+          const uniqueCategories = [...new Set(pantryItems.map(item => item.category))];
+          console.log('📊 Unique categories in data:', uniqueCategories);
+          
+          setItems(pantryItems);
+          setFilteredItems(pantryItems);
+          setLoading(false);
+        },
+        (error) => {
+          console.error('❌ Error fetching pantry items:', error);
+          Alert.alert('Error', 'Failed to load pantry items');
+          setLoading(false);
+        }
+      );
+
+      return () => unsubscribe();
+    });
 
     // Remember to return the unsubscribe function from useEffect to prevent memory leaks.
-    return () => unsubscribe();
+    return () => unsubscribeAuth();
   }, []);
 
   // Filter items by category
@@ -184,7 +200,14 @@ export default function PantryList({ navigation }) {
 
   const deleteItem = async (itemId) => {
     try {
-      await deleteDoc(doc(db, 'pantry', itemId));
+      const userId = auth.currentUser?.uid;
+      
+      if (!userId) {
+        Alert.alert(t('error', language), 'You must be logged in to delete items');
+        return;
+      }
+      
+      await deleteDoc(doc(db, `users/${userId}/pantry`, itemId));
       // Success feedback is shown in UI update
     } catch (error) {
       console.error('Error deleting item:', error);
@@ -216,6 +239,13 @@ export default function PantryList({ navigation }) {
   };
 
   const clearAllInventory = async () => {
+    const userId = auth.currentUser?.uid;
+    
+    if (!userId) {
+      Alert.alert(t('error', language), 'You must be logged in');
+      return;
+    }
+    
     if (Platform.OS === 'web') {
       if (!window.confirm(t('clearAllMessage', language))) {
         return;
@@ -231,9 +261,9 @@ export default function PantryList({ navigation }) {
             style: 'destructive', 
             onPress: async () => {
               try {
-                // Delete all items
+                // Delete all items from user-specific collection
                 const deletePromises = items.map(item => 
-                  deleteDoc(doc(db, 'pantry', item.id))
+                  deleteDoc(doc(db, `users/${userId}/pantry`, item.id))
                 );
                 await Promise.all(deletePromises);
                 Alert.alert(t('success', language), t('inventoryCleared', language));
@@ -251,7 +281,7 @@ export default function PantryList({ navigation }) {
     // Web path
     try {
       const deletePromises = items.map(item => 
-        deleteDoc(doc(db, 'pantry', item.id))
+        deleteDoc(doc(db, `users/${userId}/pantry`, item.id))
       );
       await Promise.all(deletePromises);
       alert(t('inventoryCleared', language));
@@ -286,7 +316,14 @@ export default function PantryList({ navigation }) {
     }
 
     try {
-      const itemRef = doc(db, 'pantry', editingItem.id);
+      const userId = auth.currentUser?.uid;
+      
+      if (!userId) {
+        Alert.alert(t('error', language), 'You must be logged in');
+        return;
+      }
+      
+      const itemRef = doc(db, `users/${userId}/pantry`, editingItem.id);
       await updateDoc(itemRef, {
         name: editName.trim(),
         itemName: editName.trim(),

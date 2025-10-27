@@ -14,7 +14,8 @@ import {
   TextInput
 } from 'react-native';
 import { getFirestore, collection, query, onSnapshot, addDoc, doc, deleteDoc } from 'firebase/firestore';
-import { app } from '../firebase.config';
+import { onAuthStateChanged } from 'firebase/auth';
+import { app, auth } from '../firebase.config';
 import { useLanguage } from '../contexts/LanguageContext';
 import { t } from '../contexts/translations';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -76,51 +77,78 @@ export default function RecipeGenerator() {
 
   // Fetch pantry items
   useEffect(() => {
-    const q = query(collection(db, 'pantry'));
-
-    const unsubscribe = onSnapshot(
-      q,
-      (querySnapshot) => {
-        const items = [];
-        querySnapshot.forEach((doc) => {
-          items.push({
-            id: doc.id,
-            ...doc.data()
-          });
-        });
-        setPantryItems(items);
+    // Wait for authentication
+    const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        console.log('Waiting for user authentication for pantry items...');
         setLoading(false);
-        
-        // Initialize selected ingredients with all items
-        const itemNames = items
-          .map(item => item.itemName || item.name)
-          .filter(name => name);
-        setSelectedIngredients(itemNames);
-      },
-      (error) => {
-        console.error('Error fetching pantry items:', error);
-        Alert.alert('Error', 'Failed to load pantry items');
-        setLoading(false);
+        return;
       }
-    );
+      
+      const userId = user.uid;
+      console.log('Loading pantry items for user:', userId);
 
-    return () => unsubscribe();
+      const q = query(collection(db, `users/${userId}/pantry`));
+
+      const unsubscribe = onSnapshot(
+        q,
+        (querySnapshot) => {
+          const items = [];
+          querySnapshot.forEach((doc) => {
+            items.push({
+              id: doc.id,
+              ...doc.data()
+            });
+          });
+          setPantryItems(items);
+          setLoading(false);
+          
+          // Initialize selected ingredients with all items
+          const itemNames = items
+            .map(item => item.itemName || item.name)
+            .filter(name => name);
+          setSelectedIngredients(itemNames);
+        },
+        (error) => {
+          console.error('Error fetching pantry items:', error);
+          Alert.alert('Error', 'Failed to load pantry items');
+          setLoading(false);
+        }
+      );
+
+      return () => unsubscribe();
+    });
+
+    return () => unsubscribeAuth();
   }, []);
 
   // Fetch saved recipes from Firestore
   useEffect(() => {
-    const q = query(collection(db, 'recipeCollections'));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const recipes = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
-      setSavedRecipes(recipes);
-    }, (error) => {
-      console.error('Error fetching saved recipes:', error);
+    // Wait for authentication
+    const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        console.log('Waiting for user authentication for saved recipes...');
+        return;
+      }
+      
+      const userId = user.uid;
+      console.log('Loading saved recipes for user:', userId);
+
+      const q = query(collection(db, `users/${userId}/recipeCollections`));
+      const unsubscribe = onSnapshot(q, (snapshot) => {
+        const recipes = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+        setSavedRecipes(recipes);
+      }, (error) => {
+        console.error('Error fetching saved recipes:', error);
+      });
+
+      return () => unsubscribe();
     });
 
-    return () => unsubscribe();
+    return () => unsubscribeAuth();
   }, []);
 
   // Generate recipe suggestions
@@ -382,7 +410,14 @@ export default function RecipeGenerator() {
         }
       };
 
-      await addDoc(collection(db, 'recipeRatings'), ratingData);
+      const userId = auth.currentUser?.uid;
+      
+      if (!userId) {
+        Alert.alert(t('error', language), t('pleaseRestart', language));
+        return;
+      }
+
+      await addDoc(collection(db, `users/${userId}/recipeRatings`), ratingData);
       
       Alert.alert(
         t('ratingSaved', language) || 'Rating Saved!',
@@ -400,6 +435,13 @@ export default function RecipeGenerator() {
     if (!selectedRecipe) return;
 
     try {
+      const userId = auth.currentUser?.uid;
+      
+      if (!userId) {
+        Alert.alert(t('error', language), t('pleaseRestart', language));
+        return;
+      }
+
       const collectionData = {
         recipeName: selectedRecipe.name,
         collectionType: collectionType, // 'favorite', 'cooked', 'wantToTry'
@@ -420,7 +462,7 @@ export default function RecipeGenerator() {
         }
       };
 
-      await addDoc(collection(db, 'recipeCollections'), collectionData);
+      await addDoc(collection(db, `users/${userId}/recipeCollections`), collectionData);
       
       // Update local state
       if (collectionType === 'favorite') setIsFavorite(!isFavorite);
@@ -447,7 +489,14 @@ export default function RecipeGenerator() {
   // Remove recipe from collection
   const removeFromCollection = async (recipeId) => {
     try {
-      await deleteDoc(doc(db, 'recipeCollections', recipeId));
+      const userId = auth.currentUser?.uid;
+      
+      if (!userId) {
+        Alert.alert(t('error', language), t('pleaseRestart', language));
+        return;
+      }
+
+      await deleteDoc(doc(db, `users/${userId}/recipeCollections`, recipeId));
       Alert.alert(
         t('removed', language) || 'Removed',
         t('recipeRemoved', language) || 'Recipe removed from collection',
