@@ -1,0 +1,32 @@
+mutation SeedData @transaction @auth(level: USER) {
+  movie_insertMany(data: [
+    {
+      title: "Inception",
+      year: 2010,
+      runtime: 148,
+      genres: ["Action", "Sci-Fi", "Thriller"],
+      summary: "A thief who steals corporate secrets through the use of dream-sharing technology is given the inverse task of planting an idea into the mind of a C.E.O.",
+      createdAt: "2024-01-01T00:00:00Z"
+    },
+    {
+      title: "The Shawshank Redemption",
+      year: 1994,
+      runtime: 142,
+      genres: ["Drama"],
+      summary: "Two imprisoned men bond over a number of years, finding solace and eventual redemption through acts of common decency.",
+      createdAt: "2024-01-01T00:00:00Z"
+    }
+  ])
+  user_insertMany(data: [
+    {
+      displayName: "John Doe",
+      email: "john.doe@example.com",
+      createdAt: "2024-01-01T00:00:00Z"
+    },
+    {
+      displayName: "Jane Smith",
+      email: "jane.smith@example.com",
+      createdAt: "2024-01-01T00:00:00Z"
+    }
+  ])
+}

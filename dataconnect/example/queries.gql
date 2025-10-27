@@ -1,0 +1,24 @@
+mutation AddNewWatch($movieId: UUID!, $userId: UUID!, $watchDate: Date!) @auth(level: USER) {
+  watch_insert(data: {movieId: $movieId, userId: $userId, watchDate: $watchDate})
+}
+
+query GetPublicMovieLists @auth(level: PUBLIC) {
+  movieLists(where: {isPublic: {eq: true}}) {
+    id
+    name
+    description
+  }
+}
+
+mutation UpdateReview($id: UUID!, $review: String) @auth(level: USER) {
+  review_update(key: {id: $id}, data: {review: $review})
+}
+
+query GetMoviesByGenre($genre: String!) @auth(level: PUBLIC) {
+  movies(where: {genres: {includes: $genre}}) {
+    id
+    title
+    year
+    summary
+  }
+}
