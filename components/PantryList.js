@@ -133,6 +133,14 @@ export default function PantryList({ navigation }) {
           setLoading(false);
         },
         (error) => {
+          // Silently handle permission errors during auth transitions
+          if (error.code === 'permission-denied') {
+            console.log('Permission denied - user may be signing out');
+            setItems([]);
+            setFilteredItems([]);
+            setLoading(false);
+            return;
+          }
           console.error('❌ Error fetching pantry items:', error);
           Alert.alert('Error', 'Failed to load pantry items');
           setLoading(false);

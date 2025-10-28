@@ -21,6 +21,17 @@ service cloud.firestore {
       match /recipeRatings/{ratingId} {
         allow read, write: if request.auth != null && request.auth.uid == userId;
       }
+      
+      // User's usage tracking (for monetization)
+      match /usage/{document} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+    }
+    
+    // Gift codes collection (read-only for users, write for Cloud Functions only)
+    match /giftCodes/{code} {
+      allow read: if request.auth != null;
+      allow write: if false; // Only Cloud Functions can write
     }
   }
 }

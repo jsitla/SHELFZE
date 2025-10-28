@@ -3,21 +3,25 @@ import 'react-native-gesture-handler';
 
 // 1. Import necessary components from React, React Native, and Expo
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, TouchableOpacity, Text, ActivityIndicator } from 'react-native';
+import { StyleSheet, View, TouchableOpacity, Text, ActivityIndicator, Alert } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import CameraScanner from './components/CameraScanner';
 import PantryList from './components/PantryList';
 import RecipeGenerator from './components/RecipeGenerator';
 import ManualEntry from './components/ManualEntry';
+import Profile from './components/Profile';
+import WelcomeScreen from './components/WelcomeScreen';
 import LanguageSelector from './components/LanguageSelector';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
 import { t } from './contexts/translations';
 import { getFirestore, collection, query, onSnapshot } from 'firebase/firestore';
 import { onAuthStateChanged, signInAnonymously } from 'firebase/auth';
 import { app, auth } from './firebase.config';
+import { checkAndApplyMonthlyBonus, initializeUsageTracking } from './utils/usageTracking';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -160,38 +164,36 @@ function AppNavigator() {
   );
 }
 
-// Pantry Stack with Manual Entry
+// Pantry Stack with Manual Entry and Profile
 function PantryStack() {
   const { language, getLanguageBadge } = useLanguage();
-  const [languageModalVisible, setLanguageModalVisible] = useState(false);
   
   return (
-    <>
-      <Stack.Navigator>
-        <Stack.Screen 
-          name="PantryList" 
-          component={PantryList}
-          options={({ navigation }) => ({
-            title: t('myPantry', language),
-            ...UNIFIED_HEADER,
-            headerLeft: () => (
-              <TouchableOpacity
-                style={styles.languageButton}
-                onPress={() => setLanguageModalVisible(true)}
-              >
-                <Text style={styles.languageButtonText}>🌐 {getLanguageBadge()}</Text>
-              </TouchableOpacity>
-            ),
-            headerRight: () => (
-              <TouchableOpacity
-                style={styles.addButton}
-                onPress={() => navigation.navigate('ManualEntry')}
-              >
-                <Text style={styles.addButtonText}>+ {t('add', language)}</Text>
-              </TouchableOpacity>
-            ),
-          })}
-        />
+    <Stack.Navigator>
+      <Stack.Screen 
+        name="PantryList" 
+        component={PantryList}
+        options={({ navigation }) => ({
+          title: t('myPantry', language),
+          ...UNIFIED_HEADER,
+          headerLeft: () => (
+            <TouchableOpacity
+              style={styles.addButton}
+              onPress={() => navigation.navigate('ManualEntry')}
+            >
+              <Text style={styles.addButtonText}>+ {t('add', language)}</Text>
+            </TouchableOpacity>
+          ),
+          headerRight: () => (
+            <TouchableOpacity
+              style={styles.languageButton}
+              onPress={() => navigation.navigate('ProfileScreen')}
+            >
+              <Text style={styles.languageButtonText}>⚙️</Text>
+            </TouchableOpacity>
+          ),
+        })}
+      />
       <Stack.Screen 
         name="ManualEntry" 
         component={ManualEntry}
@@ -200,13 +202,15 @@ function PantryStack() {
           ...UNIFIED_HEADER,
         }}
       />
+      <Stack.Screen 
+        name="ProfileScreen" 
+        component={Profile}
+        options={{
+          title: t('account', language),
+          ...UNIFIED_HEADER,
+        }}
+      />
     </Stack.Navigator>
-    
-    <LanguageSelector 
-      visible={languageModalVisible} 
-      onClose={() => setLanguageModalVisible(false)} 
-    />
-    </>
   );
 }
 
@@ -214,23 +218,96 @@ function PantryStack() {
 export default function App() {
   const [user, setUser] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
+  const [showWelcome, setShowWelcome] = useState(false);
+  const [checkingFirstLaunch, setCheckingFirstLaunch] = useState(true);
+
+  // Check if this is first launch
+  useEffect(() => {
+    const checkFirstLaunch = async () => {
+      try {
+        const hasLaunched = await AsyncStorage.getItem('hasLaunchedBefore');
+        if (hasLaunched === null) {
+          // First launch - show welcome screen
+          setShowWelcome(true);
+        }
+      } catch (error) {
+        console.error('Error checking first launch:', error);
+      } finally {
+        setCheckingFirstLaunch(false);
+      }
+    };
+
+    checkFirstLaunch();
+  }, []);
+
+  // Handle welcome screen choices
+  const handleContinueAsGuest = async () => {
+    try {
+      await AsyncStorage.setItem('hasLaunchedBefore', 'true');
+      setShowWelcome(false);
+      // Anonymous sign-in will happen in the auth listener below
+    } catch (error) {
+      console.error('Error saving first launch:', error);
+    }
+  };
+
+  const handleCreateAccount = async () => {
+    try {
+      await AsyncStorage.setItem('hasLaunchedBefore', 'true');
+      setShowWelcome(false);
+      // Will show the main app, user can navigate to Profile to create account
+    } catch (error) {
+      console.error('Error saving first launch:', error);
+    }
+  };
+
+  const handleLogin = async () => {
+    try {
+      await AsyncStorage.setItem('hasLaunchedBefore', 'true');
+      setShowWelcome(false);
+      // Will show the main app, user can navigate to Profile to log in
+    } catch (error) {
+      console.error('Error saving first launch:', error);
+    }
+  };
 
   useEffect(() => {
     // Listen for authentication state changes
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       if (currentUser) {
         // User is signed in
         console.log('User signed in:', currentUser.uid);
         setUser(currentUser);
         setAuthLoading(false);
+        
+        // Initialize usage tracking if needed and check monthly bonus
+        try {
+          await initializeUsageTracking(currentUser.uid, currentUser.isAnonymous ? 'anonymous' : 'free');
+          const bonusResult = await checkAndApplyMonthlyBonus(currentUser.uid);
+          
+          // Don't show alert here - Profile screen will handle it
+          if (bonusResult.bonusApplied) {
+            console.log(`✅ Monthly bonus applied: +${bonusResult.bonusAmount} scans and recipes`);
+          }
+        } catch (error) {
+          console.log('Note: Usage tracking initialization/bonus check:', error.message);
+          // Don't block app if usage tracking fails
+        }
       } else {
         // No user signed in, create anonymous user
         console.log('No user found, signing in anonymously...');
         signInAnonymously(auth)
-          .then((result) => {
+          .then(async (result) => {
             console.log('Anonymous sign-in successful:', result.user.uid);
             setUser(result.user);
             setAuthLoading(false);
+            
+            // Initialize usage tracking for new anonymous user
+            try {
+              await initializeUsageTracking(result.user.uid, 'anonymous');
+            } catch (error) {
+              console.log('Note: Usage tracking initialization:', error.message);
+            }
           })
           .catch((error) => {
             console.error('Authentication error:', error);
@@ -241,6 +318,28 @@ export default function App() {
     
     return () => unsubscribe();
   }, []);
+
+  // Show loading while checking first launch
+  if (checkingFirstLaunch) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#E53E3E" />
+      </View>
+    );
+  }
+
+  // Show welcome screen on first launch
+  if (showWelcome) {
+    return (
+      <LanguageProvider>
+        <WelcomeScreen
+          onContinueAsGuest={handleContinueAsGuest}
+          onCreateAccount={handleCreateAccount}
+          onLogin={handleLogin}
+        />
+      </LanguageProvider>
+    );
+  }
 
   // Show loading screen while authenticating
   if (authLoading) {

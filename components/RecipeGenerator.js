@@ -19,6 +19,8 @@ import { app, auth } from '../firebase.config';
 import { useLanguage } from '../contexts/LanguageContext';
 import { t } from '../contexts/translations';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useFocusEffect } from '@react-navigation/native';
+import { getUserUsage, decrementRecipeCount } from '../utils/usageTracking';
 
 export default function RecipeGenerator() {
   const [pantryItems, setPantryItems] = useState([]);
@@ -44,6 +46,8 @@ export default function RecipeGenerator() {
   const [savedRecipes, setSavedRecipes] = useState([]);
   const [selectedCollectionFilter, setSelectedCollectionFilter] = useState('all');
   const [savedRecipesExpanded, setSavedRecipesExpanded] = useState(false);
+  const [usageData, setUsageData] = useState(null);
+  const [loadingUsage, setLoadingUsage] = useState(false);
   const { language } = useLanguage();
 
   const db = getFirestore(app);
@@ -110,6 +114,13 @@ export default function RecipeGenerator() {
           setSelectedIngredients(itemNames);
         },
         (error) => {
+          // Silently handle permission errors during auth transitions
+          if (error.code === 'permission-denied') {
+            console.log('Permission denied - user may be signing out');
+            setPantryItems([]);
+            setLoading(false);
+            return;
+          }
           console.error('Error fetching pantry items:', error);
           Alert.alert('Error', 'Failed to load pantry items');
           setLoading(false);
@@ -121,6 +132,34 @@ export default function RecipeGenerator() {
 
     return () => unsubscribeAuth();
   }, []);
+
+  // Load usage data
+  useEffect(() => {
+    if (auth.currentUser) {
+      loadUsageData(auth.currentUser.uid);
+    }
+  }, [auth.currentUser?.uid]);
+
+  // Reload usage data when screen comes into focus
+  useFocusEffect(
+    React.useCallback(() => {
+      if (auth.currentUser) {
+        loadUsageData(auth.currentUser.uid);
+      }
+    }, [])
+  );
+
+  const loadUsageData = async (userId) => {
+    try {
+      setLoadingUsage(true);
+      const usage = await getUserUsage(userId);
+      setUsageData(usage);
+    } catch (error) {
+      console.error('Error loading usage data:', error);
+    } finally {
+      setLoadingUsage(false);
+    }
+  };
 
   // Fetch saved recipes from Firestore
   useEffect(() => {
@@ -142,6 +181,12 @@ export default function RecipeGenerator() {
         }));
         setSavedRecipes(recipes);
       }, (error) => {
+        // Silently handle permission errors during auth transitions
+        if (error.code === 'permission-denied') {
+          console.log('Permission denied for saved recipes - user may be signing out');
+          setSavedRecipes([]);
+          return;
+        }
         console.error('Error fetching saved recipes:', error);
       });
 
@@ -153,6 +198,25 @@ export default function RecipeGenerator() {
 
   // Generate recipe suggestions
   const generateRecipeSuggestions = async () => {
+    // Check if user has recipes remaining
+    if (usageData && usageData.recipesRemaining <= 0) {
+      const tierText = usageData.tier === 'anonymous' 
+        ? t('createAccountToGetMore', language)
+        : t('upgradeToPremium', language);
+      
+      Alert.alert(
+        t('recipesLimitReached', language),
+        tierText,
+        [
+          { text: t('cancel', language), style: 'cancel' },
+          { 
+            text: usageData.tier === 'anonymous' ? t('createAccount', language) : t('upgradeToPremium', language),
+          }
+        ]
+      );
+      return;
+    }
+
     if (pantryItems.length === 0) {
       Alert.alert(t('emptyPantry', language), t('addItemsFirst', language));
       return;
@@ -229,6 +293,15 @@ export default function RecipeGenerator() {
       setSelectedDietaryFilter('all'); // Reset dietary filter
 
       if (sanitizedRecipes.length > 0) {
+        // Decrement recipe count after successful generation
+        if (auth.currentUser) {
+          const decrementResult = await decrementRecipeCount(auth.currentUser.uid);
+          if (decrementResult.success) {
+            // Refresh usage data to show updated count
+            loadUsageData(auth.currentUser.uid);
+          }
+        }
+
         const successMessage =
           `${t('found', language)} ${sanitizedRecipes.length} ${t('deliciousRecipes', language)}` +
           (noteMessage ? `\n\n${noteMessage}` : '');
@@ -947,6 +1020,19 @@ export default function RecipeGenerator() {
                 )}
               </View>
             )}
+          </View>
+        )}
+
+        {/* Recipe usage counter badge */}
+        {!loadingUsage && usageData && (
+          <View style={styles.usageCounterBadge}>
+            <Text style={styles.usageCounterIcon}>🍳</Text>
+            <Text style={styles.usageCounterText}>
+              {usageData.tier === 'premium' 
+                ? `${usageData.recipesRemaining}/1000 ${t('recipesRemaining', language)}`
+                : `${usageData.recipesRemaining} ${t('recipesRemaining', language)}`
+              }
+            </Text>
           </View>
         )}
 
@@ -2100,4 +2186,27 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
   },
+  usageCounterBadge: {
+    marginHorizontal: 20,
+    marginBottom: 12,
+    backgroundColor: '#FFF3CD',
+    borderRadius: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    borderWidth: 1,
+    borderColor: '#FFD54F',
+  },
+  usageCounterIcon: {
+    fontSize: 18,
+  },
+  usageCounterText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#856404',
+  },
 });
+

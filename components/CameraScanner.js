@@ -25,6 +25,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { getFirestore, doc, deleteDoc, updateDoc } from 'firebase/firestore';
 import { app, auth } from '../firebase.config';
+import { getUserUsage, decrementScanCount } from '../utils/usageTracking';
 
 // 2. Create a functional component named CameraScanner.
 export default function CameraScanner({ navigation }) {
@@ -43,6 +44,8 @@ export default function CameraScanner({ navigation }) {
   const [editingItemId, setEditingItemId] = useState(null);
   const [editItemName, setEditItemName] = useState('');
   const [editItemCategory, setEditItemCategory] = useState('');
+  const [usageData, setUsageData] = useState(null);
+  const [loadingUsage, setLoadingUsage] = useState(true);
   const cameraRef = useRef(null);
   const fileInputRef = useRef(null);
   const recordingIntervalRef = useRef(null);
@@ -51,6 +54,34 @@ export default function CameraScanner({ navigation }) {
 
   const CLOUD_FUNCTION_URL = 'https://analyzeimage-awiyk42b4q-uc.a.run.app';
   const VIDEO_FRAME_SAMPLE_MS = [500, 2000, 4000, 6000, 8000];
+
+  // Load usage data on mount and when user changes
+  useEffect(() => {
+    if (auth.currentUser) {
+      loadUsageData(auth.currentUser.uid);
+    }
+  }, [auth.currentUser?.uid]);
+
+  // Reload usage data when screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      if (auth.currentUser) {
+        loadUsageData(auth.currentUser.uid);
+      }
+    }, [])
+  );
+
+  const loadUsageData = async (userId) => {
+    try {
+      setLoadingUsage(true);
+      const usage = await getUserUsage(userId);
+      setUsageData(usage);
+    } catch (error) {
+      console.error('Error loading usage data:', error);
+    } finally {
+      setLoadingUsage(false);
+    }
+  };
 
   const convertUriToBase64 = async (uri) => {
     if (!uri) {
@@ -125,7 +156,7 @@ export default function CameraScanner({ navigation }) {
     return await analyzeImageBase64(base64);
   };
 
-  const handleDetectionResult = (result, { silentNoItem = false } = {}) => {
+  const handleDetectionResult = async (result, { silentNoItem = false } = {}) => {
     if (!result) {
       return false;
     }
@@ -139,6 +170,16 @@ export default function CameraScanner({ navigation }) {
         detectionSource: result.detectionSource,
       });
       setShowReviewModal(true);
+      
+      // Decrement scan count after successful detection
+      if (auth.currentUser) {
+        const decrementResult = await decrementScanCount(auth.currentUser.uid);
+        if (decrementResult.success) {
+          // Refresh usage data to show updated count
+          loadUsageData(auth.currentUser.uid);
+        }
+      }
+      
       return true;
     }
 
@@ -208,6 +249,29 @@ export default function CameraScanner({ navigation }) {
 
   // 5. Write a function called 'takePicture' that will be called by a button.
   const takePicture = async () => {
+    // Check if user has scans remaining
+    if (usageData && usageData.scansRemaining <= 0) {
+      const tierText = usageData.tier === 'anonymous' 
+        ? t('createAccountToGetMore', language)
+        : t('upgradeToPremium', language);
+      
+      Alert.alert(
+        t('scansLimitReached', language),
+        tierText,
+        [
+          { text: t('cancel', language), style: 'cancel' },
+          { 
+            text: usageData.tier === 'anonymous' ? t('createAccount', language) : t('upgradeToPremium', language),
+            onPress: () => {
+              // Navigate to Pantry tab first, then to Profile screen
+              navigation.navigate('Pantry', { screen: 'ProfileScreen' });
+            }
+          }
+        ]
+      );
+      return;
+    }
+
     if (Platform.OS === 'web') {
       // On web, trigger file input (only if not already loading)
       if (!isLoading) {
@@ -282,6 +346,29 @@ export default function CameraScanner({ navigation }) {
 
   // Video recording functions - SIMPLE VERSION THAT WORKED
   const startVideoRecording = async () => {
+    // Check if user has scans remaining
+    if (usageData && usageData.scansRemaining <= 0) {
+      const tierText = usageData.tier === 'anonymous' 
+        ? t('createAccountToGetMore', language)
+        : t('upgradeToPremium', language);
+      
+      Alert.alert(
+        t('scansLimitReached', language),
+        tierText,
+        [
+          { text: t('cancel', language), style: 'cancel' },
+          { 
+            text: usageData.tier === 'anonymous' ? t('createAccount', language) : t('upgradeToPremium', language),
+            onPress: () => {
+              // Navigate to Pantry tab first, then to Profile screen
+              navigation.navigate('Pantry', { screen: 'ProfileScreen' });
+            }
+          }
+        ]
+      );
+      return;
+    }
+
     if (Platform.OS === 'web') {
       Alert.alert('Not Supported', 'Video recording is available on mobile only.');
       return;
@@ -817,6 +904,19 @@ export default function CameraScanner({ navigation }) {
           />
           {/* Overlay UI positioned absolutely over camera */}
           <View style={styles.cameraOverlay}>
+            {/* Usage counter badge at top */}
+            {!loadingUsage && usageData && (
+              <View style={styles.usageCounterBadge}>
+                <Ionicons name="camera-outline" size={14} color="#fff" />
+                <Text style={styles.usageCounterText}>
+                  {usageData.tier === 'premium' 
+                    ? `${usageData.scansRemaining}/1000`
+                    : usageData.scansRemaining
+                  }
+                </Text>
+              </View>
+            )}
+            
             {/* Mode Toggle at top */}
             <View style={styles.topControls}>
               <TouchableOpacity 
@@ -1509,6 +1609,26 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
   },
+  usageCounterBadge: {
+    position: 'absolute',
+    top: 20,
+    right: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 20,
+    gap: 6,
+    zIndex: 10,
+  },
+  usageCounterText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
+  },
 });
+
+
 
 
