@@ -10,6 +10,7 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
+  Linking,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { 
@@ -19,12 +20,14 @@ import {
   linkWithCredential,
   EmailAuthProvider,
   updateProfile,
+  sendPasswordResetEmail,
 } from 'firebase/auth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { auth } from '../firebase.config';
 import { useLanguage } from '../contexts/LanguageContext';
 import { t } from '../contexts/translations';
 import LanguageSelector from './LanguageSelector';
+import PremiumPlansScreen from './PremiumPlansScreen';
 import { getUserUsage, redeemGiftCode, checkAndApplyMonthlyBonus } from '../utils/usageTracking';
 
 export default function Profile({ navigation }) {
@@ -261,6 +264,26 @@ export default function Profile({ navigation }) {
     }
   };
 
+  const handleForgotPassword = async () => {
+    if (!email.trim()) {
+      Alert.alert(t('error', language), t('enterEmailForPasswordReset', language));
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await sendPasswordResetEmail(auth, email.trim());
+      Alert.alert(
+        t('success', language),
+        t('forgotPasswordEmailSent', language)
+      );
+    } catch (error) {
+      Alert.alert(t('error', language), getAuthErrorMessage(error));
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleUpgradeAccount = async () => {
     if (!email || !password || !confirmPassword) {
       Alert.alert(t('error', language), t('fillAllFields', language));
@@ -320,11 +343,8 @@ export default function Profile({ navigation }) {
 
     setLoading(true);
     try {
-      // Sign out of anonymous account
-      await signOut(auth);
-      
-      // Sign in with existing account
-      await signInWithEmailAndPassword(auth, email, password);
+      // Sign in directly – Firebase will replace the anonymous session automatically
+      await signInWithEmailAndPassword(auth, email.trim(), password);
       
       setShowAnonymousLogin(false);
       setEmail('');
@@ -383,6 +403,9 @@ export default function Profile({ navigation }) {
                 onChangeText={setPassword}
                 secureTextEntry
               />
+              <TouchableOpacity style={styles.forgotPasswordButton} onPress={handleForgotPassword}>
+                <Text style={styles.forgotPasswordText}>{t('forgotPassword', language)}</Text>
+              </TouchableOpacity>
               <TouchableOpacity style={styles.primaryButton} onPress={handleLogin}>
                 <Text style={styles.primaryButtonText}>{t('login', language)}</Text>
               </TouchableOpacity>
@@ -549,13 +572,14 @@ export default function Profile({ navigation }) {
           <TouchableOpacity 
             style={styles.upgradePremiumButton}
             onPress={() => {
-              Alert.alert(
-                '👑 ' + t('premium', language),
-                t('upgradeToPremiumMessage', language) + '\n\n' +
-                '• 1000 ' + t('scansRemaining', language).toLowerCase() + '/month\n' +
-                '• 1000 ' + t('recipesRemaining', language).toLowerCase() + '/month\n' +
-                '• Early bird: €2/month or €20/year'
-              );
+              if (navigation && navigation.navigate) {
+                navigation.navigate('PremiumPlans');
+              } else {
+                Alert.alert(
+                  '👑 ' + t('premium', language),
+                  t('upgradeToPremiumMessage', language)
+                );
+              }
             }}
           >
             <Text style={styles.upgradePremiumText}>⬆️ {t('upgradeToPremium', language)}</Text>
@@ -693,6 +717,9 @@ export default function Profile({ navigation }) {
                 onChangeText={setPassword}
                 secureTextEntry
               />
+              <TouchableOpacity style={styles.forgotPasswordButton} onPress={handleForgotPassword}>
+                <Text style={styles.forgotPasswordText}>{t('forgotPassword', language)}</Text>
+              </TouchableOpacity>
               <TouchableOpacity style={styles.primaryButton} onPress={handleAnonymousLogin}>
                 <Text style={styles.primaryButtonText}>🔑 {t('login', language)}</Text>
               </TouchableOpacity>
@@ -736,14 +763,11 @@ export default function Profile({ navigation }) {
         <TouchableOpacity 
           style={styles.legalLink}
           onPress={() => {
+            const url = 'https://github.com/jsitla/Pantryai/blob/main/PRIVACY-POLICY.md';
             if (Platform.OS === 'web') {
-              window.open('https://github.com/yourusername/Pantryai/blob/main/PRIVACY-POLICY.md', '_blank');
+              window.open(url, '_blank');
             } else {
-              Alert.alert(
-                'Privacy Policy',
-                'Please visit our website to view the Privacy Policy, or contact support@shelfze.app',
-                [{ text: 'OK' }]
-              );
+              Linking.openURL(url).catch(() => Alert.alert('Error', 'Could not open URL.'));
             }
           }}
         >
@@ -754,14 +778,11 @@ export default function Profile({ navigation }) {
         <TouchableOpacity 
           style={styles.legalLink}
           onPress={() => {
+            const url = 'https://github.com/jsitla/Pantryai/blob/main/TERMS-OF-SERVICE.md';
             if (Platform.OS === 'web') {
-              window.open('https://github.com/yourusername/Pantryai/blob/main/TERMS-OF-SERVICE.md', '_blank');
+              window.open(url, '_blank');
             } else {
-              Alert.alert(
-                'Terms of Service',
-                'Please visit our website to view the Terms of Service, or contact support@shelfze.app',
-                [{ text: 'OK' }]
-              );
+              Linking.openURL(url).catch(() => Alert.alert('Error', 'Could not open URL.'));
             }
           }}
         >
@@ -985,6 +1006,16 @@ const styles = StyleSheet.create({
     padding: 12,
     fontSize: 16,
     marginBottom: 15,
+  },
+  forgotPasswordButton: {
+    alignSelf: 'flex-end',
+    marginBottom: 15,
+    paddingVertical: 5,
+  },
+  forgotPasswordText: {
+    color: '#3B82F6',
+    fontSize: 14,
+    fontWeight: '600',
   },
   primaryButton: {
     backgroundColor: '#E53E3E',
