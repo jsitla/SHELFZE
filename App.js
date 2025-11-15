@@ -2,7 +2,7 @@
 import 'react-native-gesture-handler';
 
 // 1. Import necessary components from React, React Native, and Expo
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Component } from 'react';
 import { StyleSheet, View, TouchableOpacity, Text, ActivityIndicator, Alert } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { NavigationContainer } from '@react-navigation/native';
@@ -15,6 +15,7 @@ import RecipeGenerator from './components/RecipeGenerator';
 import ManualEntry from './components/ManualEntry';
 import Profile from './components/Profile';
 import WelcomeScreen from './components/WelcomeScreen';
+import AuthScreen from './components/AuthScreen';
 import LanguageSelector from './components/LanguageSelector';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
 import { t } from './contexts/translations';
@@ -25,6 +26,44 @@ import { checkAndApplyMonthlyBonus, initializeUsageTracking } from './utils/usag
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
+
+// Error Boundary Component - Catches React errors and prevents blank screen
+class ErrorBoundary extends Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    // Log error for debugging (only in development)
+    if (__DEV__) {
+      console.error('App Error:', error, errorInfo);
+    }
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorEmoji}>⚠️</Text>
+          <Text style={styles.errorTitle}>Oops! Something went wrong</Text>
+          <Text style={styles.errorMessage}>Please restart the app to continue</Text>
+          <TouchableOpacity
+            style={styles.restartButton}
+            onPress={() => this.setState({ hasError: false, error: null })}
+          >
+            <Text style={styles.restartButtonText}>Try Again</Text>
+          </TouchableOpacity>
+        </View>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 // Recipe wrapper to count ingredients
 function RecipeWrapper() {
@@ -219,6 +258,8 @@ export default function App() {
   const [user, setUser] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [showWelcome, setShowWelcome] = useState(false);
+  const [showAuth, setShowAuth] = useState(false);
+  const [authMode, setAuthMode] = useState('login'); // 'login' or 'signup'
   const [checkingFirstLaunch, setCheckingFirstLaunch] = useState(true);
 
   // Check if this is first launch
@@ -245,9 +286,13 @@ export default function App() {
     try {
       await AsyncStorage.setItem('hasLaunchedBefore', 'true');
       setShowWelcome(false);
-      // Anonymous sign-in will happen in the auth listener below
+      setAuthLoading(true);
+      // Sign in anonymously immediately
+      await signInAnonymously(auth);
+      // Auth listener will handle the rest
     } catch (error) {
-      console.error('Error saving first launch:', error);
+      console.error('Error with guest sign-in:', error);
+      setAuthLoading(false);
     }
   };
 
@@ -255,9 +300,10 @@ export default function App() {
     try {
       await AsyncStorage.setItem('hasLaunchedBefore', 'true');
       setShowWelcome(false);
-      // Will show the main app, user can navigate to Profile to create account
+      setAuthMode('signup');
+      setShowAuth(true);
     } catch (error) {
-      console.error('Error saving first launch:', error);
+      console.error('Error with create account flow:', error);
     }
   };
 
@@ -265,10 +311,21 @@ export default function App() {
     try {
       await AsyncStorage.setItem('hasLaunchedBefore', 'true');
       setShowWelcome(false);
-      // Will show the main app, user can navigate to Profile to log in
+      setAuthMode('login');
+      setShowAuth(true);
     } catch (error) {
-      console.error('Error saving first launch:', error);
+      console.error('Error with login flow:', error);
     }
+  };
+
+  const handleAuthSuccess = () => {
+    setShowAuth(false);
+    // Auth listener will handle the rest
+  };
+
+  const handleAuthBack = () => {
+    setShowAuth(false);
+    setShowWelcome(true);
   };
 
   useEffect(() => {
@@ -294,25 +351,36 @@ export default function App() {
           // Don't block app if usage tracking fails
         }
       } else {
-        // No user signed in, create anonymous user
-        console.log('No user found, signing in anonymously...');
-        signInAnonymously(auth)
-          .then(async (result) => {
-            console.log('Anonymous sign-in successful:', result.user.uid);
-            setUser(result.user);
-            setAuthLoading(false);
-            
-            // Initialize usage tracking for new anonymous user
-            try {
-              await initializeUsageTracking(result.user.uid, 'anonymous');
-            } catch (error) {
-              console.log('Note: Usage tracking initialization:', error.message);
-            }
-          })
-          .catch((error) => {
-            console.error('Authentication error:', error);
-            setAuthLoading(false);
-          });
+        // No user signed in
+        // Check if this is first launch to decide whether to auto-sign in
+        const hasLaunched = await AsyncStorage.getItem('hasLaunchedBefore');
+        
+        if (hasLaunched === null) {
+          // First time user - don't auto-sign in, show welcome screen
+          console.log('First time user - showing welcome screen');
+          setShowWelcome(true);
+          setAuthLoading(false);
+        } else {
+          // Returning user - auto-sign in anonymously
+          console.log('No user found, signing in anonymously...');
+          signInAnonymously(auth)
+            .then(async (result) => {
+              console.log('Anonymous sign-in successful:', result.user.uid);
+              setUser(result.user);
+              setAuthLoading(false);
+              
+              // Initialize usage tracking for new anonymous user
+              try {
+                await initializeUsageTracking(result.user.uid, 'anonymous');
+              } catch (error) {
+                console.log('Note: Usage tracking initialization:', error.message);
+              }
+            })
+            .catch((error) => {
+              console.error('Authentication error:', error);
+              setAuthLoading(false);
+            });
+        }
       }
     });
     
@@ -341,6 +409,19 @@ export default function App() {
     );
   }
 
+  // Show auth screen (login/signup)
+  if (showAuth) {
+    return (
+      <LanguageProvider>
+        <AuthScreen
+          mode={authMode}
+          onBack={handleAuthBack}
+          onSuccess={handleAuthSuccess}
+        />
+      </LanguageProvider>
+    );
+  }
+
   // Show loading screen while authenticating
   if (authLoading) {
     return (
@@ -362,14 +443,16 @@ export default function App() {
   }
 
   return (
-    <LanguageProvider>
-      <NavigationContainer>
-        <View style={styles.container}>
-          <StatusBar style="auto" />
-          <AppNavigator />
-        </View>
-      </NavigationContainer>
-    </LanguageProvider>
+    <ErrorBoundary>
+      <LanguageProvider>
+        <NavigationContainer>
+          <View style={styles.container}>
+            <StatusBar style="auto" />
+            <AppNavigator />
+          </View>
+        </NavigationContainer>
+      </LanguageProvider>
+    </ErrorBoundary>
   );
 }
 
@@ -440,5 +523,40 @@ const styles = StyleSheet.create({
   errorSubtext: {
     fontSize: 14,
     color: '#999',
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#F5F5F5',
+    padding: 20,
+  },
+  errorEmoji: {
+    fontSize: 64,
+    marginBottom: 20,
+  },
+  errorTitle: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  errorMessage: {
+    fontSize: 16,
+    color: '#666',
+    textAlign: 'center',
+    marginBottom: 30,
+  },
+  restartButton: {
+    backgroundColor: '#E53E3E',
+    paddingHorizontal: 30,
+    paddingVertical: 15,
+    borderRadius: 10,
+  },
+  restartButtonText: {
+    color: '#FFF',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });

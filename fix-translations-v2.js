@@ -1,0 +1,335 @@
+const fs = require('fs');
+const path = require('path');
+
+const filePath = path.join(__dirname, 'contexts', 'translations.js');
+const lines = fs.readFileSync(filePath, 'utf8').split('\n');
+
+// French translations to add after line 770 (before }),)
+const frenchTranslations = [
+	"\t\tnutrition: 'Nutrition',",
+	"\t\tcalories: 'Calories',",
+	"\t\tprotein: 'Protéines',",
+	"\t\tcarbs: 'Glucides',",
+	"\t\tfat: 'Lipides',",
+	"\t\tperServing: 'par portion',",
+	"\t\tallTime: 'Tout',",
+	"\t\tquickRecipes: 'Rapides (< 30 min)',",
+	"\t\tmediumRecipes: 'Moyennes (30-60 min)',",
+	"\t\tlongRecipes: 'Longues (> 60 min)',",
+	"\t\tallDiets: 'Tous',",
+	"\t\tvegetarian: 'Végétarien',",
+	"\t\tvegan: 'Végétalien',",
+	"\t\tglutenFree: 'Sans gluten',",
+	"\t\tlowCalorie: 'Faible en calories',",
+	"\t\trateThisRecipe: 'Noter cette recette',",
+	"\t\twouldMakeAgain: 'Je referais cette recette',",
+	"\t\tsaveRating: 'Enregistrer la note',",
+	"\t\tratingSaved: 'Note enregistrée !',",
+	"\t\tthankYouFeedback: 'Merci pour votre avis !',",
+	"\t\tfailedToSaveRating: 'Échec de l\\'enregistrement de la note',",
+	"\t\taddToCollection: 'Ajouter à la collection',",
+	"\t\tfavorite: 'Favori',",
+	"\t\tcooked: 'Préparé',",
+	"\t\twantToTry: 'À essayer',",
+	"\t\tcollectionUpdated: 'Collection mise à jour !',",
+	"\t\taddedToFavorites: 'Ajouté aux favoris',",
+	"\t\tremovedFromFavorites: 'Retiré des favoris',",
+	"\t\tmarkedAsCooked: 'Marqué comme préparé',",
+	"\t\tremovedFromCooked: 'Retiré des préparés',",
+	"\t\taddedToWantToTry: 'Ajouté à la liste « à essayer »',",
+	"\t\tremovedFromWantToTry: 'Retiré de la liste « à essayer »',",
+	"\t\tfailedToUpdateCollection: 'Échec de la mise à jour de la collection',",
+	"\t\tsavedRecipes: 'Recettes enregistrées',",
+	"\t\tfavorites: 'Favoris',",
+	"\t\tnoRecipesMatchFilter: 'Aucune recette ne correspond aux filtres',",
+	"\t\ttryDifferentFilter: 'Essayez des filtres différents',",
+	"\t\tclearFilters: 'Effacer les filtres',",
+	"\t\tingredientsToInclude: 'Ingrédients à inclure',",
+	"\t\tingredientsAvailableForRecipe: 'ingrédients disponibles pour la recette',",
+	"\t\tadditionalGuidance: 'Instructions supplémentaires',",
+	"\t\tguidancePlaceholder: 'Par exemple : pas de noix, faible en sodium...',",
+	"\t\tclearGuidance: 'Effacer les instructions',",
+	"\t\topen: 'Ouvrir',",
+	"\t\tconfirmRemove: 'Confirmer la suppression',",
+	"\t\tconfirmRemoveMessage: 'Êtes-vous sûr de vouloir supprimer cette recette ?',",
+	"\t\tremoved: 'Supprimé',",
+	"\t\trecipeRemoved: 'Recette supprimée',",
+	"\t\tfailedToRemove: 'Échec de la suppression de la recette',",
+	"\t\tselectAll: 'Tout sélectionner',",
+	"\t\tdeselectAll: 'Tout désélectionner',",
+	"\t\taccount: 'Compte',",
+	"\t\tmyAccount: 'Mon compte',",
+	"\t\tlogin: 'Connexion',",
+	"\t\tloginOrSignup: 'Connexion / Inscription',",
+	"\t\tcreateAccount: 'Créer un compte',",
+	"\t\talreadyHaveAccount: 'Vous avez déjà un compte ?',",
+	"\t\tsignOut: 'Déconnexion',",
+	"\t\tsignOutConfirm: 'Êtes-vous sûr de vouloir vous déconnecter ?',",
+	"\t\tsignedOutSuccess: 'Déconnexion réussie',",
+	"\t\tloginSuccess: 'Connexion réussie',",
+	"\t\tloginFailed: 'Échec de la connexion',",
+	"\t\tsignupFailed: 'Échec de l\\'inscription',",
+	"\t\tupgradeFailed: 'Échec de la mise à niveau',",
+	"\t\taccountCreated: 'Compte créé avec succès !',",
+	"\t\taccountUpgraded: 'Compte mis à niveau avec succès !',",
+	"\t\tyouNowHave: 'Vous avez maintenant',",
+	"\t\tscans: 'scans',",
+	"\t\tpassword: 'Mot de passe',",
+	"\t\tconfirmPassword: 'Confirmer le mot de passe',",
+	"\t\tdisplayName: 'Nom d\\'affichage',",
+	"\t\tfillAllFields: 'Veuillez remplir tous les champs',",
+	"\t\tpasswordsDoNotMatch: 'Les mots de passe ne correspondent pas',",
+	"\t\tpasswordTooShort: 'Le mot de passe doit contenir au moins 6 caractères',",
+	"\t\tinvalidEmail: 'Adresse e-mail invalide',",
+	"\t\tuserDisabled: 'Ce compte a été désactivé',",
+	"\t\tuserNotFound: 'Aucun compte trouvé avec cette adresse e-mail',",
+	"\t\twrongPassword: 'Mot de passe incorrect',",
+	"\t\tinvalidCredentials: 'Identifiants invalides',",
+	"\t\ttooManyAttempts: 'Trop de tentatives. Veuillez réessayer plus tard',",
+	"\t\tnetworkError: 'Erreur réseau. Vérifiez votre connexion',",
+	"\t\temailInUse: 'Cette adresse e-mail est déjà utilisée',",
+	"\t\tweakPassword: 'Le mot de passe est trop faible',",
+	"\t\tguestAccount: 'Compte invité',",
+	"\t\tpermanentAccount: 'Compte permanent',",
+	"\t\tguestAccountWarning: 'Vos données peuvent être perdues si vous désinstallez l\\'application',",
+	"\t\tuserId: 'ID utilisateur',",
+	"\t\tupgradeAccount: 'Mettre à niveau le compte',",
+	"\t\tupgradeAccountDesc: 'Créez un compte permanent pour sauvegarder vos données',",
+	"\t\tupgradeNow: 'Mettre à niveau maintenant',",
+	"\t\texistingAccount: 'Compte existant',",
+	"\t\texistingAccountDesc: 'Connectez-vous pour synchroniser vos données',",
+	"\t\tloginExisting: 'Se connecter avec un compte existant',",
+	"\t\tswitchedToExistingAccount: 'Basculé vers le compte existant',",
+	"\t\twelcomeTagline: 'Votre garde-manger intelligent. Zéro gaspillage.',",
+	"\t\twelcomeTitle: 'Bienvenue sur Shelfze',",
+	"\t\twelcomeSubtitle: 'Suivez la nourriture. Générez des recettes. Réduisez le gaspillage.',",
+	"\t\ttryItFirst: 'Essayez d\\'abord',",
+	"\t\tnoAccountNeeded: 'Aucun compte nécessaire pour commencer',",
+	"\t\tstartScanningNow: 'Commencer à scanner maintenant',",
+	"\t\tguestScansLimit: 'Limite : 50 scans',",
+	"\t\tguestRecipesLimit: 'Limite : 5 recettes',",
+	"\t\tdataSavedLocally: 'Données enregistrées localement',",
+	"\t\tcontinueAsGuest: 'Continuer en tant qu\\'invité',",
+	"\t\tcreateFreeAccount: 'Créer un compte gratuit',",
+	"\t\trecommended: 'Recommandé',",
+	"\t\tfreeScansLimit: '250 scans/mois',",
+	"\t\tfreeRecipesLimit: '50 recettes/mois',",
+	"\t\tmonthlyBonus: 'Bonus mensuel',",
+	"\t\tsyncAcrossDevices: 'Synchronisation entre appareils',",
+	"\t\tsecureBackup: 'Sauvegarde sécurisée',",
+	"\t\tgetStarted: 'Commencer',",
+	"\t\tupgradeAnytime: 'Vous pouvez passer à Premium à tout moment',",
+	"\t\ttier: 'Niveau',",
+	"\t\tanonymous: 'Anonyme',",
+	"\t\tfree: 'Gratuit',",
+	"\t\tscansRemaining: 'Scans restants',",
+	"\t\trecipesRemaining: 'Recettes restantes',",
+	"\t\tunlimited: 'Illimité',",
+	"\t\tupgradeToPremium: 'Passer à Premium',",
+	"\t\tlimitReached: 'Limite atteinte',",
+	"\t\tscansLimitReached: 'Limite de scans atteinte',",
+	"\t\trecipesLimitReached: 'Limite de recettes atteinte',",
+	"\t\tcreateAccountToGetMore: 'Créez un compte pour obtenir plus de scans et de recettes',",
+	"\t\tupgradeToPremiumMessage: 'Passez à Premium pour des scans et recettes illimités',",
+	"\t\tmonthlyBonusAdded: 'Bonus mensuel ajouté !',",
+	"\t\tgiftCode: 'Code cadeau',",
+	"\t\tredeemGiftCode: 'Utiliser un code cadeau',",
+	"\t\tenterGiftCode: 'Entrez votre code cadeau',",
+	"\t\tredeem: 'Utiliser',",
+	"\t\tgiftCodeSuccess: 'Code cadeau utilisé avec succès !',",
+	"\t\tgiftCodeInvalid: 'Code cadeau invalide',",
+	"\t\tgiftCodeUsed: 'Ce code a déjà été utilisé',",
+	"\t\tgiftCodeExpired: 'Ce code a expiré',",
+	"\t\thaveGiftCode: 'Vous avez un code cadeau ?',"
+];
+
+// Italian translations
+const italianTranslations = [
+	"\t\tnutrition: 'Nutrizione',",
+	"\t\tcalories: 'Calorie',",
+	"\t\tprotein: 'Proteine',",
+	"\t\tcarbs: 'Carboidrati',",
+	"\t\tfat: 'Grassi',",
+	"\t\tperServing: 'per porzione',",
+	"\t\tallTime: 'Tutte',",
+	"\t\tquickRecipes: 'Veloci (< 30 min)',",
+	"\t\tmediumRecipes: 'Medie (30-60 min)',",
+	"\t\tlongRecipes: 'Lunghe (> 60 min)',",
+	"\t\tallDiets: 'Tutte',",
+	"\t\tvegetarian: 'Vegetariana',",
+	"\t\tvegan: 'Vegana',",
+	"\t\tglutenFree: 'Senza glutine',",
+	"\t\tlowCalorie: 'Basso contenuto calorico',",
+	"\t\trateThisRecipe: 'Valuta questa ricetta',",
+	"\t\twouldMakeAgain: 'La rifarei',",
+	"\t\tsaveRating: 'Salva valutazione',",
+	"\t\tratingSaved: 'Valutazione salvata!',",
+	"\t\tthankYouFeedback: 'Grazie per il tuo feedback!',",
+	"\t\tfailedToSaveRating: 'Impossibile salvare la valutazione',",
+	"\t\taddToCollection: 'Aggiungi alla raccolta',",
+	"\t\tfavorite: 'Preferito',",
+	"\t\tcooked: 'Cucinato',",
+	"\t\twantToTry: 'Voglio provare',",
+	"\t\tcollectionUpdated: 'Raccolta aggiornata!',",
+	"\t\taddedToFavorites: 'Aggiunto ai preferiti',",
+	"\t\tremovedFromFavorites: 'Rimosso dai preferiti',",
+	"\t\tmarkedAsCooked: 'Segnato come cucinato',",
+	"\t\tremovedFromCooked: 'Rimosso dai cucinati',",
+	"\t\taddedToWantToTry: 'Aggiunto alla lista \"Voglio provare\"',",
+	"\t\tremovedFromWantToTry: 'Rimosso dalla lista \"Voglio provare\"',",
+	"\t\tfailedToUpdateCollection: 'Impossibile aggiornare la raccolta',",
+	"\t\tsavedRecipes: 'Ricette salvate',",
+	"\t\tfavorites: 'Preferiti',",
+	"\t\tnoRecipesMatchFilter: 'Nessuna ricetta corrisponde ai filtri',",
+	"\t\ttryDifferentFilter: 'Prova filtri diversi',",
+	"\t\tclearFilters: 'Cancella filtri',",
+	"\t\tingredientsToInclude: 'Ingredienti da includere',",
+	"\t\tingredientsAvailableForRecipe: 'ingredienti disponibili per la ricetta',",
+	"\t\tadditionalGuidance: 'Istruzioni aggiuntive',",
+	"\t\tguidancePlaceholder: 'Ad esempio: niente noci, basso contenuto di sodio...',",
+	"\t\tclearGuidance: 'Cancella istruzioni',",
+	"\t\topen: 'Apri',",
+	"\t\tconfirmRemove: 'Conferma rimozione',",
+	"\t\tconfirmRemoveMessage: 'Sei sicuro di voler rimuovere questa ricetta?',",
+	"\t\tremoved: 'Rimosso',",
+	"\t\trecipeRemoved: 'Ricetta rimossa',",
+	"\t\tfailedToRemove: 'Impossibile rimuovere la ricetta',",
+	"\t\tselectAll: 'Seleziona tutto',",
+	"\t\tdeselectAll: 'Deseleziona tutto',",
+	"\t\taccount: 'Account',",
+	"\t\tmyAccount: 'Il mio account',",
+	"\t\tlogin: 'Accedi',",
+	"\t\tloginOrSignup: 'Accedi / Registrati',",
+	"\t\tcreateAccount: 'Crea account',",
+	"\t\talreadyHaveAccount: 'Hai già un account?',",
+	"\t\tsignOut: 'Esci',",
+	"\t\tsignOutConfirm: 'Sei sicuro di voler uscire?',",
+	"\t\tsignedOutSuccess: 'Disconnessione riuscita',",
+	"\t\tloginSuccess: 'Accesso riuscito',",
+	"\t\tloginFailed: 'Accesso fallito',",
+	"\t\tsignupFailed: 'Registrazione fallita',",
+	"\t\tupgradeFailed: 'Aggiornamento fallito',",
+	"\t\taccountCreated: 'Account creato con successo!',",
+	"\t\taccountUpgraded: 'Account aggiornato con successo!',",
+	"\t\tyouNowHave: 'Ora hai',",
+	"\t\tscans: 'scansioni',",
+	"\t\tpassword: 'Password',",
+	"\t\tconfirmPassword: 'Conferma password',",
+	"\t\tdisplayName: 'Nome visualizzato',",
+	"\t\tfillAllFields: 'Compila tutti i campi',",
+	"\t\tpasswordsDoNotMatch: 'Le password non corrispondono',",
+	"\t\tpasswordTooShort: 'La password deve contenere almeno 6 caratteri',",
+	"\t\tinvalidEmail: 'Indirizzo email non valido',",
+	"\t\tuserDisabled: 'Questo account è stato disabilitato',",
+	"\t\tuserNotFound: 'Nessun account trovato con questo indirizzo email',",
+	"\t\twrongPassword: 'Password errata',",
+	"\t\tinvalidCredentials: 'Credenziali non valide',",
+	"\t\ttooManyAttempts: 'Troppi tentativi. Riprova più tardi',",
+	"\t\tnetworkError: 'Errore di rete. Controlla la tua connessione',",
+	"\t\temailInUse: 'Questo indirizzo email è già in uso',",
+	"\t\tweakPassword: 'La password è troppo debole',",
+	"\t\tguestAccount: 'Account ospite',",
+	"\t\tpermanentAccount: 'Account permanente',",
+	"\t\tguestAccountWarning: 'I tuoi dati potrebbero essere persi se disinstalli l\\'app',",
+	"\t\tuserId: 'ID utente',",
+	"\t\tupgradeAccount: 'Aggiorna account',",
+	"\t\tupgradeAccountDesc: 'Crea un account permanente per salvare i tuoi dati',",
+	"\t\tupgradeNow: 'Aggiorna ora',",
+	"\t\texistingAccount: 'Account esistente',",
+	"\t\texistingAccountDesc: 'Accedi per sincronizzare i tuoi dati',",
+	"\t\tloginExisting: 'Accedi con un account esistente',",
+	"\t\tswitchedToExistingAccount: 'Passato all\\'account esistente',",
+	"\t\twelcomeTagline: 'La tua dispensa intelligente. Zero sprechi.',",
+	"\t\twelcomeTitle: 'Benvenuto su Shelfze',",
+	"\t\twelcomeSubtitle: 'Traccia il cibo. Genera ricette. Riduci gli sprechi.',",
+	"\t\ttryItFirst: 'Provalo prima',",
+	"\t\tnoAccountNeeded: 'Nessun account necessario per iniziare',",
+	"\t\tstartScanningNow: 'Inizia a scansionare ora',",
+	"\t\tguestScansLimit: 'Limite: 50 scansioni',",
+	"\t\tguestRecipesLimit: 'Limite: 5 ricette',",
+	"\t\tdataSavedLocally: 'Dati salvati localmente',",
+	"\t\tcontinueAsGuest: 'Continua come ospite',",
+	"\t\tcreateFreeAccount: 'Crea un account gratuito',",
+	"\t\trecommended: 'Consigliato',",
+	"\t\tfreeScansLimit: '250 scansioni/mese',",
+	"\t\tfreeRecipesLimit: '50 ricette/mese',",
+	"\t\tmonthlyBonus: 'Bonus mensile',",
+	"\t\tsyncAcrossDevices: 'Sincronizzazione tra dispositivi',",
+	"\t\tsecureBackup: 'Backup sicuro',",
+	"\t\tgetStarted: 'Inizia',",
+	"\t\tupgradeAnytime: 'Puoi passare a Premium in qualsiasi momento',",
+	"\t\ttier: 'Livello',",
+	"\t\tanonymous: 'Anonimo',",
+	"\t\tfree: 'Gratuito',",
+	"\t\tscansRemaining: 'Scansioni rimanenti',",
+	"\t\trecipesRemaining: 'Ricette rimanenti',",
+	"\t\tunlimited: 'Illimitato',",
+	"\t\tupgradeToPremium: 'Passa a Premium',",
+	"\t\tlimitReached: 'Limite raggiunto',",
+	"\t\tscansLimitReached: 'Limite di scansioni raggiunto',",
+	"\t\trecipesLimitReached: 'Limite di ricette raggiunto',",
+	"\t\tcreateAccountToGetMore: 'Crea un account per ottenere più scansioni e ricette',",
+	"\t\tupgradeToPremiumMessage: 'Passa a Premium per scansioni e ricette illimitate',",
+	"\t\tmonthlyBonusAdded: 'Bonus mensile aggiunto!',",
+	"\t\tgiftCode: 'Codice regalo',",
+	"\t\tredeemGiftCode: 'Riscatta codice regalo',",
+	"\t\tenterGiftCode: 'Inserisci il tuo codice regalo',",
+	"\t\tredeem: 'Riscatta',",
+	"\t\tgiftCodeSuccess: 'Codice regalo riscattato con successo!',",
+	"\t\tgiftCodeInvalid: 'Codice regalo non valido',",
+	"\t\tgiftCodeUsed: 'Questo codice è già stato utilizzato',",
+	"\t\tgiftCodeExpired: 'Questo codice è scaduto',",
+	"\t\thaveGiftCode: 'Hai un codice regalo?',"
+];
+
+// Find French section end - search for failedToUpdate in French
+let frLineIndex = -1;
+for (let i = 600; i < 800; i++) {
+	if (lines[i] && lines[i].includes("failedToUpdate") && lines[i].includes("Échec") && lines[i].includes("jour")) {
+		frLineIndex = i;
+		break;
+	}
+}
+
+if (frLineIndex !== -1) {
+	lines.splice(frLineIndex + 1, 0, ...frenchTranslations);
+	console.log(`✅ French translations added after line ${frLineIndex + 1}`);
+} else {
+	console.log('❌ French insertion point not found');
+}
+
+// Find Italian section end
+let itLineIndex = -1;
+for (let i = 1000; i < 1300; i++) {
+	if (lines[i] && lines[i].includes("failedToUpdate") && lines[i].includes("Impossibile") && lines[i].includes("articolo")) {
+		itLineIndex = i;
+		break;
+	}
+}
+
+if (itLineIndex !== -1) {
+	lines.splice(itLineIndex + 1, 0, ...italianTranslations);
+	console.log(`✅ Italian translations added after line ${itLineIndex + 1}`);
+} else {
+	console.log('❌ Italian insertion point not found');
+}
+
+// Add missing German keys (optional and vegan)
+let deLineIndex = -1;
+for (let i = 770; i < 900; i++) {
+	if (lines[i] && lines[i].includes("de: withOverrides")) {
+		deLineIndex = i;
+		break;
+	}
+}
+
+if (deLineIndex !== -1) {
+	lines.splice(deLineIndex + 1, 0, "\t\toptional: 'fakultativ',", "\t\tvegan: 'Vegan',");
+	console.log(`✅ German missing keys added after line ${deLineIndex + 1}`);
+} else {
+	console.log('❌ German insertion point not found');
+}
+
+// Write back
+fs.writeFileSync(filePath, lines.join('\n'), 'utf8');
+console.log('✅ All translations added successfully!');

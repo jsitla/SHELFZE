@@ -1,0 +1,548 @@
+[debug] [2025-10-28T08:44:07.910Z] ----------------------------------------------------------------------
+[debug] [2025-10-28T08:44:07.913Z] Command:       C:\Program Files\nodejs\node.exe C:\Users\denis\AppData\Roaming\npm\node_modules\firebase-tools\lib\bin\firebase.js functions:shell
+[debug] [2025-10-28T08:44:07.913Z] CLI Version:   14.19.1
+[debug] [2025-10-28T08:44:07.913Z] Platform:      win32
+[debug] [2025-10-28T08:44:07.913Z] Node Version:  v22.13.0
+[debug] [2025-10-28T08:44:07.914Z] Time:          Tue Oct 28 2025 09:44:07 GMT+0100 (Srednjeevropski standardni čas)
+[debug] [2025-10-28T08:44:07.914Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2025-10-28T08:44:08.088Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2025-10-28T08:44:08.089Z] > authorizing via signed-in user (jsitla@gmail.com)
+[debug] [2025-10-28T08:44:08.089Z] [iam] checking project pantryai-3d396 for permissions ["firebase.projects.get"]
+[debug] [2025-10-28T08:44:08.090Z] Checked if tokens are valid: true, expires at: 1761644587642
+[debug] [2025-10-28T08:44:08.090Z] Checked if tokens are valid: true, expires at: 1761644587642
+[debug] [2025-10-28T08:44:08.091Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/pantryai-3d396:testIamPermissions [none]
+[debug] [2025-10-28T08:44:08.091Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/pantryai-3d396:testIamPermissions x-goog-quota-user=projects/pantryai-3d396
+[debug] [2025-10-28T08:44:08.091Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/pantryai-3d396:testIamPermissions {"permissions":["firebase.projects.get"]}
+[debug] [2025-10-28T08:44:09.370Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/pantryai-3d396:testIamPermissions 200
+[debug] [2025-10-28T08:44:09.370Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/pantryai-3d396:testIamPermissions {"permissions":["firebase.projects.get"]}
+[debug] [2025-10-28T08:44:09.370Z] Emulator locator file path: C:\Users\denis\AppData\Local\Temp\hub-pantryai-3d396.json
+[debug] [2025-10-28T08:44:09.375Z] [functions] Functions Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
+[debug] [2025-10-28T08:44:09.397Z] defaultcredentials: writing to file C:\Users\denis\AppData\Roaming\firebase\jsitla_gmail_com_application_default_credentials.json
+[debug] [2025-10-28T08:44:09.399Z] DEBUG: Setting GAC to C:\Users\denis\AppData\Roaming\firebase\jsitla_gmail_com_application_default_credentials.json
+[debug] [2025-10-28T08:44:09.399Z] Checked if tokens are valid: true, expires at: 1761644587642
+[debug] [2025-10-28T08:44:09.399Z] Checked if tokens are valid: true, expires at: 1761644587642
+[debug] [2025-10-28T08:44:09.399Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/pantryai-3d396/adminSdkConfig [none]
+[debug] [2025-10-28T08:44:09.720Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/pantryai-3d396/adminSdkConfig 200
+[debug] [2025-10-28T08:44:09.720Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/pantryai-3d396/adminSdkConfig {"projectId":"pantryai-3d396","storageBucket":"pantryai-3d396.firebasestorage.app"}
+[debug] [2025-10-28T08:44:09.732Z] [functions] Watching "C:\Users\denis\Pantryai\functions" for Cloud Functions...
+[debug] [2025-10-28T08:44:09.736Z] Validating nodejs source
+[warn] !  functions: package.json indicates an outdated version of firebase-functions. Please upgrade using npm install --save firebase-functions@latest in your functions directory. 
+[debug] [2025-10-28T08:44:10.771Z] > [functions] package.json contents: {
+  "name": "functions",
+  "description": "Cloud Functions for Firebase",
+  "scripts": {
+    "lint": "eslint .",
+    "serve": "firebase emulators:start --only functions",
+    "shell": "firebase functions:shell",
+    "start": "npm run shell",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log"
+  },
+  "engines": {
+    "node": "22"
+  },
+  "main": "index.js",
+  "dependencies": {
+    "@google-cloud/vertexai": "^1.10.0",
+    "@google-cloud/vision": "^5.3.3",
+    "firebase-admin": "^12.7.0",
+    "firebase-functions": "^6.0.1"
+  },
+  "devDependencies": {
+    "eslint": "^8.15.0",
+    "eslint-config-google": "^0.14.0",
+    "firebase-functions-test": "^3.1.0"
+  },
+  "private": true
+}
+[debug] [2025-10-28T08:44:10.771Z] Building nodejs source
+[debug] [2025-10-28T08:44:10.771Z] Failed to find version of module node: reached end of search path C:\Users\denis\Pantryai\functions\node_modules
+[info] +  functions: Using node@22 from host. 
+[debug] [2025-10-28T08:44:10.774Z] Could not find functions.yaml. Must use http discovery
+[debug] [2025-10-28T08:44:10.780Z] Found firebase-functions binary at 'C:\Users\denis\Pantryai\functions\node_modules\.bin\firebase-functions'
+[info] Serving at port 8003
+
+[error] (node:58656) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+
+[error] The `fromStream` method is deprecated. Please use the `JWT` constructor with a parsed stream instead. For more details, see https://cloud.google.com/docs/authentication/external/externally-sourced-credentials.
+
+[debug] [2025-10-28T08:44:12.477Z] Got response from /__/functions.yaml {"endpoints":{"analyzeImage":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"httpsTrigger":{},"entryPoint":"analyzeImage"},"generateRecipes":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"httpsTrigger":{},"entryPoint":"generateRecipes"},"getRecipeDetails":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"httpsTrigger":{},"entryPoint":"getRecipeDetails"}},"specVersion":"v1alpha1","requiredAPIs":[],"extensions":{}}
+[error] The `fromJSON` method is deprecated. Please use the `JWT` constructor instead. For more details, see https://cloud.google.com/docs/authentication/external/externally-sourced-credentials.
+
+[debug] [2025-10-28T08:44:16.553Z] [functions] Loaded functions definitions from source: analyzeImage, generateRecipes, getRecipeDetails.
+[debug] [2025-10-28T08:44:16.554Z] [functions[us-central1-analyzeImage]] http function initialized (http://127.0.0.1:5000/pantryai-3d396/us-central1/analyzeImage).
+[debug] [2025-10-28T08:44:16.554Z] [functions[us-central1-generateRecipes]] http function initialized (http://127.0.0.1:5000/pantryai-3d396/us-central1/generateRecipes).
+[debug] [2025-10-28T08:44:16.554Z] [functions[us-central1-getRecipeDetails]] http function initialized (http://127.0.0.1:5000/pantryai-3d396/us-central1/getRecipeDetails).
+[info] i  functions: Loaded functions: analyzeImage, generateRecipes, getRecipeDetails 
+[warn] !  functions: The following emulators are not running, calls to these services will affect production: firestore, database, pubsub, storage, eventarc, tasks 
+[debug] [2025-10-28T11:59:18.093Z] ----------------------------------------------------------------------
+[debug] [2025-10-28T11:59:18.096Z] Command:       C:\Program Files\nodejs\node.exe C:\Users\denis\AppData\Roaming\npm\node_modules\firebase-tools\lib\bin\firebase.js functions:shell
+[debug] [2025-10-28T11:59:18.096Z] CLI Version:   14.22.0
+[debug] [2025-10-28T11:59:18.096Z] Platform:      win32
+[debug] [2025-10-28T11:59:18.096Z] Node Version:  v22.13.0
+[debug] [2025-10-28T11:59:18.097Z] Time:          Tue Oct 28 2025 12:59:18 GMT+0100 (Srednjeevropski standardni čas)
+[debug] [2025-10-28T11:59:18.097Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2025-10-28T11:59:18.278Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2025-10-28T11:59:18.279Z] > authorizing via signed-in user (jsitla@gmail.com)
+[debug] [2025-10-28T11:59:18.279Z] [iam] checking project pantryai-3d396 for permissions ["firebase.projects.get"]
+[debug] [2025-10-28T11:59:18.280Z] Checked if tokens are valid: false, expires at: 1761650002781
+[debug] [2025-10-28T11:59:18.280Z] Checked if tokens are valid: false, expires at: 1761650002781
+[debug] [2025-10-28T11:59:18.280Z] > refreshing access token with scopes: []
+[debug] [2025-10-28T11:59:18.282Z] >>> [apiv2][query] POST https://www.googleapis.com/oauth2/v3/token [none]
+[debug] [2025-10-28T11:59:18.282Z] >>> [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2025-10-28T11:59:18.469Z] <<< [apiv2][status] POST https://www.googleapis.com/oauth2/v3/token 200
+[debug] [2025-10-28T11:59:18.469Z] <<< [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2025-10-28T11:59:18.477Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/pantryai-3d396:testIamPermissions [none]
+[debug] [2025-10-28T11:59:18.477Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/pantryai-3d396:testIamPermissions x-goog-quota-user=projects/pantryai-3d396
+[debug] [2025-10-28T11:59:18.477Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/pantryai-3d396:testIamPermissions {"permissions":["firebase.projects.get"]}
+[debug] [2025-10-28T11:59:19.303Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/pantryai-3d396:testIamPermissions 200
+[debug] [2025-10-28T11:59:19.303Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/pantryai-3d396:testIamPermissions {"permissions":["firebase.projects.get"]}
+[debug] [2025-10-28T11:59:19.303Z] Emulator locator file path: C:\Users\denis\AppData\Local\Temp\hub-pantryai-3d396.json
+[debug] [2025-10-28T11:59:19.320Z] [functions] Functions Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
+[debug] [2025-10-28T11:59:19.344Z] defaultcredentials: writing to file C:\Users\denis\AppData\Roaming\firebase\jsitla_gmail_com_application_default_credentials.json
+[debug] [2025-10-28T11:59:19.346Z] DEBUG: Setting GAC to C:\Users\denis\AppData\Roaming\firebase\jsitla_gmail_com_application_default_credentials.json
+[debug] [2025-10-28T11:59:19.346Z] Checked if tokens are valid: true, expires at: 1761656357470
+[debug] [2025-10-28T11:59:19.346Z] Checked if tokens are valid: true, expires at: 1761656357470
+[debug] [2025-10-28T11:59:19.347Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/pantryai-3d396/adminSdkConfig [none]
+[debug] [2025-10-28T11:59:19.657Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/pantryai-3d396/adminSdkConfig 200
+[debug] [2025-10-28T11:59:19.657Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/pantryai-3d396/adminSdkConfig {"projectId":"pantryai-3d396","storageBucket":"pantryai-3d396.firebasestorage.app"}
+[debug] [2025-10-28T11:59:19.668Z] [functions] Watching "C:\Users\denis\Pantryai\functions" for Cloud Functions...
+[debug] [2025-10-28T11:59:19.672Z] Validating nodejs source
+[warn] !  functions: package.json indicates an outdated version of firebase-functions. Please upgrade using npm install --save firebase-functions@latest in your functions directory. 
+[debug] [2025-10-28T11:59:21.754Z] > [functions] package.json contents: {
+  "name": "functions",
+  "description": "Cloud Functions for Firebase",
+  "scripts": {
+    "lint": "eslint .",
+    "serve": "firebase emulators:start --only functions",
+    "shell": "firebase functions:shell",
+    "start": "npm run shell",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log"
+  },
+  "engines": {
+    "node": "22"
+  },
+  "main": "index.js",
+  "dependencies": {
+    "@google-cloud/vertexai": "^1.10.0",
+    "@google-cloud/vision": "^5.3.3",
+    "firebase-admin": "^12.7.0",
+    "firebase-functions": "^6.0.1"
+  },
+  "devDependencies": {
+    "eslint": "^8.15.0",
+    "eslint-config-google": "^0.14.0",
+    "firebase-functions-test": "^3.1.0"
+  },
+  "private": true
+}
+[debug] [2025-10-28T11:59:21.755Z] Building nodejs source
+[debug] [2025-10-28T11:59:21.755Z] Failed to find version of module node: reached end of search path C:\Users\denis\Pantryai\functions\node_modules
+[info] +  functions: Using node@22 from host. 
+[debug] [2025-10-28T11:59:21.757Z] Could not find functions.yaml. Must use http discovery
+[debug] [2025-10-28T11:59:21.764Z] Found firebase-functions binary at 'C:\Users\denis\Pantryai\functions\node_modules\.bin\firebase-functions'
+[info] Serving at port 8248
+
+[error] (node:29304) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+
+[error] The `fromStream` method is deprecated. Please use the `JWT` constructor with a parsed stream instead. For more details, see https://cloud.google.com/docs/authentication/external/externally-sourced-credentials.
+
+[debug] [2025-10-28T11:59:23.500Z] Got response from /__/functions.yaml {"endpoints":{"analyzeImage":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"httpsTrigger":{},"entryPoint":"analyzeImage"},"generateRecipes":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"httpsTrigger":{},"entryPoint":"generateRecipes"},"getRecipeDetails":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"httpsTrigger":{},"entryPoint":"getRecipeDetails"}},"specVersion":"v1alpha1","requiredAPIs":[],"extensions":{}}
+[error] The `fromJSON` method is deprecated. Please use the `JWT` constructor instead. For more details, see https://cloud.google.com/docs/authentication/external/externally-sourced-credentials.
+
+[debug] [2025-10-28T11:59:27.582Z] [functions] Loaded functions definitions from source: analyzeImage, generateRecipes, getRecipeDetails.
+[debug] [2025-10-28T11:59:27.582Z] [functions[us-central1-analyzeImage]] http function initialized (http://127.0.0.1:5000/pantryai-3d396/us-central1/analyzeImage).
+[debug] [2025-10-28T11:59:27.583Z] [functions[us-central1-generateRecipes]] http function initialized (http://127.0.0.1:5000/pantryai-3d396/us-central1/generateRecipes).
+[debug] [2025-10-28T11:59:27.583Z] [functions[us-central1-getRecipeDetails]] http function initialized (http://127.0.0.1:5000/pantryai-3d396/us-central1/getRecipeDetails).
+[info] i  functions: Loaded functions: analyzeImage, generateRecipes, getRecipeDetails 
+[warn] !  functions: The following emulators are not running, calls to these services will affect production: firestore, database, pubsub, storage, eventarc, tasks 
+[debug] [2025-10-28T12:00:58.875Z] DEBUG: File C:\Users\denis\Pantryai\functions\index.js changed, reloading triggers
+[debug] [2025-10-28T12:00:59.882Z] Validating nodejs source
+[warn] !  functions: package.json indicates an outdated version of firebase-functions. Please upgrade using npm install --save firebase-functions@latest in your functions directory. 
+[debug] [2025-10-28T12:01:01.608Z] > [functions] package.json contents: {
+  "name": "functions",
+  "description": "Cloud Functions for Firebase",
+  "scripts": {
+    "lint": "eslint .",
+    "serve": "firebase emulators:start --only functions",
+    "shell": "firebase functions:shell",
+    "start": "npm run shell",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log"
+  },
+  "engines": {
+    "node": "22"
+  },
+  "main": "index.js",
+  "dependencies": {
+    "@google-cloud/vertexai": "^1.10.0",
+    "@google-cloud/vision": "^5.3.3",
+    "firebase-admin": "^12.7.0",
+    "firebase-functions": "^6.0.1"
+  },
+  "devDependencies": {
+    "eslint": "^8.15.0",
+    "eslint-config-google": "^0.14.0",
+    "firebase-functions-test": "^3.1.0"
+  },
+  "private": true
+}
+[debug] [2025-10-28T12:01:01.608Z] Building nodejs source
+[debug] [2025-10-28T12:01:01.608Z] Failed to find version of module node: reached end of search path C:\Users\denis\Pantryai\functions\node_modules
+[info] +  functions: Using node@22 from host. 
+[debug] [2025-10-28T12:01:01.609Z] Could not find functions.yaml. Must use http discovery
+[debug] [2025-10-28T12:01:01.618Z] Found firebase-functions binary at 'C:\Users\denis\Pantryai\functions\node_modules\.bin\firebase-functions'
+[info] Serving at port 8631
+
+[error] (node:1964) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+
+[error] The `fromStream` method is deprecated. Please use the `JWT` constructor with a parsed stream instead. For more details, see https://cloud.google.com/docs/authentication/external/externally-sourced-credentials.
+
+[debug] [2025-10-28T12:01:02.982Z] Got response from /__/functions.yaml {"endpoints":{"analyzeImage":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"httpsTrigger":{},"entryPoint":"analyzeImage"},"generateRecipes":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"httpsTrigger":{},"entryPoint":"generateRecipes"},"getRecipeDetails":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"httpsTrigger":{},"entryPoint":"getRecipeDetails"}},"specVersion":"v1alpha1","requiredAPIs":[],"extensions":{}}
+[error] The `fromJSON` method is deprecated. Please use the `JWT` constructor instead. For more details, see https://cloud.google.com/docs/authentication/external/externally-sourced-credentials.
+
+[debug] [2025-10-28T12:01:07.068Z] [functions] Loaded functions definitions from source: analyzeImage, generateRecipes, getRecipeDetails.
+[debug] [2025-10-28T12:01:23.317Z] DEBUG: File C:\Users\denis\Pantryai\functions\index.js changed, reloading triggers
+[debug] [2025-10-28T12:01:24.326Z] Validating nodejs source
+[warn] !  functions: package.json indicates an outdated version of firebase-functions. Please upgrade using npm install --save firebase-functions@latest in your functions directory. 
+[debug] [2025-10-28T12:01:25.660Z] > [functions] package.json contents: {
+  "name": "functions",
+  "description": "Cloud Functions for Firebase",
+  "scripts": {
+    "lint": "eslint .",
+    "serve": "firebase emulators:start --only functions",
+    "shell": "firebase functions:shell",
+    "start": "npm run shell",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log"
+  },
+  "engines": {
+    "node": "22"
+  },
+  "main": "index.js",
+  "dependencies": {
+    "@google-cloud/vertexai": "^1.10.0",
+    "@google-cloud/vision": "^5.3.3",
+    "firebase-admin": "^12.7.0",
+    "firebase-functions": "^6.0.1"
+  },
+  "devDependencies": {
+    "eslint": "^8.15.0",
+    "eslint-config-google": "^0.14.0",
+    "firebase-functions-test": "^3.1.0"
+  },
+  "private": true
+}
+[debug] [2025-10-28T12:01:25.660Z] Building nodejs source
+[debug] [2025-10-28T12:01:25.660Z] Failed to find version of module node: reached end of search path C:\Users\denis\Pantryai\functions\node_modules
+[info] +  functions: Using node@22 from host. 
+[debug] [2025-10-28T12:01:25.661Z] Could not find functions.yaml. Must use http discovery
+[debug] [2025-10-28T12:01:25.667Z] Found firebase-functions binary at 'C:\Users\denis\Pantryai\functions\node_modules\.bin\firebase-functions'
+[info] Serving at port 8768
+
+[error] (node:13120) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+
+[error] The `fromStream` method is deprecated. Please use the `JWT` constructor with a parsed stream instead. For more details, see https://cloud.google.com/docs/authentication/external/externally-sourced-credentials.
+
+[debug] [2025-10-28T12:01:27.104Z] Got response from /__/functions.yaml {"endpoints":{"analyzeImage":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"httpsTrigger":{},"entryPoint":"analyzeImage"},"generateRecipes":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"httpsTrigger":{},"entryPoint":"generateRecipes"},"getRecipeDetails":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"httpsTrigger":{},"entryPoint":"getRecipeDetails"}},"specVersion":"v1alpha1","requiredAPIs":[],"extensions":{}}
+[error] The `fromJSON` method is deprecated. Please use the `JWT` constructor instead. For more details, see https://cloud.google.com/docs/authentication/external/externally-sourced-credentials.
+
+[debug] [2025-10-28T12:01:31.178Z] [functions] Loaded functions definitions from source: analyzeImage, generateRecipes, getRecipeDetails.
+[debug] [2025-10-28T12:01:54.016Z] DEBUG: File C:\Users\denis\Pantryai\functions\index.js changed, reloading triggers
+[debug] [2025-10-28T12:01:55.019Z] Validating nodejs source
+[warn] !  functions: package.json indicates an outdated version of firebase-functions. Please upgrade using npm install --save firebase-functions@latest in your functions directory. 
+[debug] [2025-10-28T12:01:55.885Z] > [functions] package.json contents: {
+  "name": "functions",
+  "description": "Cloud Functions for Firebase",
+  "scripts": {
+    "lint": "eslint .",
+    "serve": "firebase emulators:start --only functions",
+    "shell": "firebase functions:shell",
+    "start": "npm run shell",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log"
+  },
+  "engines": {
+    "node": "22"
+  },
+  "main": "index.js",
+  "dependencies": {
+    "@google-cloud/vertexai": "^1.10.0",
+    "@google-cloud/vision": "^5.3.3",
+    "firebase-admin": "^12.7.0",
+    "firebase-functions": "^6.0.1"
+  },
+  "devDependencies": {
+    "eslint": "^8.15.0",
+    "eslint-config-google": "^0.14.0",
+    "firebase-functions-test": "^3.1.0"
+  },
+  "private": true
+}
+[debug] [2025-10-28T12:01:55.885Z] Building nodejs source
+[debug] [2025-10-28T12:01:55.886Z] Failed to find version of module node: reached end of search path C:\Users\denis\Pantryai\functions\node_modules
+[info] +  functions: Using node@22 from host. 
+[debug] [2025-10-28T12:01:55.886Z] Could not find functions.yaml. Must use http discovery
+[debug] [2025-10-28T12:01:55.892Z] Found firebase-functions binary at 'C:\Users\denis\Pantryai\functions\node_modules\.bin\firebase-functions'
+[info] Serving at port 8872
+
+[error] (node:19260) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+
+[error] The `fromStream` method is deprecated. Please use the `JWT` constructor with a parsed stream instead. For more details, see https://cloud.google.com/docs/authentication/external/externally-sourced-credentials.
+
+[debug] [2025-10-28T12:01:57.166Z] Got response from /__/functions.yaml {"endpoints":{"analyzeImage":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"httpsTrigger":{},"entryPoint":"analyzeImage"},"generateRecipes":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"httpsTrigger":{},"entryPoint":"generateRecipes"},"getRecipeDetails":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"httpsTrigger":{},"entryPoint":"getRecipeDetails"}},"specVersion":"v1alpha1","requiredAPIs":[],"extensions":{}}
+[error] The `fromJSON` method is deprecated. Please use the `JWT` constructor instead. For more details, see https://cloud.google.com/docs/authentication/external/externally-sourced-credentials.
+
+[debug] [2025-10-28T12:02:01.198Z] [functions] Loaded functions definitions from source: analyzeImage, generateRecipes, getRecipeDetails.
+[debug] [2025-10-28T12:02:06.868Z] DEBUG: File C:\Users\denis\Pantryai\functions\index.js changed, reloading triggers
+[debug] [2025-10-28T12:02:07.880Z] Validating nodejs source
+[warn] !  functions: package.json indicates an outdated version of firebase-functions. Please upgrade using npm install --save firebase-functions@latest in your functions directory. 
+[debug] [2025-10-28T12:02:08.751Z] > [functions] package.json contents: {
+  "name": "functions",
+  "description": "Cloud Functions for Firebase",
+  "scripts": {
+    "lint": "eslint .",
+    "serve": "firebase emulators:start --only functions",
+    "shell": "firebase functions:shell",
+    "start": "npm run shell",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log"
+  },
+  "engines": {
+    "node": "22"
+  },
+  "main": "index.js",
+  "dependencies": {
+    "@google-cloud/vertexai": "^1.10.0",
+    "@google-cloud/vision": "^5.3.3",
+    "firebase-admin": "^12.7.0",
+    "firebase-functions": "^6.0.1"
+  },
+  "devDependencies": {
+    "eslint": "^8.15.0",
+    "eslint-config-google": "^0.14.0",
+    "firebase-functions-test": "^3.1.0"
+  },
+  "private": true
+}
+[debug] [2025-10-28T12:02:08.751Z] Building nodejs source
+[debug] [2025-10-28T12:02:08.751Z] Failed to find version of module node: reached end of search path C:\Users\denis\Pantryai\functions\node_modules
+[info] +  functions: Using node@22 from host. 
+[debug] [2025-10-28T12:02:08.752Z] Could not find functions.yaml. Must use http discovery
+[debug] [2025-10-28T12:02:08.757Z] Found firebase-functions binary at 'C:\Users\denis\Pantryai\functions\node_modules\.bin\firebase-functions'
+[info] Serving at port 8474
+
+[error] (node:9028) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+
+[error] The `fromStream` method is deprecated. Please use the `JWT` constructor with a parsed stream instead. For more details, see https://cloud.google.com/docs/authentication/external/externally-sourced-credentials.
+
+[debug] [2025-10-28T12:02:10.057Z] Got response from /__/functions.yaml {"endpoints":{"analyzeImage":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"httpsTrigger":{},"entryPoint":"analyzeImage"},"generateRecipes":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"httpsTrigger":{},"entryPoint":"generateRecipes"},"getRecipeDetails":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"httpsTrigger":{},"entryPoint":"getRecipeDetails"}},"specVersion":"v1alpha1","requiredAPIs":[],"extensions":{}}
+[error] The `fromJSON` method is deprecated. Please use the `JWT` constructor instead. For more details, see https://cloud.google.com/docs/authentication/external/externally-sourced-credentials.
+
+[debug] [2025-10-28T12:02:14.092Z] [functions] Loaded functions definitions from source: analyzeImage, generateRecipes, getRecipeDetails.
+[debug] [2025-10-28T12:02:31.466Z] DEBUG: File C:\Users\denis\Pantryai\functions\index.js changed, reloading triggers
+[debug] [2025-10-28T12:02:32.473Z] Validating nodejs source
+[warn] !  functions: package.json indicates an outdated version of firebase-functions. Please upgrade using npm install --save firebase-functions@latest in your functions directory. 
+[debug] [2025-10-28T12:02:33.621Z] > [functions] package.json contents: {
+  "name": "functions",
+  "description": "Cloud Functions for Firebase",
+  "scripts": {
+    "lint": "eslint .",
+    "serve": "firebase emulators:start --only functions",
+    "shell": "firebase functions:shell",
+    "start": "npm run shell",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log"
+  },
+  "engines": {
+    "node": "22"
+  },
+  "main": "index.js",
+  "dependencies": {
+    "@google-cloud/vertexai": "^1.10.0",
+    "@google-cloud/vision": "^5.3.3",
+    "firebase-admin": "^12.7.0",
+    "firebase-functions": "^6.0.1"
+  },
+  "devDependencies": {
+    "eslint": "^8.15.0",
+    "eslint-config-google": "^0.14.0",
+    "firebase-functions-test": "^3.1.0"
+  },
+  "private": true
+}
+[debug] [2025-10-28T12:02:33.621Z] Building nodejs source
+[debug] [2025-10-28T12:02:33.621Z] Failed to find version of module node: reached end of search path C:\Users\denis\Pantryai\functions\node_modules
+[info] +  functions: Using node@22 from host. 
+[debug] [2025-10-28T12:02:33.621Z] Could not find functions.yaml. Must use http discovery
+[debug] [2025-10-28T12:02:33.627Z] Found firebase-functions binary at 'C:\Users\denis\Pantryai\functions\node_modules\.bin\firebase-functions'
+[info] Serving at port 8074
+
+[error] (node:29308) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+
+[error] The `fromStream` method is deprecated. Please use the `JWT` constructor with a parsed stream instead. For more details, see https://cloud.google.com/docs/authentication/external/externally-sourced-credentials.
+
+[debug] [2025-10-28T12:02:34.956Z] Got response from /__/functions.yaml {"endpoints":{"analyzeImage":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"httpsTrigger":{},"entryPoint":"analyzeImage"},"generateRecipes":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"httpsTrigger":{},"entryPoint":"generateRecipes"},"getRecipeDetails":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"httpsTrigger":{},"entryPoint":"getRecipeDetails"}},"specVersion":"v1alpha1","requiredAPIs":[],"extensions":{}}
+[error] The `fromJSON` method is deprecated. Please use the `JWT` constructor instead. For more details, see https://cloud.google.com/docs/authentication/external/externally-sourced-credentials.
+
+[debug] [2025-10-28T12:02:39.024Z] [functions] Loaded functions definitions from source: analyzeImage, generateRecipes, getRecipeDetails.
+[debug] [2025-10-28T12:02:59.752Z] DEBUG: File C:\Users\denis\Pantryai\functions\index.js changed, reloading triggers
+[debug] [2025-10-28T12:03:00.763Z] Validating nodejs source
+[warn] !  functions: package.json indicates an outdated version of firebase-functions. Please upgrade using npm install --save firebase-functions@latest in your functions directory. 
+[debug] [2025-10-28T12:03:01.685Z] > [functions] package.json contents: {
+  "name": "functions",
+  "description": "Cloud Functions for Firebase",
+  "scripts": {
+    "lint": "eslint .",
+    "serve": "firebase emulators:start --only functions",
+    "shell": "firebase functions:shell",
+    "start": "npm run shell",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log"
+  },
+  "engines": {
+    "node": "22"
+  },
+  "main": "index.js",
+  "dependencies": {
+    "@google-cloud/vertexai": "^1.10.0",
+    "@google-cloud/vision": "^5.3.3",
+    "firebase-admin": "^12.7.0",
+    "firebase-functions": "^6.0.1"
+  },
+  "devDependencies": {
+    "eslint": "^8.15.0",
+    "eslint-config-google": "^0.14.0",
+    "firebase-functions-test": "^3.1.0"
+  },
+  "private": true
+}
+[debug] [2025-10-28T12:03:01.685Z] Building nodejs source
+[debug] [2025-10-28T12:03:01.685Z] Failed to find version of module node: reached end of search path C:\Users\denis\Pantryai\functions\node_modules
+[info] +  functions: Using node@22 from host. 
+[debug] [2025-10-28T12:03:01.685Z] Could not find functions.yaml. Must use http discovery
+[debug] [2025-10-28T12:03:01.691Z] Found firebase-functions binary at 'C:\Users\denis\Pantryai\functions\node_modules\.bin\firebase-functions'
+[info] Serving at port 8274
+
+[error] (node:27772) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+
+[error] The `fromStream` method is deprecated. Please use the `JWT` constructor with a parsed stream instead. For more details, see https://cloud.google.com/docs/authentication/external/externally-sourced-credentials.
+
+[debug] [2025-10-28T12:03:03.066Z] Got response from /__/functions.yaml {"endpoints":{"analyzeImage":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"httpsTrigger":{},"entryPoint":"analyzeImage"},"generateRecipes":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"httpsTrigger":{},"entryPoint":"generateRecipes"},"getRecipeDetails":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"httpsTrigger":{},"entryPoint":"getRecipeDetails"}},"specVersion":"v1alpha1","requiredAPIs":[],"extensions":{}}
+[error] The `fromJSON` method is deprecated. Please use the `JWT` constructor instead. For more details, see https://cloud.google.com/docs/authentication/external/externally-sourced-credentials.
+
+[debug] [2025-10-28T12:03:07.096Z] [functions] Loaded functions definitions from source: analyzeImage, generateRecipes, getRecipeDetails.
+[debug] [2025-10-28T12:03:21.028Z] DEBUG: File C:\Users\denis\Pantryai\functions\index.js changed, reloading triggers
+[debug] [2025-10-28T12:03:22.040Z] Validating nodejs source
+[warn] !  functions: package.json indicates an outdated version of firebase-functions. Please upgrade using npm install --save firebase-functions@latest in your functions directory. 
+[debug] [2025-10-28T12:03:23.950Z] > [functions] package.json contents: {
+  "name": "functions",
+  "description": "Cloud Functions for Firebase",
+  "scripts": {
+    "lint": "eslint .",
+    "serve": "firebase emulators:start --only functions",
+    "shell": "firebase functions:shell",
+    "start": "npm run shell",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log"
+  },
+  "engines": {
+    "node": "22"
+  },
+  "main": "index.js",
+  "dependencies": {
+    "@google-cloud/vertexai": "^1.10.0",
+    "@google-cloud/vision": "^5.3.3",
+    "firebase-admin": "^12.7.0",
+    "firebase-functions": "^6.0.1"
+  },
+  "devDependencies": {
+    "eslint": "^8.15.0",
+    "eslint-config-google": "^0.14.0",
+    "firebase-functions-test": "^3.1.0"
+  },
+  "private": true
+}
+[debug] [2025-10-28T12:03:23.950Z] Building nodejs source
+[debug] [2025-10-28T12:03:23.950Z] Failed to find version of module node: reached end of search path C:\Users\denis\Pantryai\functions\node_modules
+[info] +  functions: Using node@22 from host. 
+[debug] [2025-10-28T12:03:23.951Z] Could not find functions.yaml. Must use http discovery
+[debug] [2025-10-28T12:03:23.958Z] Found firebase-functions binary at 'C:\Users\denis\Pantryai\functions\node_modules\.bin\firebase-functions'
+[info] Serving at port 8956
+
+[error] (node:4760) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+
+[error] The `fromStream` method is deprecated. Please use the `JWT` constructor with a parsed stream instead. For more details, see https://cloud.google.com/docs/authentication/external/externally-sourced-credentials.
+
+[debug] [2025-10-28T12:03:25.254Z] Got response from /__/functions.yaml {"endpoints":{"analyzeImage":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"httpsTrigger":{},"entryPoint":"analyzeImage"},"generateRecipes":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"httpsTrigger":{},"entryPoint":"generateRecipes"},"getRecipeDetails":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"httpsTrigger":{},"entryPoint":"getRecipeDetails"}},"specVersion":"v1alpha1","requiredAPIs":[],"extensions":{}}
+[error] The `fromJSON` method is deprecated. Please use the `JWT` constructor instead. For more details, see https://cloud.google.com/docs/authentication/external/externally-sourced-credentials.
+
+[debug] [2025-10-28T12:03:29.339Z] [functions] Loaded functions definitions from source: analyzeImage, generateRecipes, getRecipeDetails.
+[debug] [2025-10-28T12:04:34.389Z] DEBUG: File C:\Users\denis\Pantryai\functions\index.js changed, reloading triggers
+[debug] [2025-10-28T12:04:35.399Z] Validating nodejs source
+[warn] !  functions: package.json indicates an outdated version of firebase-functions. Please upgrade using npm install --save firebase-functions@latest in your functions directory. 
+[debug] [2025-10-28T12:04:36.449Z] > [functions] package.json contents: {
+  "name": "functions",
+  "description": "Cloud Functions for Firebase",
+  "scripts": {
+    "lint": "eslint .",
+    "serve": "firebase emulators:start --only functions",
+    "shell": "firebase functions:shell",
+    "start": "npm run shell",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log"
+  },
+  "engines": {
+    "node": "22"
+  },
+  "main": "index.js",
+  "dependencies": {
+    "@google-cloud/vertexai": "^1.10.0",
+    "@google-cloud/vision": "^5.3.3",
+    "firebase-admin": "^12.7.0",
+    "firebase-functions": "^6.0.1"
+  },
+  "devDependencies": {
+    "eslint": "^8.15.0",
+    "eslint-config-google": "^0.14.0",
+    "firebase-functions-test": "^3.1.0"
+  },
+  "private": true
+}
+[debug] [2025-10-28T12:04:36.449Z] Building nodejs source
+[debug] [2025-10-28T12:04:36.449Z] Failed to find version of module node: reached end of search path C:\Users\denis\Pantryai\functions\node_modules
+[info] +  functions: Using node@22 from host. 
+[debug] [2025-10-28T12:04:36.450Z] Could not find functions.yaml. Must use http discovery
+[debug] [2025-10-28T12:04:36.458Z] Found firebase-functions binary at 'C:\Users\denis\Pantryai\functions\node_modules\.bin\firebase-functions'
+[info] Serving at port 8668
+
+[error] C:\Users\denis\Pantryai\functions\index.js:800
+        "âś" DELICIOUS - Balanced flavors (sweet/salty/umami/acid)",
+        ^^^^
+
+SyntaxError: missing ) after argument list
+    at wrapSafe (node:internal/modules/cjs/loader:1512:18)
+    at Module._compile (node:internal/modules/cjs/loader:1534:20)
+    at Object..js (node:internal/modules/cjs/loader:1699:10)
+    at Module.load (node:internal/modules/cjs/loader:1313:32)
+    at Function._load (node:internal/modules/cjs/loader:1123:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:217:24)
+    at Module.require (node:internal/modules/cjs/loader:1335:12)
+    at require (node:internal/modules/helpers:136:16)
+    at loadModule (C:\Users\denis\Pantryai\functions\node_modules\firebase-functions\lib\runtime\loader.js:40:16)
+
+[debug] [2025-10-28T12:04:36.752Z] Got response code 400; body Failed to generate manifest from function source: missing ) after argument list
+[error] !!  functions: Failed to load function definition from source: FirebaseError: Functions codebase could not be analyzed successfully. It may have a syntax or runtime error {"metadata":{"emulator":{"name":"functions"},"message":"Failed to load function definition from source: FirebaseError: Functions codebase could not be analyzed successfully. It may have a syntax or runtime error"}}

@@ -87,18 +87,32 @@ export default function PantryList({ navigation }) {
 
   // 4. Write a useEffect hook that sets up a real-time listener to the 'pantry' collection in Firestore.
   useEffect(() => {
-    console.log('🔵 Setting up Firestore listener for pantry items');
+    if (__DEV__) {
+      console.log('🔵 Setting up Firestore listener for pantry items');
+    }
+    
+    let unsubscribeSnapshot = null;
     
     // Wait for authentication state to be ready
     const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
+      // Cleanup previous snapshot listener if it exists
+      if (unsubscribeSnapshot) {
+        unsubscribeSnapshot();
+        unsubscribeSnapshot = null;
+      }
+      
       if (!user) {
-        console.log('⏳ Waiting for user authentication...');
+        if (__DEV__) {
+          console.log('⏳ Waiting for user authentication...');
+        }
         setLoading(false);
         return;
       }
       
       const userId = user.uid;
-      console.log('👤 Loading pantry for user:', userId);
+      if (__DEV__) {
+        console.log('👤 Loading pantry for user:', userId);
+      }
       
       // The query should order items by 'expiryDate' in ascending order.
       // NOW USING USER-SPECIFIC PATH: users/{userId}/pantry
@@ -108,10 +122,12 @@ export default function PantryList({ navigation }) {
       );
 
       // Use the onSnapshot() method.
-      const unsubscribe = onSnapshot(
+      unsubscribeSnapshot = onSnapshot(
         q,
         (querySnapshot) => {
-          console.log('📦 Received pantry snapshot, items count:', querySnapshot.size);
+          if (__DEV__) {
+            console.log('📦 Received pantry snapshot, items count:', querySnapshot.size);
+          }
           
           // In the callback, map the query snapshot to an array of objects and update the 'items' state.
           const pantryItems = [];
@@ -122,11 +138,13 @@ export default function PantryList({ navigation }) {
             });
           });
           
-          console.log('✅ Pantry items updated:', pantryItems.length);
-          
-          // Log unique categories for debugging
-          const uniqueCategories = [...new Set(pantryItems.map(item => item.category))];
-          console.log('📊 Unique categories in data:', uniqueCategories);
+          if (__DEV__) {
+            console.log('✅ Pantry items updated:', pantryItems.length);
+            
+            // Log unique categories for debugging
+            const uniqueCategories = [...new Set(pantryItems.map(item => item.category))];
+            console.log('📊 Unique categories in data:', uniqueCategories);
+          }
           
           setItems(pantryItems);
           setFilteredItems(pantryItems);
@@ -135,7 +153,9 @@ export default function PantryList({ navigation }) {
         (error) => {
           // Silently handle permission errors during auth transitions
           if (error.code === 'permission-denied') {
-            console.log('Permission denied - user may be signing out');
+            if (__DEV__) {
+              console.log('Permission denied - user may be signing out');
+            }
             setItems([]);
             setFilteredItems([]);
             setLoading(false);
@@ -146,12 +166,15 @@ export default function PantryList({ navigation }) {
           setLoading(false);
         }
       );
-
-      return () => unsubscribe();
     });
 
     // Remember to return the unsubscribe function from useEffect to prevent memory leaks.
-    return () => unsubscribeAuth();
+    return () => {
+      unsubscribeAuth();
+      if (unsubscribeSnapshot) {
+        unsubscribeSnapshot();
+      }
+    };
   }, []);
 
   // Filter items by category

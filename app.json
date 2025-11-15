@@ -19,7 +19,8 @@
       "bundleIdentifier": "com.shelfze.app",
       "infoPlist": {
         "NSCameraUsageDescription": "Shelfze needs access to your camera to scan food items and expiry dates."
-      }
+      },
+      "googleServicesFile": "./GoogleService-Info.plist"
     },
     "android": {
       "package": "com.shelfze.app",
@@ -29,7 +30,8 @@
       },
       "permissions": [
         "CAMERA"
-      ]
+      ],
+      "googleServicesFile": "./google-services.json"
     },
     "web": {
       "favicon": "./assets/favicon.png"

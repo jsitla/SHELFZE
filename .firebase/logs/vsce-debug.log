@@ -433,3 +433,328 @@ I1026 06:24:40.792622   72628 load.go:74] Finished reloading
 [error] [Firebase Plugin] error:  {}
 [debug] [2025-10-26T05:24:41.188Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects 200
 [debug] [2025-10-26T05:24:41.188Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects [omitted]
+[debug] [2025-10-27T13:12:22.073Z] [Firebase Plugin] Activating Firebase extension.
+[debug] [2025-10-27T13:12:30.798Z] [Firebase Plugin] requireAuthWrapper
+[debug] [2025-10-27T13:12:30.801Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2025-10-27T13:12:30.802Z] > authorizing via signed-in user (jsitla@gmail.com)
+[debug] [2025-10-27T13:12:30.805Z] Checked if tokens are valid: false, expires at: 1761510455189
+[debug] [2025-10-27T13:12:30.806Z] Checked if tokens are valid: false, expires at: 1761510455189
+[debug] [2025-10-27T13:12:30.806Z] > refreshing access token with scopes: []
+[debug] [2025-10-27T13:12:30.808Z] >>> [apiv2][query] POST https://www.googleapis.com/oauth2/v3/token [none]
+[debug] [2025-10-27T13:12:30.808Z] >>> [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2025-10-27T13:12:30.819Z] [Firebase Plugin] VSCode notification server listening on port 40001
+[info] [Firebase Plugin] Starting Data Connect toolkit (version 2.15.0) on port 50002
+[debug] [2025-10-27T13:12:32.339Z] W1027 14:12:32.312526   92912 control.go:68] [/emulator/pantryai f2e2] connector "example" has errors: example\queries.gql:2:3: mutation.AddNewWatch.watch_insert (data: Watch_Data): column createdAt is required but is missing in data
+
+sources: example\queries.gql [599B] 
+I1027 14:12:32.332566   92912 control.go:94] [/emulator/pantryai f2e2] UpdateResources(): done
+Main schema: sources: schema\schema.gql [831B] 
+Connector "example": sources: example\queries.gql [599B] 
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"W1027 14:12:32.312526   92912 control.go:68] [/emulator/pantryai f2e2] connector \"example\" has errors: example\\queries.gql:2:3: mutation.AddNewWatch.watch_insert (data: Watch_Data): column createdAt is required but is missing in data\n\nsources: example\\queries.gql [599B] \nI1027 14:12:32.332566   92912 control.go:94] [/emulator/pantryai f2e2] UpdateResources(): done\nMain schema: sources: schema\\schema.gql [831B] \nConnector \"example\": sources: example\\queries.gql [599B] \n"}}
+[debug] [2025-10-27T13:12:32.395Z] Ignoring unsupported arg: auto_download {"metadata":{"emulator":{"name":"dataconnect"},"message":"Ignoring unsupported arg: auto_download"}}
+[debug] [2025-10-27T13:12:32.395Z] Ignoring unsupported arg: port {"metadata":{"emulator":{"name":"dataconnect"},"message":"Ignoring unsupported arg: port"}}
+[debug] [2025-10-27T13:12:32.395Z] Starting Data Connect Emulator with command {"binary":"C:\\Users\\denis\\.cache\\firebase\\emulators\\dataconnect-emulator-2.15.0.exe","args":["--logtostderr","-v=2","dev","--listen=localhost:50002","--config_dir=c:\\Users\\denis\\Pantryai\\dataconnect","--enable_output_schema_extensions=true","--enable_output_generated_sdk=true"],"optionalArgs":["listen","config_dir","enable_output_schema_extensions","enable_output_generated_sdk"],"joinArgs":true,"shell":false,"port":9399} {"metadata":{"emulator":{"name":"dataconnect"},"message":"Starting Data Connect Emulator with command {\"binary\":\"C:\\\\Users\\\\denis\\\\.cache\\\\firebase\\\\emulators\\\\dataconnect-emulator-2.15.0.exe\",\"args\":[\"--logtostderr\",\"-v=2\",\"dev\",\"--listen=localhost:50002\",\"--config_dir=c:\\\\Users\\\\denis\\\\Pantryai\\\\dataconnect\",\"--enable_output_schema_extensions=true\",\"--enable_output_generated_sdk=true\"],\"optionalArgs\":[\"listen\",\"config_dir\",\"enable_output_schema_extensions\",\"enable_output_generated_sdk\"],\"joinArgs\":true,\"shell\":false,\"port\":9399}"}}
+[info] i  dataconnect: Data Connect Emulator logging to dataconnect-debug.log {"metadata":{"emulator":{"name":"dataconnect"},"message":"Data Connect Emulator logging to \u001b[1mdataconnect-debug.log\u001b[22m"}}
+[debug] [2025-10-27T13:12:32.465Z] I1027 14:12:32.435139   96400 load.go:31] Reloading schema and connectors...
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"I1027 14:12:32.435139   96400 load.go:31] Reloading schema and connectors...\n"}}
+[debug] [2025-10-27T13:12:32.606Z] <<< [apiv2][status] POST https://www.googleapis.com/oauth2/v3/token 200
+[debug] [2025-10-27T13:12:32.606Z] <<< [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2025-10-27T13:12:32.639Z] [Firebase Plugin] User found:  jsitla@gmail.com
+[info] [Firebase Plugin] (Core:Project) New user detected, fetching projects
+[debug] [2025-10-27T13:12:32.640Z] Checked if tokens are valid: true, expires at: 1761574351607
+[debug] [2025-10-27T13:12:32.641Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects pageSize=1000
+[debug] [2025-10-27T13:12:32.646Z] W1027 14:12:32.635939   96400 control.go:68] [/emulator/pantryai 21e7] connector "example" has errors: example\queries.gql:2:3: mutation.AddNewWatch.watch_insert (data: Watch_Data): column createdAt is required but is missing in data
+
+sources: example\queries.gql [599B] 
+I1027 14:12:32.636465   96400 control.go:94] [/emulator/pantryai 21e7] UpdateResources(): done
+Main schema: sources: schema\schema.gql [831B] 
+Connector "example": sources: example\queries.gql [599B] 
+E1027 14:12:32.638718   96400 load.go:73] Could not load sources: 
+Errors: example\queries.gql:2:3: mutation.AddNewWatch.watch_insert (data: Watch_Data): column createdAt is required but is missing in data
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"W1027 14:12:32.635939   96400 control.go:68] [/emulator/pantryai 21e7] connector \"example\" has errors: example\\queries.gql:2:3: mutation.AddNewWatch.watch_insert (data: Watch_Data): column createdAt is required but is missing in data\n\nsources: example\\queries.gql [599B] \nI1027 14:12:32.636465   96400 control.go:94] [/emulator/pantryai 21e7] UpdateResources(): done\nMain schema: sources: schema\\schema.gql [831B] \nConnector \"example\": sources: example\\queries.gql [599B] \nE1027 14:12:32.638718   96400 load.go:73] Could not load sources: \nErrors: example\\queries.gql:2:3: mutation.AddNewWatch.watch_insert (data: Watch_Data): column createdAt is required but is missing in data\n"}}
+[debug] [2025-10-27T13:12:32.655Z] I1027 14:12:32.646187   96400 collector.go:107] schema extensions wrote into "c:\\Users\\denis\\Pantryai\\dataconnect\\.dataconnect\\schema"
+Generated sources: prelude.gql [73219B] main\input.gql [58511B] main\relation.gql [30822B] main\query.gql [7504B] main\mutation.gql [20254B] main\implicit.gql [3217B] 
+I1027 14:12:32.646187   96400 load.go:74] Finished reloading
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"I1027 14:12:32.646187   96400 collector.go:107] schema extensions wrote into \"c:\\\\Users\\\\denis\\\\Pantryai\\\\dataconnect\\\\.dataconnect\\\\schema\"\nGenerated sources: prelude.gql [73219B] main\\input.gql [58511B] main\\relation.gql [30822B] main\\query.gql [7504B] main\\mutation.gql [20254B] main\\implicit.gql [3217B] \nI1027 14:12:32.646187   96400 load.go:74] Finished reloading\n"}}
+[debug] [2025-10-27T13:12:32.778Z] I1027 14:12:32.726672   96400 dev.go:102] Listening on address (HTTP + gRPC): 127.0.0.1:50002
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"I1027 14:12:32.726672   96400 dev.go:102] Listening on address (HTTP + gRPC): 127.0.0.1:50002\n"}}
+[error] [Firebase Plugin] error:  {}
+[debug] [2025-10-27T13:12:33.215Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects 200
+[debug] [2025-10-27T13:12:33.215Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects [omitted]
+[debug] [2025-10-28T10:13:08.793Z] [Firebase Plugin] Activating Firebase extension.
+[debug] [2025-10-28T10:13:16.971Z] [Firebase Plugin] requireAuthWrapper
+[debug] [2025-10-28T10:13:16.974Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2025-10-28T10:13:16.974Z] > authorizing via signed-in user (jsitla@gmail.com)
+[debug] [2025-10-28T10:13:16.977Z] Checked if tokens are valid: false, expires at: 1761644587642
+[debug] [2025-10-28T10:13:16.977Z] Checked if tokens are valid: false, expires at: 1761644587642
+[debug] [2025-10-28T10:13:16.978Z] > refreshing access token with scopes: []
+[debug] [2025-10-28T10:13:16.979Z] >>> [apiv2][query] POST https://www.googleapis.com/oauth2/v3/token [none]
+[debug] [2025-10-28T10:13:16.979Z] >>> [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2025-10-28T10:13:16.989Z] [Firebase Plugin] VSCode notification server listening on port 40001
+[info] [Firebase Plugin] Starting Data Connect toolkit (version 2.15.0) on port 50003
+[debug] [2025-10-28T10:13:22.880Z] W1028 11:13:22.851930   88620 control.go:68] [/emulator/pantryai 161b] connector "example" has errors: example\queries.gql:2:3: mutation.AddNewWatch.watch_insert (data: Watch_Data): column createdAt is required but is missing in data
+
+sources: example\queries.gql [599B] 
+I1028 11:13:22.872743   88620 control.go:94] [/emulator/pantryai 161b] UpdateResources(): done
+Main schema: sources: schema\schema.gql [831B] 
+Connector "example": sources: example\queries.gql [599B] 
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"W1028 11:13:22.851930   88620 control.go:68] [/emulator/pantryai 161b] connector \"example\" has errors: example\\queries.gql:2:3: mutation.AddNewWatch.watch_insert (data: Watch_Data): column createdAt is required but is missing in data\n\nsources: example\\queries.gql [599B] \nI1028 11:13:22.872743   88620 control.go:94] [/emulator/pantryai 161b] UpdateResources(): done\nMain schema: sources: schema\\schema.gql [831B] \nConnector \"example\": sources: example\\queries.gql [599B] \n"}}
+[debug] [2025-10-28T10:13:22.881Z] Ignoring unsupported arg: auto_download {"metadata":{"emulator":{"name":"dataconnect"},"message":"Ignoring unsupported arg: auto_download"}}
+[debug] [2025-10-28T10:13:22.882Z] Ignoring unsupported arg: port {"metadata":{"emulator":{"name":"dataconnect"},"message":"Ignoring unsupported arg: port"}}
+[debug] [2025-10-28T10:13:22.882Z] Starting Data Connect Emulator with command {"binary":"C:\\Users\\denis\\.cache\\firebase\\emulators\\dataconnect-emulator-2.15.0.exe","args":["--logtostderr","-v=2","dev","--listen=localhost:50003","--config_dir=c:\\Users\\denis\\Pantryai\\dataconnect","--enable_output_schema_extensions=true","--enable_output_generated_sdk=true"],"optionalArgs":["listen","config_dir","enable_output_schema_extensions","enable_output_generated_sdk"],"joinArgs":true,"shell":false,"port":9399} {"metadata":{"emulator":{"name":"dataconnect"},"message":"Starting Data Connect Emulator with command {\"binary\":\"C:\\\\Users\\\\denis\\\\.cache\\\\firebase\\\\emulators\\\\dataconnect-emulator-2.15.0.exe\",\"args\":[\"--logtostderr\",\"-v=2\",\"dev\",\"--listen=localhost:50003\",\"--config_dir=c:\\\\Users\\\\denis\\\\Pantryai\\\\dataconnect\",\"--enable_output_schema_extensions=true\",\"--enable_output_generated_sdk=true\"],\"optionalArgs\":[\"listen\",\"config_dir\",\"enable_output_schema_extensions\",\"enable_output_generated_sdk\"],\"joinArgs\":true,\"shell\":false,\"port\":9399}"}}
+[info] i  dataconnect: Data Connect Emulator logging to dataconnect-debug.log {"metadata":{"emulator":{"name":"dataconnect"},"message":"Data Connect Emulator logging to \u001b[1mdataconnect-debug.log\u001b[22m"}}
+[debug] [2025-10-28T10:13:22.950Z] I1028 11:13:22.932836   49580 load.go:31] Reloading schema and connectors...
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"I1028 11:13:22.932836   49580 load.go:31] Reloading schema and connectors...\n"}}
+[debug] [2025-10-28T10:13:23.045Z] W1028 11:13:23.044091   49580 control.go:68] [/emulator/pantryai c9a3] connector "example" has errors: example\queries.gql:2:3: mutation.AddNewWatch.watch_insert (data: Watch_Data): column createdAt is required but is missing in data
+
+sources: example\queries.gql [599B] 
+I1028 11:13:23.044091   49580 control.go:94] [/emulator/pantryai c9a3] UpdateResources(): done
+Main schema: sources: schema\schema.gql [831B] 
+Connector "example": sources: example\queries.gql [599B] 
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"W1028 11:13:23.044091   49580 control.go:68] [/emulator/pantryai c9a3] connector \"example\" has errors: example\\queries.gql:2:3: mutation.AddNewWatch.watch_insert (data: Watch_Data): column createdAt is required but is missing in data\n\nsources: example\\queries.gql [599B] \nI1028 11:13:23.044091   49580 control.go:94] [/emulator/pantryai c9a3] UpdateResources(): done\nMain schema: sources: schema\\schema.gql [831B] \nConnector \"example\": sources: example\\queries.gql [599B] \n"}}
+[debug] [2025-10-28T10:13:23.059Z] E1028 11:13:23.059305   49580 load.go:73] Could not load sources: 
+Errors: example\queries.gql:2:3: mutation.AddNewWatch.watch_insert (data: Watch_Data): column createdAt is required but is missing in data
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"E1028 11:13:23.059305   49580 load.go:73] Could not load sources: \nErrors: example\\queries.gql:2:3: mutation.AddNewWatch.watch_insert (data: Watch_Data): column createdAt is required but is missing in data\n"}}
+[debug] [2025-10-28T10:13:23.077Z] I1028 11:13:23.071204   49580 collector.go:107] schema extensions wrote into "c:\\Users\\denis\\Pantryai\\dataconnect\\.dataconnect\\schema"
+Generated sources: prelude.gql [73219B] main\query.gql [7504B] main\mutation.gql [20254B] main\implicit.gql [3217B] main\input.gql [58511B] main\relation.gql [30822B] 
+I1028 11:13:23.071903   49580 load.go:74] Finished reloading
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"I1028 11:13:23.071204   49580 collector.go:107] schema extensions wrote into \"c:\\\\Users\\\\denis\\\\Pantryai\\\\dataconnect\\\\.dataconnect\\\\schema\"\nGenerated sources: prelude.gql [73219B] main\\query.gql [7504B] main\\mutation.gql [20254B] main\\implicit.gql [3217B] main\\input.gql [58511B] main\\relation.gql [30822B] \nI1028 11:13:23.071903   49580 load.go:74] Finished reloading\n"}}
+[debug] [2025-10-28T10:13:23.123Z] I1028 11:13:23.122378   49580 dev.go:102] Listening on address (HTTP + gRPC): 127.0.0.1:50003
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"I1028 11:13:23.122378   49580 dev.go:102] Listening on address (HTTP + gRPC): 127.0.0.1:50003\n"}}
+[error] [Firebase Plugin] error:  {}
+[debug] [2025-10-28T10:13:23.781Z] <<< [apiv2][status] POST https://www.googleapis.com/oauth2/v3/token 200
+[debug] [2025-10-28T10:13:23.781Z] <<< [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2025-10-28T10:13:23.808Z] [Firebase Plugin] User found:  jsitla@gmail.com
+[info] [Firebase Plugin] (Core:Project) New user detected, fetching projects
+[debug] [2025-10-28T10:13:23.809Z] Checked if tokens are valid: true, expires at: 1761650002781
+[debug] [2025-10-28T10:13:23.810Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects pageSize=1000
+[debug] [2025-10-28T10:13:24.370Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects 200
+[debug] [2025-10-28T10:13:24.370Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects [omitted]
+[debug] [2025-10-28T10:27:35.046Z] [Firebase Plugin] Activating Firebase extension.
+[debug] [2025-10-28T10:27:41.399Z] [Firebase Plugin] requireAuthWrapper
+[debug] [2025-10-28T10:27:41.402Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2025-10-28T10:27:41.403Z] > authorizing via signed-in user (jsitla@gmail.com)
+[debug] [2025-10-28T10:27:41.408Z] Checked if tokens are valid: true, expires at: 1761650002781
+[debug] [2025-10-28T10:27:41.408Z] Checked if tokens are valid: true, expires at: 1761650002781
+[debug] [2025-10-28T10:27:41.408Z] [Firebase Plugin] User found:  jsitla@gmail.com
+[info] [Firebase Plugin] (Core:Project) New user detected, fetching projects
+[debug] [2025-10-28T10:27:41.410Z] Checked if tokens are valid: true, expires at: 1761650002781
+[debug] [2025-10-28T10:27:41.412Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects pageSize=1000
+[info] [Firebase Plugin] Starting Data Connect toolkit (version 2.15.0) on port 50001
+[debug] [2025-10-28T10:27:43.021Z] W1028 11:27:42.928428   12248 control.go:68] [/emulator/pantryai c9c9] connector "example" has errors: example\queries.gql:2:3: mutation.AddNewWatch.watch_insert (data: Watch_Data): column createdAt is required but is missing in data
+
+sources: example\queries.gql [599B] 
+I1028 11:27:43.015695   12248 control.go:94] [/emulator/pantryai c9c9] UpdateResources(): done
+Main schema: sources: schema\schema.gql [831B] 
+Connector "example": sources: example\queries.gql [599B] 
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"W1028 11:27:42.928428   12248 control.go:68] [/emulator/pantryai c9c9] connector \"example\" has errors: example\\queries.gql:2:3: mutation.AddNewWatch.watch_insert (data: Watch_Data): column createdAt is required but is missing in data\n\nsources: example\\queries.gql [599B] \nI1028 11:27:43.015695   12248 control.go:94] [/emulator/pantryai c9c9] UpdateResources(): done\nMain schema: sources: schema\\schema.gql [831B] \nConnector \"example\": sources: example\\queries.gql [599B] \n"}}
+[debug] [2025-10-28T10:27:43.022Z] Ignoring unsupported arg: auto_download {"metadata":{"emulator":{"name":"dataconnect"},"message":"Ignoring unsupported arg: auto_download"}}
+[debug] [2025-10-28T10:27:43.022Z] Ignoring unsupported arg: port {"metadata":{"emulator":{"name":"dataconnect"},"message":"Ignoring unsupported arg: port"}}
+[debug] [2025-10-28T10:27:43.023Z] Starting Data Connect Emulator with command {"binary":"C:\\Users\\denis\\.cache\\firebase\\emulators\\dataconnect-emulator-2.15.0.exe","args":["--logtostderr","-v=2","dev","--listen=localhost:50001","--config_dir=c:\\Users\\denis\\Pantryai\\dataconnect","--enable_output_schema_extensions=true","--enable_output_generated_sdk=true"],"optionalArgs":["listen","config_dir","enable_output_schema_extensions","enable_output_generated_sdk"],"joinArgs":true,"shell":false,"port":9399} {"metadata":{"emulator":{"name":"dataconnect"},"message":"Starting Data Connect Emulator with command {\"binary\":\"C:\\\\Users\\\\denis\\\\.cache\\\\firebase\\\\emulators\\\\dataconnect-emulator-2.15.0.exe\",\"args\":[\"--logtostderr\",\"-v=2\",\"dev\",\"--listen=localhost:50001\",\"--config_dir=c:\\\\Users\\\\denis\\\\Pantryai\\\\dataconnect\",\"--enable_output_schema_extensions=true\",\"--enable_output_generated_sdk=true\"],\"optionalArgs\":[\"listen\",\"config_dir\",\"enable_output_schema_extensions\",\"enable_output_generated_sdk\"],\"joinArgs\":true,\"shell\":false,\"port\":9399}"}}
+[info] i  dataconnect: Data Connect Emulator logging to dataconnect-debug.log {"metadata":{"emulator":{"name":"dataconnect"},"message":"Data Connect Emulator logging to \u001b[1mdataconnect-debug.log\u001b[22m"}}
+[debug] [2025-10-28T10:27:43.109Z] I1028 11:27:43.069567    2832 load.go:31] Reloading schema and connectors...
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"I1028 11:27:43.069567    2832 load.go:31] Reloading schema and connectors...\n"}}
+[debug] [2025-10-28T10:27:43.137Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects 200
+[debug] [2025-10-28T10:27:43.137Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects [omitted]
+[debug] [2025-10-28T10:27:43.150Z] W1028 11:27:43.148482    2832 control.go:68] [/emulator/pantryai 56d6] connector "example" has errors: example\queries.gql:2:3: mutation.AddNewWatch.watch_insert (data: Watch_Data): column createdAt is required but is missing in data
+
+sources: example\queries.gql [599B] 
+I1028 11:27:43.148482    2832 control.go:94] [/emulator/pantryai 56d6] UpdateResources(): done
+Main schema: sources: schema\schema.gql [831B] 
+Connector "example": sources: example\queries.gql [599B] 
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"W1028 11:27:43.148482    2832 control.go:68] [/emulator/pantryai 56d6] connector \"example\" has errors: example\\queries.gql:2:3: mutation.AddNewWatch.watch_insert (data: Watch_Data): column createdAt is required but is missing in data\n\nsources: example\\queries.gql [599B] \nI1028 11:27:43.148482    2832 control.go:94] [/emulator/pantryai 56d6] UpdateResources(): done\nMain schema: sources: schema\\schema.gql [831B] \nConnector \"example\": sources: example\\queries.gql [599B] \n"}}
+[debug] [2025-10-28T10:27:43.152Z] E1028 11:27:43.148482    2832 load.go:73] Could not load sources: 
+Errors: example\queries.gql:2:3: mutation.AddNewWatch.watch_insert (data: Watch_Data): column createdAt is required but is missing in data
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"E1028 11:27:43.148482    2832 load.go:73] Could not load sources: \nErrors: example\\queries.gql:2:3: mutation.AddNewWatch.watch_insert (data: Watch_Data): column createdAt is required but is missing in data\n"}}
+[debug] [2025-10-28T10:27:43.160Z] I1028 11:27:43.157940    2832 collector.go:107] schema extensions wrote into "c:\\Users\\denis\\Pantryai\\dataconnect\\.dataconnect\\schema"
+Generated sources: prelude.gql [73219B] main\implicit.gql [3217B] main\input.gql [58511B] main\relation.gql [30822B] main\query.gql [7504B] main\mutation.gql [20254B] 
+I1028 11:27:43.157940    2832 load.go:74] Finished reloading
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"I1028 11:27:43.157940    2832 collector.go:107] schema extensions wrote into \"c:\\\\Users\\\\denis\\\\Pantryai\\\\dataconnect\\\\.dataconnect\\\\schema\"\nGenerated sources: prelude.gql [73219B] main\\implicit.gql [3217B] main\\input.gql [58511B] main\\relation.gql [30822B] main\\query.gql [7504B] main\\mutation.gql [20254B] \nI1028 11:27:43.157940    2832 load.go:74] Finished reloading\n"}}
+[debug] [2025-10-28T10:27:43.206Z] I1028 11:27:43.206367    2832 dev.go:102] Listening on address (HTTP + gRPC): 127.0.0.1:50001
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"I1028 11:27:43.206367    2832 dev.go:102] Listening on address (HTTP + gRPC): 127.0.0.1:50001\n"}}
+[error] [Firebase Plugin] error:  {}
+[debug] [2025-10-28T12:15:55.479Z] [Firebase Plugin] Activating Firebase extension.
+[info] [Firebase Plugin] Checked firebase-tools, is up to date!
+[debug] [2025-10-28T12:16:02.726Z] [Firebase Plugin] requireAuthWrapper
+[debug] [2025-10-28T12:16:02.729Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2025-10-28T12:16:02.730Z] > authorizing via signed-in user (jsitla@gmail.com)
+[debug] [2025-10-28T12:16:02.734Z] Checked if tokens are valid: true, expires at: 1761656357470
+[debug] [2025-10-28T12:16:02.734Z] Checked if tokens are valid: true, expires at: 1761656357470
+[debug] [2025-10-28T12:16:02.734Z] [Firebase Plugin] User found:  jsitla@gmail.com
+[info] [Firebase Plugin] (Core:Project) New user detected, fetching projects
+[debug] [2025-10-28T12:16:02.736Z] Checked if tokens are valid: true, expires at: 1761656357470
+[debug] [2025-10-28T12:16:02.738Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects pageSize=1000
+[info] [Firebase Plugin] Starting Data Connect toolkit (version 2.15.0) on port 50002
+[debug] [2025-10-28T12:16:03.718Z] W1028 13:16:03.663598    2732 control.go:68] [/emulator/pantryai 59d1] connector "example" has errors: example\queries.gql:2:3: mutation.AddNewWatch.watch_insert (data: Watch_Data): column createdAt is required but is missing in data
+
+sources: example\queries.gql [599B] 
+I1028 13:16:03.714286    2732 control.go:94] [/emulator/pantryai 59d1] UpdateResources(): done
+Main schema: sources: schema\schema.gql [831B] 
+Connector "example": sources: example\queries.gql [599B] 
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"W1028 13:16:03.663598    2732 control.go:68] [/emulator/pantryai 59d1] connector \"example\" has errors: example\\queries.gql:2:3: mutation.AddNewWatch.watch_insert (data: Watch_Data): column createdAt is required but is missing in data\n\nsources: example\\queries.gql [599B] \nI1028 13:16:03.714286    2732 control.go:94] [/emulator/pantryai 59d1] UpdateResources(): done\nMain schema: sources: schema\\schema.gql [831B] \nConnector \"example\": sources: example\\queries.gql [599B] \n"}}
+[debug] [2025-10-28T12:16:03.719Z] Ignoring unsupported arg: auto_download {"metadata":{"emulator":{"name":"dataconnect"},"message":"Ignoring unsupported arg: auto_download"}}
+[debug] [2025-10-28T12:16:03.720Z] Ignoring unsupported arg: port {"metadata":{"emulator":{"name":"dataconnect"},"message":"Ignoring unsupported arg: port"}}
+[debug] [2025-10-28T12:16:03.720Z] Starting Data Connect Emulator with command {"binary":"C:\\Users\\denis\\.cache\\firebase\\emulators\\dataconnect-emulator-2.15.0.exe","args":["--logtostderr","-v=2","dev","--listen=localhost:50002","--config_dir=c:\\Users\\denis\\Pantryai\\dataconnect","--enable_output_schema_extensions=true","--enable_output_generated_sdk=true"],"optionalArgs":["listen","config_dir","enable_output_schema_extensions","enable_output_generated_sdk"],"joinArgs":true,"shell":false,"port":9399} {"metadata":{"emulator":{"name":"dataconnect"},"message":"Starting Data Connect Emulator with command {\"binary\":\"C:\\\\Users\\\\denis\\\\.cache\\\\firebase\\\\emulators\\\\dataconnect-emulator-2.15.0.exe\",\"args\":[\"--logtostderr\",\"-v=2\",\"dev\",\"--listen=localhost:50002\",\"--config_dir=c:\\\\Users\\\\denis\\\\Pantryai\\\\dataconnect\",\"--enable_output_schema_extensions=true\",\"--enable_output_generated_sdk=true\"],\"optionalArgs\":[\"listen\",\"config_dir\",\"enable_output_schema_extensions\",\"enable_output_generated_sdk\"],\"joinArgs\":true,\"shell\":false,\"port\":9399}"}}
+[info] i  dataconnect: Data Connect Emulator logging to dataconnect-debug.log {"metadata":{"emulator":{"name":"dataconnect"},"message":"Data Connect Emulator logging to \u001b[1mdataconnect-debug.log\u001b[22m"}}
+[debug] [2025-10-28T12:16:03.820Z] I1028 13:16:03.753007    8476 load.go:31] Reloading schema and connectors...
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"I1028 13:16:03.753007    8476 load.go:31] Reloading schema and connectors...\n"}}
+[debug] [2025-10-28T12:16:03.928Z] W1028 13:16:03.927325    8476 control.go:68] [/emulator/pantryai bda6] connector "example" has errors: example\queries.gql:2:3: mutation.AddNewWatch.watch_insert (data: Watch_Data): column createdAt is required but is missing in data
+
+sources: example\queries.gql [599B] 
+I1028 13:16:03.929331    8476 control.go:94] [/emulator/pantryai bda6] UpdateResources(): done
+Main schema: sources: schema\schema.gql [831B] 
+Connector "example": sources: example\queries.gql [599B] 
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"W1028 13:16:03.927325    8476 control.go:68] [/emulator/pantryai bda6] connector \"example\" has errors: example\\queries.gql:2:3: mutation.AddNewWatch.watch_insert (data: Watch_Data): column createdAt is required but is missing in data\n\nsources: example\\queries.gql [599B] \nI1028 13:16:03.929331    8476 control.go:94] [/emulator/pantryai bda6] UpdateResources(): done\nMain schema: sources: schema\\schema.gql [831B] \nConnector \"example\": sources: example\\queries.gql [599B] \n"}}
+[debug] [2025-10-28T12:16:03.941Z] E1028 13:16:03.941973    8476 load.go:73] Could not load sources: 
+Errors: example\queries.gql:2:3: mutation.AddNewWatch.watch_insert (data: Watch_Data): column createdAt is required but is missing in data
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"E1028 13:16:03.941973    8476 load.go:73] Could not load sources: \nErrors: example\\queries.gql:2:3: mutation.AddNewWatch.watch_insert (data: Watch_Data): column createdAt is required but is missing in data\n"}}
+[debug] [2025-10-28T12:16:03.967Z] I1028 13:16:03.948357    8476 collector.go:107] schema extensions wrote into "c:\\Users\\denis\\Pantryai\\dataconnect\\.dataconnect\\schema"
+Generated sources: prelude.gql [73219B] main\query.gql [7504B] main\mutation.gql [20254B] main\implicit.gql [3217B] main\input.gql [58511B] main\relation.gql [30822B] 
+I1028 13:16:03.948357    8476 load.go:74] Finished reloading
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"I1028 13:16:03.948357    8476 collector.go:107] schema extensions wrote into \"c:\\\\Users\\\\denis\\\\Pantryai\\\\dataconnect\\\\.dataconnect\\\\schema\"\nGenerated sources: prelude.gql [73219B] main\\query.gql [7504B] main\\mutation.gql [20254B] main\\implicit.gql [3217B] main\\input.gql [58511B] main\\relation.gql [30822B] \nI1028 13:16:03.948357    8476 load.go:74] Finished reloading\n"}}
+[debug] [2025-10-28T12:16:03.977Z] I1028 13:16:03.978169    8476 dev.go:102] Listening on address (HTTP + gRPC): 127.0.0.1:50002
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"I1028 13:16:03.978169    8476 dev.go:102] Listening on address (HTTP + gRPC): 127.0.0.1:50002\n"}}
+[error] [Firebase Plugin] error:  {}
+[debug] [2025-10-28T12:16:05.777Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects 200
+[debug] [2025-10-28T12:16:05.777Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects [omitted]
+[debug] [2025-10-29T05:13:12.017Z] [Firebase Plugin] Activating Firebase extension.
+[info] [Firebase Plugin] Checked firebase-tools, is up to date!
+[debug] [2025-10-29T05:13:21.073Z] [Firebase Plugin] requireAuthWrapper
+[debug] [2025-10-29T05:13:21.075Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2025-10-29T05:13:21.076Z] > authorizing via signed-in user (jsitla@gmail.com)
+[debug] [2025-10-29T05:13:21.080Z] Checked if tokens are valid: false, expires at: 1761656357470
+[debug] [2025-10-29T05:13:21.080Z] Checked if tokens are valid: false, expires at: 1761656357470
+[debug] [2025-10-29T05:13:21.080Z] > refreshing access token with scopes: []
+[debug] [2025-10-29T05:13:21.082Z] >>> [apiv2][query] POST https://www.googleapis.com/oauth2/v3/token [none]
+[debug] [2025-10-29T05:13:21.082Z] >>> [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[info] [Firebase Plugin] Starting Data Connect toolkit (version 2.15.0) on port 50003
+[debug] [2025-10-29T05:13:21.964Z] W1029 06:13:21.905258   26088 control.go:68] [/emulator/pantryai 4c4a] connector "example" has errors: example\queries.gql:2:3: mutation.AddNewWatch.watch_insert (data: Watch_Data): column createdAt is required but is missing in data
+
+sources: example\queries.gql [599B] 
+I1029 06:13:21.960078   26088 control.go:94] [/emulator/pantryai 4c4a] UpdateResources(): done
+Main schema: sources: schema\schema.gql [831B] 
+Connector "example": sources: example\queries.gql [599B] 
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"W1029 06:13:21.905258   26088 control.go:68] [/emulator/pantryai 4c4a] connector \"example\" has errors: example\\queries.gql:2:3: mutation.AddNewWatch.watch_insert (data: Watch_Data): column createdAt is required but is missing in data\n\nsources: example\\queries.gql [599B] \nI1029 06:13:21.960078   26088 control.go:94] [/emulator/pantryai 4c4a] UpdateResources(): done\nMain schema: sources: schema\\schema.gql [831B] \nConnector \"example\": sources: example\\queries.gql [599B] \n"}}
+[debug] [2025-10-29T05:13:22.017Z] Ignoring unsupported arg: auto_download {"metadata":{"emulator":{"name":"dataconnect"},"message":"Ignoring unsupported arg: auto_download"}}
+[debug] [2025-10-29T05:13:22.018Z] Ignoring unsupported arg: port {"metadata":{"emulator":{"name":"dataconnect"},"message":"Ignoring unsupported arg: port"}}
+[debug] [2025-10-29T05:13:22.018Z] Starting Data Connect Emulator with command {"binary":"C:\\Users\\denis\\.cache\\firebase\\emulators\\dataconnect-emulator-2.15.0.exe","args":["--logtostderr","-v=2","dev","--listen=localhost:50003","--config_dir=c:\\Users\\denis\\Pantryai\\dataconnect","--enable_output_schema_extensions=true","--enable_output_generated_sdk=true"],"optionalArgs":["listen","config_dir","enable_output_schema_extensions","enable_output_generated_sdk"],"joinArgs":true,"shell":false,"port":9399} {"metadata":{"emulator":{"name":"dataconnect"},"message":"Starting Data Connect Emulator with command {\"binary\":\"C:\\\\Users\\\\denis\\\\.cache\\\\firebase\\\\emulators\\\\dataconnect-emulator-2.15.0.exe\",\"args\":[\"--logtostderr\",\"-v=2\",\"dev\",\"--listen=localhost:50003\",\"--config_dir=c:\\\\Users\\\\denis\\\\Pantryai\\\\dataconnect\",\"--enable_output_schema_extensions=true\",\"--enable_output_generated_sdk=true\"],\"optionalArgs\":[\"listen\",\"config_dir\",\"enable_output_schema_extensions\",\"enable_output_generated_sdk\"],\"joinArgs\":true,\"shell\":false,\"port\":9399}"}}
+[info] i  dataconnect: Data Connect Emulator logging to dataconnect-debug.log {"metadata":{"emulator":{"name":"dataconnect"},"message":"Data Connect Emulator logging to \u001b[1mdataconnect-debug.log\u001b[22m"}}
+[debug] [2025-10-29T05:13:22.154Z] <<< [apiv2][status] POST https://www.googleapis.com/oauth2/v3/token 200
+[debug] [2025-10-29T05:13:22.155Z] <<< [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2025-10-29T05:13:22.185Z] [Firebase Plugin] User found:  jsitla@gmail.com
+[info] [Firebase Plugin] (Core:Project) New user detected, fetching projects
+[debug] [2025-10-29T05:13:22.190Z] Checked if tokens are valid: true, expires at: 1761718401155
+[debug] [2025-10-29T05:13:22.191Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects pageSize=1000
+[debug] [2025-10-29T05:13:22.210Z] I1029 06:13:22.139067   19876 load.go:31] Reloading schema and connectors...
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"I1029 06:13:22.139067   19876 load.go:31] Reloading schema and connectors...\n"}}
+[debug] [2025-10-29T05:13:22.233Z] W1029 06:13:22.226846   19876 control.go:68] [/emulator/pantryai 3206] connector "example" has errors: example\queries.gql:2:3: mutation.AddNewWatch.watch_insert (data: Watch_Data): column createdAt is required but is missing in data
+
+sources: example\queries.gql [599B] 
+I1029 06:13:22.226846   19876 control.go:94] [/emulator/pantryai 3206] UpdateResources(): done
+Main schema: sources: schema\schema.gql [831B] 
+Connector "example": sources: example\queries.gql [599B] 
+E1029 06:13:22.229918   19876 load.go:73] Could not load sources: 
+Errors: example\queries.gql:2:3: mutation.AddNewWatch.watch_insert (data: Watch_Data): column createdAt is required but is missing in data
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"W1029 06:13:22.226846   19876 control.go:68] [/emulator/pantryai 3206] connector \"example\" has errors: example\\queries.gql:2:3: mutation.AddNewWatch.watch_insert (data: Watch_Data): column createdAt is required but is missing in data\n\nsources: example\\queries.gql [599B] \nI1029 06:13:22.226846   19876 control.go:94] [/emulator/pantryai 3206] UpdateResources(): done\nMain schema: sources: schema\\schema.gql [831B] \nConnector \"example\": sources: example\\queries.gql [599B] \nE1029 06:13:22.229918   19876 load.go:73] Could not load sources: \nErrors: example\\queries.gql:2:3: mutation.AddNewWatch.watch_insert (data: Watch_Data): column createdAt is required but is missing in data\n"}}
+[debug] [2025-10-29T05:13:22.281Z] I1029 06:13:22.255825   19876 collector.go:107] schema extensions wrote into "c:\\Users\\denis\\Pantryai\\dataconnect\\.dataconnect\\schema"
+Generated sources: main\implicit.gql [3217B] main\input.gql [58511B] main\relation.gql [30822B] prelude.gql [73219B] main\query.gql [7504B] main\mutation.gql [20254B] 
+I1029 06:13:22.255825   19876 load.go:74] Finished reloading
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"I1029 06:13:22.255825   19876 collector.go:107] schema extensions wrote into \"c:\\\\Users\\\\denis\\\\Pantryai\\\\dataconnect\\\\.dataconnect\\\\schema\"\nGenerated sources: main\\implicit.gql [3217B] main\\input.gql [58511B] main\\relation.gql [30822B] prelude.gql [73219B] main\\query.gql [7504B] main\\mutation.gql [20254B] \nI1029 06:13:22.255825   19876 load.go:74] Finished reloading\n"}}
+[debug] [2025-10-29T05:13:22.381Z] I1029 06:13:22.378092   19876 dev.go:102] Listening on address (HTTP + gRPC): 127.0.0.1:50003
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"I1029 06:13:22.378092   19876 dev.go:102] Listening on address (HTTP + gRPC): 127.0.0.1:50003\n"}}
+[error] [Firebase Plugin] error:  {}
+[debug] [2025-10-29T05:13:25.398Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects 200
+[debug] [2025-10-29T05:13:25.399Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects [omitted]
+[info] [Firebase Plugin] Stopping Data Connect toolkit
+[warn] !  Data Connect Emulator has exited upon receiving signal: SIGINT 
+[debug] [2025-11-12T11:21:26.862Z] [Firebase Plugin] Activating Firebase extension.
+[debug] [2025-11-12T11:21:33.896Z] [Firebase Plugin] requireAuthWrapper
+[debug] [2025-11-12T11:21:33.910Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2025-11-12T11:21:33.911Z] > authorizing via signed-in user (jsitla@gmail.com)
+[debug] [2025-11-12T11:21:33.915Z] Checked if tokens are valid: true, expires at: 1762949902331
+[debug] [2025-11-12T11:21:33.915Z] Checked if tokens are valid: true, expires at: 1762949902331
+[debug] [2025-11-12T11:21:33.915Z] [Firebase Plugin] User found:  jsitla@gmail.com
+[info] [Firebase Plugin] (Core:Project) New user detected, fetching projects
+[debug] [2025-11-12T11:21:33.917Z] Checked if tokens are valid: true, expires at: 1762949902331
+[debug] [2025-11-12T11:21:33.918Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects pageSize=1000
+[debug] [2025-11-12T11:21:33.929Z] [Firebase Plugin] VSCode notification server listening on port 40001
+[info] [Firebase Plugin] Starting Data Connect toolkit (version 2.15.0) on port 50001
+[debug] [2025-11-12T11:21:34.919Z] W1112 12:21:34.897828   20876 control.go:68] [/emulator/pantryai b67e] connector "example" has errors: example\queries.gql:2:3: mutation.AddNewWatch.watch_insert (data: Watch_Data): column createdAt is required but is missing in data
+
+sources: example\queries.gql [599B] 
+I1112 12:21:34.913589   20876 control.go:94] [/emulator/pantryai b67e] UpdateResources(): done
+Main schema: sources: schema\schema.gql [831B] 
+Connector "example": sources: example\queries.gql [599B] 
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"W1112 12:21:34.897828   20876 control.go:68] [/emulator/pantryai b67e] connector \"example\" has errors: example\\queries.gql:2:3: mutation.AddNewWatch.watch_insert (data: Watch_Data): column createdAt is required but is missing in data\n\nsources: example\\queries.gql [599B] \nI1112 12:21:34.913589   20876 control.go:94] [/emulator/pantryai b67e] UpdateResources(): done\nMain schema: sources: schema\\schema.gql [831B] \nConnector \"example\": sources: example\\queries.gql [599B] \n"}}
+[debug] [2025-11-12T11:21:34.919Z] Ignoring unsupported arg: auto_download {"metadata":{"emulator":{"name":"dataconnect"},"message":"Ignoring unsupported arg: auto_download"}}
+[debug] [2025-11-12T11:21:34.920Z] Ignoring unsupported arg: port {"metadata":{"emulator":{"name":"dataconnect"},"message":"Ignoring unsupported arg: port"}}
+[debug] [2025-11-12T11:21:34.920Z] Starting Data Connect Emulator with command {"binary":"C:\\Users\\denis\\.cache\\firebase\\emulators\\dataconnect-emulator-2.15.0.exe","args":["--logtostderr","-v=2","dev","--listen=localhost:50001","--config_dir=c:\\Users\\denis\\Pantryai\\dataconnect","--enable_output_schema_extensions=true","--enable_output_generated_sdk=true"],"optionalArgs":["listen","config_dir","enable_output_schema_extensions","enable_output_generated_sdk"],"joinArgs":true,"shell":false,"port":9399} {"metadata":{"emulator":{"name":"dataconnect"},"message":"Starting Data Connect Emulator with command {\"binary\":\"C:\\\\Users\\\\denis\\\\.cache\\\\firebase\\\\emulators\\\\dataconnect-emulator-2.15.0.exe\",\"args\":[\"--logtostderr\",\"-v=2\",\"dev\",\"--listen=localhost:50001\",\"--config_dir=c:\\\\Users\\\\denis\\\\Pantryai\\\\dataconnect\",\"--enable_output_schema_extensions=true\",\"--enable_output_generated_sdk=true\"],\"optionalArgs\":[\"listen\",\"config_dir\",\"enable_output_schema_extensions\",\"enable_output_generated_sdk\"],\"joinArgs\":true,\"shell\":false,\"port\":9399}"}}
+[info] i  dataconnect: Data Connect Emulator logging to dataconnect-debug.log {"metadata":{"emulator":{"name":"dataconnect"},"message":"Data Connect Emulator logging to \u001b[1mdataconnect-debug.log\u001b[22m"}}
+[debug] [2025-11-12T11:21:35.072Z] I1112 12:21:34.954914   11552 load.go:31] Reloading schema and connectors...
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"I1112 12:21:34.954914   11552 load.go:31] Reloading schema and connectors...\n"}}
+[debug] [2025-11-12T11:21:35.228Z] W1112 12:21:35.226597   11552 control.go:68] [/emulator/pantryai 779d] connector "example" has errors: example\queries.gql:2:3: mutation.AddNewWatch.watch_insert (data: Watch_Data): column createdAt is required but is missing in data
+
+sources: example\queries.gql [599B] 
+I1112 12:21:35.226597   11552 control.go:94] [/emulator/pantryai 779d] UpdateResources(): done
+Main schema: sources: schema\schema.gql [831B] 
+Connector "example": sources: example\queries.gql [599B] 
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"W1112 12:21:35.226597   11552 control.go:68] [/emulator/pantryai 779d] connector \"example\" has errors: example\\queries.gql:2:3: mutation.AddNewWatch.watch_insert (data: Watch_Data): column createdAt is required but is missing in data\n\nsources: example\\queries.gql [599B] \nI1112 12:21:35.226597   11552 control.go:94] [/emulator/pantryai 779d] UpdateResources(): done\nMain schema: sources: schema\\schema.gql [831B] \nConnector \"example\": sources: example\\queries.gql [599B] \n"}}
+[debug] [2025-11-12T11:21:35.234Z] E1112 12:21:35.231768   11552 load.go:73] Could not load sources: 
+Errors: example\queries.gql:2:3: mutation.AddNewWatch.watch_insert (data: Watch_Data): column createdAt is required but is missing in data
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"E1112 12:21:35.231768   11552 load.go:73] Could not load sources: \nErrors: example\\queries.gql:2:3: mutation.AddNewWatch.watch_insert (data: Watch_Data): column createdAt is required but is missing in data\n"}}
+[debug] [2025-11-12T11:21:35.244Z] I1112 12:21:35.243542   11552 collector.go:107] schema extensions wrote into "c:\\Users\\denis\\Pantryai\\dataconnect\\.dataconnect\\schema"
+Generated sources: prelude.gql [73219B] main\implicit.gql [3217B] main\input.gql [58511B] main\relation.gql [30822B] main\query.gql [7504B] main\mutation.gql [20254B] 
+I1112 12:21:35.243542   11552 load.go:74] Finished reloading
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"I1112 12:21:35.243542   11552 collector.go:107] schema extensions wrote into \"c:\\\\Users\\\\denis\\\\Pantryai\\\\dataconnect\\\\.dataconnect\\\\schema\"\nGenerated sources: prelude.gql [73219B] main\\implicit.gql [3217B] main\\input.gql [58511B] main\\relation.gql [30822B] main\\query.gql [7504B] main\\mutation.gql [20254B] \nI1112 12:21:35.243542   11552 load.go:74] Finished reloading\n"}}
+[debug] [2025-11-12T11:21:35.287Z] I1112 12:21:35.287646   11552 dev.go:102] Listening on address (HTTP + gRPC): 127.0.0.1:50001
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"I1112 12:21:35.287646   11552 dev.go:102] Listening on address (HTTP + gRPC): 127.0.0.1:50001\n"}}
+[error] [Firebase Plugin] error:  {}
+[debug] [2025-11-12T11:21:36.114Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects 200
+[debug] [2025-11-12T11:21:36.115Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects [omitted]
+[info] [Firebase Plugin] Stopping Data Connect toolkit
+[warn] !  Data Connect Emulator has exited upon receiving signal: SIGINT 
+[debug] [2025-11-15T06:54:49.179Z] [Firebase Plugin] Activating Firebase extension.
+[debug] [2025-11-15T06:55:02.645Z] [Firebase Plugin] requireAuthWrapper
+[debug] [2025-11-15T06:55:02.649Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2025-11-15T06:55:02.650Z] > authorizing via signed-in user (jsitla@gmail.com)
+[debug] [2025-11-15T06:55:02.654Z] Checked if tokens are valid: false, expires at: 1762949902331
+[debug] [2025-11-15T06:55:02.655Z] Checked if tokens are valid: false, expires at: 1762949902331
+[debug] [2025-11-15T06:55:02.655Z] > refreshing access token with scopes: []
+[debug] [2025-11-15T06:55:02.658Z] >>> [apiv2][query] POST https://www.googleapis.com/oauth2/v3/token [none]
+[debug] [2025-11-15T06:55:02.658Z] >>> [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2025-11-15T06:55:02.677Z] [Firebase Plugin] VSCode notification server listening on port 40001
+[info] [Firebase Plugin] Starting Data Connect toolkit (version 2.15.0) on port 50001
+[debug] [2025-11-15T06:55:04.658Z] W1115 07:55:04.638989   48856 control.go:68] [/emulator/pantryai 943a] connector "example" has errors: example\queries.gql:2:3: mutation.AddNewWatch.watch_insert (data: Watch_Data): column createdAt is required but is missing in data
+
+sources: example\queries.gql [599B] 
+I1115 07:55:04.652940   48856 control.go:94] [/emulator/pantryai 943a] UpdateResources(): done
+Main schema: sources: schema\schema.gql [831B] 
+Connector "example": sources: example\queries.gql [599B] 
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"W1115 07:55:04.638989   48856 control.go:68] [/emulator/pantryai 943a] connector \"example\" has errors: example\\queries.gql:2:3: mutation.AddNewWatch.watch_insert (data: Watch_Data): column createdAt is required but is missing in data\n\nsources: example\\queries.gql [599B] \nI1115 07:55:04.652940   48856 control.go:94] [/emulator/pantryai 943a] UpdateResources(): done\nMain schema: sources: schema\\schema.gql [831B] \nConnector \"example\": sources: example\\queries.gql [599B] \n"}}
+[debug] [2025-11-15T06:55:04.659Z] Ignoring unsupported arg: auto_download {"metadata":{"emulator":{"name":"dataconnect"},"message":"Ignoring unsupported arg: auto_download"}}
+[debug] [2025-11-15T06:55:04.659Z] Ignoring unsupported arg: port {"metadata":{"emulator":{"name":"dataconnect"},"message":"Ignoring unsupported arg: port"}}
+[debug] [2025-11-15T06:55:04.660Z] Starting Data Connect Emulator with command {"binary":"C:\\Users\\denis\\.cache\\firebase\\emulators\\dataconnect-emulator-2.15.0.exe","args":["--logtostderr","-v=2","dev","--listen=localhost:50001","--config_dir=c:\\Users\\denis\\Pantryai\\dataconnect","--enable_output_schema_extensions=true","--enable_output_generated_sdk=true"],"optionalArgs":["listen","config_dir","enable_output_schema_extensions","enable_output_generated_sdk"],"joinArgs":true,"shell":false,"port":9399} {"metadata":{"emulator":{"name":"dataconnect"},"message":"Starting Data Connect Emulator with command {\"binary\":\"C:\\\\Users\\\\denis\\\\.cache\\\\firebase\\\\emulators\\\\dataconnect-emulator-2.15.0.exe\",\"args\":[\"--logtostderr\",\"-v=2\",\"dev\",\"--listen=localhost:50001\",\"--config_dir=c:\\\\Users\\\\denis\\\\Pantryai\\\\dataconnect\",\"--enable_output_schema_extensions=true\",\"--enable_output_generated_sdk=true\"],\"optionalArgs\":[\"listen\",\"config_dir\",\"enable_output_schema_extensions\",\"enable_output_generated_sdk\"],\"joinArgs\":true,\"shell\":false,\"port\":9399}"}}
+[info] i  dataconnect: Data Connect Emulator logging to dataconnect-debug.log {"metadata":{"emulator":{"name":"dataconnect"},"message":"Data Connect Emulator logging to \u001b[1mdataconnect-debug.log\u001b[22m"}}
+[debug] [2025-11-15T06:55:05.054Z] I1115 07:55:04.706223   16724 load.go:31] Reloading schema and connectors...
+W1115 07:55:04.779792   16724 control.go:68] [/emulator/pantryai 81ab] connector "example" has errors: example\queries.gql:2:3: mutation.AddNewWatch.watch_insert (data: Watch_Data): column createdAt is required but is missing in data
+
+sources: example\queries.gql [599B] 
+I1115 07:55:04.779792   16724 control.go:94] [/emulator/pantryai 81ab] UpdateResources(): done
+Main schema: sources: schema\schema.gql [831B] 
+Connector "example": sources: example\queries.gql [599B] 
+E1115 07:55:04.893081   16724 load.go:73] Could not load sources: 
+Errors: example\queries.gql:2:3: mutation.AddNewWatch.watch_insert (data: Watch_Data): column createdAt is required but is missing in data
+I1115 07:55:04.901080   16724 collector.go:107] schema extensions wrote into "c:\\Users\\denis\\Pantryai\\dataconnect\\.dataconnect\\schema"
+Generated sources: prelude.gql [73219B] main\implicit.gql [3217B] main\input.gql [58511B] main\relation.gql [30822B] main\query.gql [7504B] main\mutation.gql [20254B] 
+I1115 07:55:04.903603   16724 load.go:74] Finished reloading
+I1115 07:55:05.050778   16724 dev.go:102] Listening on address (HTTP + gRPC): 127.0.0.1:50001
+ {"metadata":{"emulator":{"name":"dataconnect"},"message":"I1115 07:55:04.706223   16724 load.go:31] Reloading schema and connectors...\nW1115 07:55:04.779792   16724 control.go:68] [/emulator/pantryai 81ab] connector \"example\" has errors: example\\queries.gql:2:3: mutation.AddNewWatch.watch_insert (data: Watch_Data): column createdAt is required but is missing in data\n\nsources: example\\queries.gql [599B] \nI1115 07:55:04.779792   16724 control.go:94] [/emulator/pantryai 81ab] UpdateResources(): done\nMain schema: sources: schema\\schema.gql [831B] \nConnector \"example\": sources: example\\queries.gql [599B] \nE1115 07:55:04.893081   16724 load.go:73] Could not load sources: \nErrors: example\\queries.gql:2:3: mutation.AddNewWatch.watch_insert (data: Watch_Data): column createdAt is required but is missing in data\nI1115 07:55:04.901080   16724 collector.go:107] schema extensions wrote into \"c:\\\\Users\\\\denis\\\\Pantryai\\\\dataconnect\\\\.dataconnect\\\\schema\"\nGenerated sources: prelude.gql [73219B] main\\implicit.gql [3217B] main\\input.gql [58511B] main\\relation.gql [30822B] main\\query.gql [7504B] main\\mutation.gql [20254B] \nI1115 07:55:04.903603   16724 load.go:74] Finished reloading\nI1115 07:55:05.050778   16724 dev.go:102] Listening on address (HTTP + gRPC): 127.0.0.1:50001\n"}}
+[error] [Firebase Plugin] error:  {}
+[debug] [2025-11-15T06:55:07.775Z] <<< [apiv2][status] POST https://www.googleapis.com/oauth2/v3/token 200
+[debug] [2025-11-15T06:55:07.775Z] <<< [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2025-11-15T06:55:07.802Z] [Firebase Plugin] User found:  jsitla@gmail.com
+[info] [Firebase Plugin] (Core:Project) New user detected, fetching projects
+[debug] [2025-11-15T06:55:07.804Z] Checked if tokens are valid: true, expires at: 1763193306775
+[debug] [2025-11-15T06:55:07.805Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects pageSize=1000
+[debug] [2025-11-15T06:55:08.888Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects 200
+[debug] [2025-11-15T06:55:08.888Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects [omitted]

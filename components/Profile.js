@@ -20,6 +20,7 @@ import {
   EmailAuthProvider,
   updateProfile,
 } from 'firebase/auth';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { auth } from '../firebase.config';
 import { useLanguage } from '../contexts/LanguageContext';
 import { t } from '../contexts/translations';
@@ -168,6 +169,8 @@ export default function Profile({ navigation }) {
           style: 'destructive',
           onPress: async () => {
             try {
+              // Clear first-launch flag so App.js shows welcome flow instead of auto re-authenticating
+              await AsyncStorage.removeItem('hasLaunchedBefore');
               await signOut(auth);
               // Don't show success alert - let App.js handle re-auth
               // Navigate to Pantry tab after sign out
@@ -189,9 +192,16 @@ export default function Profile({ navigation }) {
       return;
     }
 
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email.trim())) {
+      Alert.alert(t('error', language), t('invalidEmail', language) || 'Please enter a valid email address');
+      return;
+    }
+
     setLoading(true);
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      await signInWithEmailAndPassword(auth, email.trim(), password);
       setShowLogin(false);
       setEmail('');
       setPassword('');
@@ -209,6 +219,13 @@ export default function Profile({ navigation }) {
       return;
     }
 
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email.trim())) {
+      Alert.alert(t('error', language), t('invalidEmail', language) || 'Please enter a valid email address');
+      return;
+    }
+
     if (password !== confirmPassword) {
       Alert.alert(t('error', language), t('passwordsDoNotMatch', language));
       return;
@@ -221,12 +238,13 @@ export default function Profile({ navigation }) {
 
     setLoading(true);
     try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const userCredential = await createUserWithEmailAndPassword(auth, email.trim(), password);
       
-      // Update display name if provided
-      if (displayName) {
+      // Update display name if provided (sanitized)
+      if (displayName && displayName.trim()) {
+        const sanitizedName = displayName.trim().replace(/[<>{}]/g, '').slice(0, 50);
         await updateProfile(userCredential.user, {
-          displayName: displayName,
+          displayName: sanitizedName,
         });
       }
 
@@ -712,6 +730,86 @@ export default function Profile({ navigation }) {
         </TouchableOpacity>
       </View>
 
+      {/* Legal Links */}
+      <View style={styles.legalSection}>
+        <Text style={styles.sectionTitle}>📄 Legal</Text>
+        <TouchableOpacity 
+          style={styles.legalLink}
+          onPress={() => {
+            if (Platform.OS === 'web') {
+              window.open('https://github.com/yourusername/Pantryai/blob/main/PRIVACY-POLICY.md', '_blank');
+            } else {
+              Alert.alert(
+                'Privacy Policy',
+                'Please visit our website to view the Privacy Policy, or contact support@shelfze.app',
+                [{ text: 'OK' }]
+              );
+            }
+          }}
+        >
+          <Text style={styles.legalLinkText}>🔒 Privacy Policy</Text>
+          <Text style={styles.legalLinkSubtext}>How we handle your data</Text>
+        </TouchableOpacity>
+        
+        <TouchableOpacity 
+          style={styles.legalLink}
+          onPress={() => {
+            if (Platform.OS === 'web') {
+              window.open('https://github.com/yourusername/Pantryai/blob/main/TERMS-OF-SERVICE.md', '_blank');
+            } else {
+              Alert.alert(
+                'Terms of Service',
+                'Please visit our website to view the Terms of Service, or contact support@shelfze.app',
+                [{ text: 'OK' }]
+              );
+            }
+          }}
+        >
+          <Text style={styles.legalLinkText}>📋 Terms of Service</Text>
+          <Text style={styles.legalLinkSubtext}>Usage terms and conditions</Text>
+        </TouchableOpacity>
+
+        <View style={styles.versionInfo}>
+          <Text style={styles.versionText}>Version 1.0.0</Text>
+          <Text style={styles.supportText}>support@shelfze.app</Text>
+        </View>
+
+        {__DEV__ && (
+          <TouchableOpacity 
+            style={styles.devResetButton}
+            onPress={async () => {
+              Alert.alert(
+                '🔧 Reset Welcome Screen',
+                'This will:\n• Clear first launch flag\n• Sign you out\n• Show welcome screen on next start\n\nContinue?',
+                [
+                  { text: 'Cancel', style: 'cancel' },
+                  { 
+                    text: 'Reset & Sign Out',
+                    style: 'destructive',
+                    onPress: async () => {
+                      try {
+                        await AsyncStorage.removeItem('hasLaunchedBefore');
+                        await signOut(auth);
+                        Alert.alert(
+                          '✅ Success',
+                          'Welcome screen reset! Close and reopen the app to see it.',
+                          [{ text: 'OK' }]
+                        );
+                      } catch (error) {
+                        Alert.alert('Error', error.message);
+                      }
+                    }
+                  }
+                ]
+              );
+            }}
+          >
+            <Text style={styles.devResetButtonText}>🔧 Reset Welcome Screen</Text>
+            <Text style={styles.devResetSubtext}>(Development Only)</Text>
+          </TouchableOpacity>
+        )}
+      </View>
+
       <TouchableOpacity style={styles.signOutButton} onPress={handleSignOut}>
         <Text style={styles.signOutButtonText}>🚪 {t('signOut', language)}</Text>
       </TouchableOpacity>
@@ -1092,5 +1190,72 @@ const styles = StyleSheet.create({
   languageButtonSubtext: {
     fontSize: 14,
     color: '#666',
+  },
+  legalSection: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 20,
+    marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  legalLink: {
+    backgroundColor: '#f9f9f9',
+    padding: 15,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    marginBottom: 10,
+  },
+  legalLinkText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 4,
+  },
+  legalLinkSubtext: {
+    fontSize: 13,
+    color: '#666',
+  },
+  versionInfo: {
+    marginTop: 15,
+    paddingTop: 15,
+    borderTopWidth: 1,
+    borderTopColor: '#eee',
+    alignItems: 'center',
+  },
+  versionText: {
+    fontSize: 14,
+    color: '#999',
+    marginBottom: 4,
+  },
+  supportText: {
+    fontSize: 13,
+    color: '#666',
+    fontStyle: 'italic',
+  },
+  devResetButton: {
+    marginTop: 15,
+    backgroundColor: '#ffe5e5',
+    padding: 12,
+    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: '#ff6b6b',
+    borderStyle: 'dashed',
+    alignItems: 'center',
+  },
+  devResetButtonText: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#ff6b6b',
+    marginBottom: 2,
+  },
+  devResetSubtext: {
+    fontSize: 11,
+    color: '#999',
+    fontStyle: 'italic',
   },
 });

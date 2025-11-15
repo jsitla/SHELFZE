@@ -11,7 +11,8 @@ import {
   ScrollView,
   Alert,
   Platform,
-  TextInput
+  TextInput,
+  Share
 } from 'react-native';
 import { getFirestore, collection, query, onSnapshot, addDoc, doc, deleteDoc } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
@@ -21,6 +22,8 @@ import { t } from '../contexts/translations';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { getUserUsage, decrementRecipeCount } from '../utils/usageTracking';
+import { config } from '../config';
+import { fetchWithTimeout } from '../utils/fetchWithTimeout';
 
 export default function RecipeGenerator() {
   const [pantryItems, setPantryItems] = useState([]);
@@ -81,20 +84,32 @@ export default function RecipeGenerator() {
 
   // Fetch pantry items
   useEffect(() => {
+    let unsubscribeSnapshot = null;
+    
     // Wait for authentication
     const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
+      // Cleanup previous snapshot listener if it exists
+      if (unsubscribeSnapshot) {
+        unsubscribeSnapshot();
+        unsubscribeSnapshot = null;
+      }
+      
       if (!user) {
-        console.log('Waiting for user authentication for pantry items...');
+        if (__DEV__) {
+          console.log('Waiting for user authentication for pantry items...');
+        }
         setLoading(false);
         return;
       }
       
       const userId = user.uid;
-      console.log('Loading pantry items for user:', userId);
+      if (__DEV__) {
+        console.log('Loading pantry items for user:', userId);
+      }
 
       const q = query(collection(db, `users/${userId}/pantry`));
 
-      const unsubscribe = onSnapshot(
+      unsubscribeSnapshot = onSnapshot(
         q,
         (querySnapshot) => {
           const items = [];
@@ -116,7 +131,9 @@ export default function RecipeGenerator() {
         (error) => {
           // Silently handle permission errors during auth transitions
           if (error.code === 'permission-denied') {
-            console.log('Permission denied - user may be signing out');
+            if (__DEV__) {
+              console.log('Permission denied - user may be signing out');
+            }
             setPantryItems([]);
             setLoading(false);
             return;
@@ -126,11 +143,14 @@ export default function RecipeGenerator() {
           setLoading(false);
         }
       );
-
-      return () => unsubscribe();
     });
 
-    return () => unsubscribeAuth();
+    return () => {
+      unsubscribeAuth();
+      if (unsubscribeSnapshot) {
+        unsubscribeSnapshot();
+      }
+    };
   }, []);
 
   // Load usage data
@@ -163,18 +183,30 @@ export default function RecipeGenerator() {
 
   // Fetch saved recipes from Firestore
   useEffect(() => {
+    let unsubscribeSnapshot = null;
+    
     // Wait for authentication
     const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
+      // Cleanup previous snapshot listener if it exists
+      if (unsubscribeSnapshot) {
+        unsubscribeSnapshot();
+        unsubscribeSnapshot = null;
+      }
+      
       if (!user) {
-        console.log('Waiting for user authentication for saved recipes...');
+        if (__DEV__) {
+          console.log('Waiting for user authentication for saved recipes...');
+        }
         return;
       }
       
       const userId = user.uid;
-      console.log('Loading saved recipes for user:', userId);
+      if (__DEV__) {
+        console.log('Loading saved recipes for user:', userId);
+      }
 
       const q = query(collection(db, `users/${userId}/recipeCollections`));
-      const unsubscribe = onSnapshot(q, (snapshot) => {
+      unsubscribeSnapshot = onSnapshot(q, (snapshot) => {
         const recipes = snapshot.docs.map(doc => ({
           id: doc.id,
           ...doc.data()
@@ -183,17 +215,22 @@ export default function RecipeGenerator() {
       }, (error) => {
         // Silently handle permission errors during auth transitions
         if (error.code === 'permission-denied') {
-          console.log('Permission denied for saved recipes - user may be signing out');
+          if (__DEV__) {
+            console.log('Permission denied for saved recipes - user may be signing out');
+          }
           setSavedRecipes([]);
           return;
         }
         console.error('Error fetching saved recipes:', error);
       });
-
-      return () => unsubscribe();
     });
 
-    return () => unsubscribeAuth();
+    return () => {
+      unsubscribeAuth();
+      if (unsubscribeSnapshot) {
+        unsubscribeSnapshot();
+      }
+    };
   }, []);
 
   // Generate recipe suggestions
@@ -254,7 +291,7 @@ export default function RecipeGenerator() {
         return;
       }
 
-      const response = await fetch('https://us-central1-pantryai-3d396.cloudfunctions.net/generateRecipes', {
+      const response = await fetchWithTimeout(config.generateRecipes, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -266,16 +303,18 @@ export default function RecipeGenerator() {
           maxRecipes: 10, // Request up to 10 recipes
           userGuidance: userGuidance.trim() // Include user's custom guidance
         }),
-      });
+      }, 45000); // 45 second timeout for recipe generation
 
-      console.log('Response status:', response.status);
-      console.log('Response ok:', response.ok);
+      if (__DEV__) {
+        console.log('Response status:', response.status);
+        console.log('Response ok:', response.ok);
+      }
 
       const result = await response.json();
-      console.log('Recipe generation response:', result);
+      if (__DEV__) console.log('Recipe generation response:', result);
 
       if (!response.ok) {
-        console.error('Recipe generation failed:', result);
+        if (__DEV__) console.error('Recipe generation failed:', result);
         throw new Error(result.error || result.message || 'Failed to generate recipes');
       }
 
@@ -593,7 +632,7 @@ export default function RecipeGenerator() {
         .filter(name => name) // Remove any undefined/null values
         .join(', ');
       
-      const response = await fetch('https://us-central1-pantryai-3d396.cloudfunctions.net/getRecipeDetails', {
+      const response = await fetchWithTimeout(config.getRecipeDetails, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -603,7 +642,7 @@ export default function RecipeGenerator() {
           availableIngredients: ingredients,
           language
         }),
-      });
+      }, 45000); // 45 second timeout for recipe details
 
       const result = await response.json();
       
@@ -613,7 +652,7 @@ export default function RecipeGenerator() {
 
       setRecipeDetails(result);
     } catch (error) {
-      console.error('Error getting recipe details:', error);
+      if (__DEV__) console.error('Error getting recipe details:', error);
       Alert.alert('Error', 'Failed to get recipe details: ' + error.message);
     } finally {
       setLoadingDetails(false);
@@ -638,6 +677,55 @@ export default function RecipeGenerator() {
     setIsFavorite(false);
     setIsCooked(false);
     setWantToTry(false);
+  };
+
+  // Share recipe to social media
+  const shareRecipe = async () => {
+    // Comprehensive null checks to prevent crashes
+    if (!recipeDetails) {
+      Alert.alert(t('error', language), 'Recipe data not available');
+      return;
+    }
+    
+    if (!recipeDetails.ingredients || !recipeDetails.instructions) {
+      Alert.alert(t('error', language), 'Recipe information is incomplete');
+      return;
+    }
+
+    try {
+      const ingredientsText = recipeDetails.ingredients.map((ing) => `• ${ing}`).join('\n');
+      const instructionsText = recipeDetails.instructions.map((step, i) => `${i + 1}. ${step}`).join('\n');
+
+      const message = `
+${t('checkOutThisRecipe', language)}: ${recipeDetails.name} ${recipeDetails.emoji || ''}
+
+📝 *${t('ingredients', language)}:*
+${ingredientsText}
+
+👨‍🍳 *${t('instructions', language)}:*
+${instructionsText}
+
+${recipeDetails.tips && recipeDetails.tips.length > 0 ? `\n💡 *${t('chefsTips', language)}:*\n${recipeDetails.tips.map((tip) => `• ${tip}`).join('\n')}` : ''}
+
+${t('sharedFromShelfze', language)}
+      `.trim();
+
+      const result = await Share.share({
+        message,
+        title: `${t('recipeTitle', language)}: ${recipeDetails.name}`,
+      });
+
+      if (result.action === Share.sharedAction) {
+        if (result.activityType && __DEV__) {
+          console.log('Shared via:', result.activityType);
+        }
+      } else if (result.action === Share.dismissedAction && __DEV__) {
+        console.log('Share dismissed');
+      }
+    } catch (error) {
+      if (__DEV__) console.error('Error sharing recipe:', error);
+      Alert.alert(t('error', language), t('failedToShare', language));
+    }
   };
 
   const resetGenerator = () => {
@@ -670,6 +758,9 @@ export default function RecipeGenerator() {
         </TouchableOpacity>
 
         <View style={styles.recipeHeader}>
+          <TouchableOpacity style={styles.shareButton} onPress={shareRecipe}>
+            <Text style={styles.shareButtonText}>🔗 {t('share', language)}</Text>
+          </TouchableOpacity>
           <Text style={styles.recipeTitle}>{recipeDetails.name}</Text>
           <Text style={styles.recipeEmoji}>{recipeDetails.emoji || '🍽️'}</Text>
           {recipeDetails.nutrition && (
@@ -1899,12 +1990,30 @@ const styles = StyleSheet.create({
     color: '#E53E3E',
     fontWeight: '600',
   },
+  shareButton: {
+    position: 'absolute',
+    top: 15,
+    right: 15,
+    backgroundColor: '#F3F4F6',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    zIndex: 10,
+  },
+  shareButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#374151',
+  },
   recipeHeader: {
     backgroundColor: '#fff',
     padding: 20,
     alignItems: 'center',
     borderBottomWidth: 1,
     borderBottomColor: '#eee',
+    position: 'relative',
   },
   recipeTitle: {
     fontSize: 28,

@@ -49,6 +49,8 @@ export default function CameraScanner({ navigation }) {
   const cameraRef = useRef(null);
   const fileInputRef = useRef(null);
   const recordingIntervalRef = useRef(null);
+  const isRecordingRef = useRef(false);
+  const latestPhotoUriRef = useRef(null);
   const { language } = useLanguage(); // Get current language
   const db = getFirestore(app);
 
@@ -223,6 +225,14 @@ export default function CameraScanner({ navigation }) {
     }
   }, [permission, micPermission]);
 
+  useEffect(() => {
+    isRecordingRef.current = isRecording;
+  }, [isRecording]);
+
+  useEffect(() => {
+    latestPhotoUriRef.current = photoUri;
+  }, [photoUri]);
+
   // Reset camera when screen comes into focus (fixes black screen when returning from other tabs)
   useFocusEffect(
     useCallback(() => {
@@ -235,16 +245,17 @@ export default function CameraScanner({ navigation }) {
       
       return () => {
         // Cleanup when leaving screen
-        if (isRecording) {
+        if (isRecordingRef.current) {
           stopVideoRecording();
         }
         
         // Clean up blob URL if on web
-        if (Platform.OS === 'web' && photoUri && photoUri.startsWith('blob:')) {
-          URL.revokeObjectURL(photoUri);
+        const latestPhotoUri = latestPhotoUriRef.current;
+        if (Platform.OS === 'web' && latestPhotoUri && latestPhotoUri.startsWith('blob:')) {
+          URL.revokeObjectURL(latestPhotoUri);
         }
       };
-    }, [isRecording, photoUri])
+    }, [])
   );
 
   // 5. Write a function called 'takePicture' that will be called by a button.
@@ -410,6 +421,7 @@ export default function CameraScanner({ navigation }) {
 
     try {
       setIsRecording(true);
+      isRecordingRef.current = true;
       setRecordingDuration(0);
 
       // Give camera a moment to be ready for video recording
@@ -454,18 +466,30 @@ export default function CameraScanner({ navigation }) {
       Alert.alert('Recording Error', error.message);
     } finally {
       setIsRecording(false);
+      isRecordingRef.current = false;
       setRecordingDuration(0);
     }
   };
 
-  const stopVideoRecording = () => {
+  const stopVideoRecording = (force = false) => {
     console.log('⏹ Stopping video recording...');
-    if (cameraRef.current && isRecording) {
-      cameraRef.current.stopRecording();
-      if (recordingIntervalRef.current) {
-        clearInterval(recordingIntervalRef.current);
-        recordingIntervalRef.current = null;
+    if (cameraRef.current && (isRecordingRef.current || force)) {
+      try {
+        cameraRef.current.stopRecording();
+      } catch (error) {
+        console.warn('Stop recording ignored:', error?.message);
       }
+    }
+
+    if (recordingIntervalRef.current) {
+      clearInterval(recordingIntervalRef.current);
+      recordingIntervalRef.current = null;
+    }
+
+    if (isRecordingRef.current || isRecording) {
+      isRecordingRef.current = false;
+      setIsRecording(false);
+      setRecordingDuration(0);
     }
   };
 
@@ -496,7 +520,7 @@ export default function CameraScanner({ navigation }) {
 
         const result = await analyzeImageFromUri(frameUri);
         const isFinalAttempt = i === VIDEO_FRAME_SAMPLE_MS.length - 1;
-        const success = handleDetectionResult(result, { silentNoItem: !isFinalAttempt });
+        const success = await handleDetectionResult(result, { silentNoItem: true });
 
         if (success) {
           detectionFound = true;
@@ -506,6 +530,21 @@ export default function CameraScanner({ navigation }) {
 
       if (!detectionFound) {
         console.log('⚠️ No items detected in sampled frames');
+        Alert.alert(
+          t('noItemsDetected', language),
+          t('detectionTips', language),
+          [
+            { text: t('tryAgain', language), onPress: () => scanAgain() },
+            {
+              text: t('addManually', language),
+              style: 'default',
+              onPress: () => {
+                scanAgain();
+                navigation.navigate('Pantry', { screen: 'ManualEntry' });
+              },
+            },
+          ]
+        );
       }
     } catch (error) {
       console.error('Video processing error:', error);

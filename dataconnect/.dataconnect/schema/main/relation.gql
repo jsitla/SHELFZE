@@ -257,6 +257,10 @@ extend type Movie {
   ✨ Maximum of the `year` field in the `Movie` table.
   """
   year_max: Int @fdc_generated(from: "Movie.year", purpose: QUERY_MAX)
+  """
+  A generated field that is used for caching results in SDKs.
+  """
+  _id: ID! @fdc_generated(from: "Movie.id", purpose: GLOBAL_ID)
 }
 extend type MovieList {
   """
@@ -423,6 +427,10 @@ extend type MovieList {
   ✨ Maximum of the `updatedAt` field in the `MovieList` table.
   """
   updatedAt_max: Timestamp @fdc_generated(from: "MovieList.updatedAt", purpose: QUERY_MAX)
+  """
+  A generated field that is used for caching results in SDKs.
+  """
+  _id: ID! @fdc_generated(from: "MovieList.id", purpose: GLOBAL_ID)
 }
 extend type MovieListEntry {
   """
@@ -495,6 +503,10 @@ extend type MovieListEntry {
   ✨ Maximum of the `position` field in the `MovieListEntry` table.
   """
   position_max: Int @fdc_generated(from: "MovieListEntry.position", purpose: QUERY_MAX)
+  """
+  A generated field that is used for caching results in SDKs.
+  """
+  _id: ID! @fdc_generated(from: "MovieListEntry.movieListId,movieId", purpose: GLOBAL_ID)
 }
 extend type Review {
   """
@@ -637,6 +649,10 @@ extend type Review {
   ✨ Maximum of the `updatedAt` field in the `Review` table.
   """
   updatedAt_max: Timestamp @fdc_generated(from: "Review.updatedAt", purpose: QUERY_MAX)
+  """
+  A generated field that is used for caching results in SDKs.
+  """
+  _id: ID! @fdc_generated(from: "Review.id", purpose: GLOBAL_ID)
 }
 extend type User {
   """
@@ -802,6 +818,10 @@ extend type User {
   ✨ Maximum of the `createdAt` field in the `User` table.
   """
   createdAt_max: Timestamp @fdc_generated(from: "User.createdAt", purpose: QUERY_MAX)
+  """
+  A generated field that is used for caching results in SDKs.
+  """
+  _id: ID! @fdc_generated(from: "User.id", purpose: GLOBAL_ID)
 }
 extend type Watch {
   """
@@ -916,4 +936,8 @@ extend type Watch {
   ✨ Maximum of the `watchDate` field in the `Watch` table.
   """
   watchDate_max: Date @fdc_generated(from: "Watch.watchDate", purpose: QUERY_MAX)
+  """
+  A generated field that is used for caching results in SDKs.
+  """
+  _id: ID! @fdc_generated(from: "Watch.id", purpose: GLOBAL_ID)
 }

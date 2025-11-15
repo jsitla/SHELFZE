@@ -48,34 +48,48 @@ export default function ManualEntry({ navigation, onItemAdded }) {
   const [selectedCategory, setSelectedCategory] = useState('Other');
   const [quantity, setQuantity] = useState('1');
   const [selectedUnit, setSelectedUnit] = useState('pcs');
-  const [expiryDate, setExpiryDate] = useState(new Date());
+  const [expiryDate, setExpiryDate] = useState(null);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  const MAX_NAME_LENGTH = 100;
+  const MAX_QUANTITY = 10000;
+
   const handleDateChange = (event, selectedDate) => {
-    setShowDatePicker(Platform.OS === 'ios'); // Keep picker open on iOS
+    // On Android, hide picker after selection
+    if (Platform.OS === 'android') {
+      setShowDatePicker(false);
+    }
+    // On iOS, keep picker open until user clicks Done
+    
     if (selectedDate) {
       setExpiryDate(selectedDate);
     }
   };
 
   const handleAddItem = async () => {
-    console.log('🔵 handleAddItem called');
+    if (__DEV__) console.log('🔵 handleAddItem called');
     
     // Validation
     if (!foodName.trim()) {
-      console.log('❌ Validation failed: No food name');
+      if (__DEV__) console.log('❌ Validation failed: No food name');
       Alert.alert(t('missingInformation', language), t('pleaseEnterName', language));
       return;
     }
 
-    if (!quantity || parseFloat(quantity) <= 0) {
-      console.log('❌ Validation failed: Invalid quantity');
-      Alert.alert(t('invalidQuantity', language), t('pleaseEnterValidQuantity', language));
+    if (foodName.trim().length > MAX_NAME_LENGTH) {
+      Alert.alert(t('invalidInput', language), `Name must be less than ${MAX_NAME_LENGTH} characters`);
       return;
     }
 
-    console.log('✅ Validation passed, setting loading state');
+    const quantityNum = parseFloat(quantity);
+    if (!quantity || isNaN(quantityNum) || quantityNum <= 0 || quantityNum > MAX_QUANTITY) {
+      if (__DEV__) console.log('❌ Validation failed: Invalid quantity');
+      Alert.alert(t('invalidQuantity', language), `Please enter a valid quantity (1-${MAX_QUANTITY})`);
+      return;
+    }
+
+    if (__DEV__) console.log('✅ Validation passed, setting loading state');
     setLoading(true);
 
     try {
@@ -83,13 +97,13 @@ export default function ManualEntry({ navigation, onItemAdded }) {
       const userId = auth.currentUser?.uid;
       
       if (!userId) {
-        console.error('❌ No authenticated user found');
+        if (__DEV__) console.error('❌ No authenticated user found');
         Alert.alert(t('error', language), t('pleaseRestart', language));
         setLoading(false);
         return;
       }
 
-      console.log('🔵 Getting Firestore instance for user:', userId);
+      if (__DEV__) console.log('🔵 Getting Firestore instance for user:', userId);
       const db = getFirestore();
       const pantryRef = collection(db, `users/${userId}/pantry`);
 
@@ -97,17 +111,21 @@ export default function ManualEntry({ navigation, onItemAdded }) {
         name: foodName.trim(),
         itemName: foodName.trim(), // Add itemName for consistency with scanned items
         category: selectedCategory,
-        quantity: parseFloat(quantity),
+        quantity: quantityNum,
         unit: selectedUnit,
-        expiryDate: expiryDate.toISOString(),
         addedDate: new Date().toISOString(),
         detectionSource: 'Manual Entry',
         confidence: 1.0,
       };
 
-      console.log('📝 Adding item to Firestore:', newItem);
+      // Only add expiry date if user has set one (not default date)
+      if (expiryDate) {
+        newItem.expiryDate = expiryDate.toISOString();
+      }
+
+      if (__DEV__) console.log('📝 Adding item to Firestore:', newItem);
       const docRef = await addDoc(pantryRef, newItem);
-      console.log('✅ Item added successfully with ID:', docRef.id);
+      if (__DEV__) console.log('✅ Item added successfully with ID:', docRef.id);
 
       // Success feedback
       Alert.alert(
@@ -117,16 +135,16 @@ export default function ManualEntry({ navigation, onItemAdded }) {
           {
             text: t('addAnother', language),
             onPress: () => {
-              console.log('➕ User chose to add another item');
+              if (__DEV__) console.log('➕ User chose to add another item');
               setFoodName('');
               setQuantity('1');
-              setExpiryDate(new Date());
+              setExpiryDate(null);
             },
           },
           {
             text: t('done', language),
             onPress: () => {
-              console.log('✅ User chose done, navigating back');
+              if (__DEV__) console.log('✅ User chose done, navigating back');
               if (onItemAdded) onItemAdded();
               if (navigation) navigation.goBack();
             },
@@ -136,24 +154,26 @@ export default function ManualEntry({ navigation, onItemAdded }) {
 
       // Reset form if callback provided but no navigation
       if (!navigation) {
-        console.log('🔄 No navigation, resetting form');
+        if (__DEV__) console.log('🔄 No navigation, resetting form');
         setFoodName('');
         setQuantity('1');
-        setExpiryDate(new Date());
+        setExpiryDate(null);
       }
     } catch (error) {
-      console.error('❌ Error adding item:', error);
-      console.error('Error details:', {
-        code: error.code,
-        message: error.message,
-        stack: error.stack
-      });
+      if (__DEV__) {
+        console.error('❌ Error adding item:', error);
+        console.error('Error details:', {
+          code: error.code,
+          message: error.message,
+          stack: error.stack
+        });
+      }
       Alert.alert(
         t('error', language), 
         `${t('failedToAddItem', language)}\n\nError: ${error.message}`
       );
     } finally {
-      console.log('🔵 Resetting loading state');
+      if (__DEV__) console.log('🔵 Resetting loading state');
       setLoading(false);
     }
   };
@@ -183,9 +203,15 @@ export default function ManualEntry({ navigation, onItemAdded }) {
           style={styles.input}
           placeholder={t('foodNamePlaceholder', language)}
           value={foodName}
-          onChangeText={setFoodName}
+          onChangeText={(text) => {
+            // Sanitize input: remove special characters that could cause issues
+            const sanitized = text.replace(/[<>{}]/g, '');
+            setFoodName(sanitized);
+          }}
+          maxLength={MAX_NAME_LENGTH}
           autoFocus
         />
+        <Text style={styles.charCount}>{foodName.length}/{MAX_NAME_LENGTH}</Text>
       </View>
 
       {/* Category Selection */}
@@ -223,8 +249,19 @@ export default function ManualEntry({ navigation, onItemAdded }) {
             style={[styles.input, styles.quantityInput]}
             placeholder="1"
             value={quantity}
-            onChangeText={setQuantity}
+            onChangeText={(text) => {
+              // Only allow positive numbers and decimal point
+              const sanitized = text.replace(/[^0-9.]/g, '');
+              // Prevent multiple decimal points
+              const parts = sanitized.split('.');
+              if (parts.length > 2) {
+                setQuantity(parts[0] + '.' + parts.slice(1).join(''));
+              } else {
+                setQuantity(sanitized);
+              }
+            }}
             keyboardType="decimal-pad"
+            maxLength={10}
           />
           <View style={styles.unitPicker}>
             <ScrollView
@@ -258,22 +295,49 @@ export default function ManualEntry({ navigation, onItemAdded }) {
 
       {/* Expiry Date */}
       <View style={styles.section}>
-        <Text style={styles.label}>{t('expiryDate', language)}</Text>
+        <Text style={styles.label}>{t('expiryDate', language)} ({t('optional', language)})</Text>
         <TouchableOpacity
           style={styles.dateButton}
-          onPress={() => setShowDatePicker(true)}
+          onPress={() => {
+            // Initialize with today's date if not set
+            if (!expiryDate) {
+              setExpiryDate(new Date());
+            }
+            setShowDatePicker(!showDatePicker);
+          }}
         >
-          <Text style={styles.dateButtonText}>📅 {formatDate(expiryDate)}</Text>
+          <Text style={styles.dateButtonText}>
+            📅 {expiryDate ? formatDate(expiryDate) : t('notSet', language)}
+          </Text>
         </TouchableOpacity>
 
         {showDatePicker && (
-          <DateTimePicker
-            value={expiryDate}
-            mode="date"
-            display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-            onChange={handleDateChange}
-            minimumDate={new Date()}
-          />
+          <View style={styles.datePickerContainer}>
+            <DateTimePicker
+              value={expiryDate || new Date()}
+              mode="date"
+              display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+              onChange={handleDateChange}
+              minimumDate={new Date()}
+            />
+            {Platform.OS === 'ios' && (
+              <TouchableOpacity
+                style={styles.datePickerDone}
+                onPress={() => setShowDatePicker(false)}
+              >
+                <Text style={styles.datePickerDoneText}>✓ Done</Text>
+              </TouchableOpacity>
+            )}
+            <TouchableOpacity
+              style={[styles.datePickerDone, { backgroundColor: '#999', marginTop: 5 }]}
+              onPress={() => {
+                setExpiryDate(null);
+                setShowDatePicker(false);
+              }}
+            >
+              <Text style={styles.datePickerDoneText}>✗ {t('clearDate', language)}</Text>
+            </TouchableOpacity>
+          </View>
         )}
       </View>
 
@@ -379,6 +443,12 @@ const styles = StyleSheet.create({
   quantityInput: {
     flex: 1,
   },
+  charCount: {
+    fontSize: 12,
+    color: '#999',
+    textAlign: 'right',
+    marginTop: 5,
+  },
   unitPicker: {
     flex: 2,
   },
@@ -416,6 +486,26 @@ const styles = StyleSheet.create({
   dateButtonText: {
     fontSize: 16,
     color: '#333',
+  },
+  datePickerContainer: {
+    marginTop: 10,
+    backgroundColor: '#FFF',
+    borderRadius: 10,
+    padding: 10,
+    borderWidth: 1,
+    borderColor: '#DDD',
+  },
+  datePickerDone: {
+    backgroundColor: '#E53E3E',
+    borderRadius: 8,
+    padding: 12,
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  datePickerDoneText: {
+    color: '#FFF',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
   addButton: {
     backgroundColor: '#DD6B20', // Warm orange

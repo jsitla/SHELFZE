@@ -1,4 +1,4 @@
-import { getFirestore, doc, getDoc, setDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { getFirestore, doc, getDoc, setDoc, updateDoc, serverTimestamp, increment } from 'firebase/firestore';
 import { app } from '../firebase.config';
 
 const db = getFirestore(app);
@@ -16,8 +16,29 @@ export async function initializeUsageTracking(userId, tier = 'anonymous') {
     const existingDoc = await getDoc(usageRef);
     
     if (existingDoc.exists()) {
+      const usage = existingDoc.data();
+
+      // Automatically upgrade tier if the stored tier is lower than requested
+      if (tier && tier !== usage.tier) {
+        const updates = { tier };
+
+        if (tier === 'free' && usage.tier === 'anonymous') {
+          updates.scansRemaining = Math.max(usage.scansRemaining ?? 0, 30);
+          updates.recipesRemaining = Math.max(usage.recipesRemaining ?? 0, 30);
+          updates.lastMonthlyBonusDate = usage.lastMonthlyBonusDate || serverTimestamp();
+        } else if (tier === 'premium' && usage.tier !== 'premium') {
+          updates.scansRemaining = 1000;
+          updates.recipesRemaining = 1000;
+          updates.resetDate = serverTimestamp();
+        }
+
+        await updateDoc(usageRef, updates);
+        console.log(`✅ Usage tier auto-upgraded from ${usage.tier} to ${tier} for user:`, userId);
+        return { ...usage, ...updates };
+      }
+
       console.log('✅ Usage tracking already exists for user:', userId);
-      return existingDoc.data();
+      return usage;
     }
     
     // Only initialize if it doesn't exist
@@ -124,7 +145,7 @@ export async function checkAndApplyMonthlyBonus(userId) {
 }
 
 /**
- * Decrement scan count
+ * Decrement scan count using atomic operations to prevent race conditions
  * @param {string} userId - The user's Firebase UID
  * @returns {Object} Result with success status and remaining count
  */
@@ -150,21 +171,21 @@ export async function decrementScanCount(userId) {
       };
     }
     
-    // Decrement count
-    const newScansRemaining = usage.scansRemaining - 1;
-    const newTotalScansUsed = (usage.totalScansUsed || 0) + 1;
-    
+    // Use atomic increment operations to prevent race conditions
     await updateDoc(usageRef, {
-      scansRemaining: newScansRemaining,
-      totalScansUsed: newTotalScansUsed,
+      scansRemaining: increment(-1),
+      totalScansUsed: increment(1),
     });
     
-    console.log(`📸 Scan used. Remaining: ${newScansRemaining}`);
+    const newScansRemaining = usage.scansRemaining - 1;
+    if (__DEV__) {
+      console.log(`📸 Scan used. Remaining: ${newScansRemaining}`);
+    }
     
     return {
       success: true,
       scansRemaining: newScansRemaining,
-      totalScansUsed: newTotalScansUsed,
+      totalScansUsed: (usage.totalScansUsed || 0) + 1,
     };
   } catch (error) {
     console.error('❌ Error decrementing scan count:', error);
@@ -173,7 +194,7 @@ export async function decrementScanCount(userId) {
 }
 
 /**
- * Decrement recipe count
+ * Decrement recipe count using atomic operations to prevent race conditions
  * @param {string} userId - The user's Firebase UID
  * @returns {Object} Result with success status and remaining count
  */
@@ -199,21 +220,21 @@ export async function decrementRecipeCount(userId) {
       };
     }
     
-    // Decrement count
-    const newRecipesRemaining = usage.recipesRemaining - 1;
-    const newTotalRecipesUsed = (usage.totalRecipesUsed || 0) + 1;
-    
+    // Use atomic increment operations to prevent race conditions
     await updateDoc(usageRef, {
-      recipesRemaining: newRecipesRemaining,
-      totalRecipesUsed: newTotalRecipesUsed,
+      recipesRemaining: increment(-1),
+      totalRecipesUsed: increment(1),
     });
     
-    console.log(`🍳 Recipe generated. Remaining: ${newRecipesRemaining}`);
+    const newRecipesRemaining = usage.recipesRemaining - 1;
+    if (__DEV__) {
+      console.log(`🍳 Recipe generated. Remaining: ${newRecipesRemaining}`);
+    }
     
     return {
       success: true,
       recipesRemaining: newRecipesRemaining,
-      totalRecipesUsed: newTotalRecipesUsed,
+      totalRecipesUsed: (usage.totalRecipesUsed || 0) + 1,
     };
   } catch (error) {
     console.error('❌ Error decrementing recipe count:', error);
