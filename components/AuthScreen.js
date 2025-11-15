@@ -12,9 +12,11 @@ import {
   Alert,
   ActivityIndicator,
 } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
 import { 
   signInWithEmailAndPassword, 
   createUserWithEmailAndPassword,
+  sendPasswordResetEmail,
   updateProfile,
 } from 'firebase/auth';
 import * as AppleAuthentication from 'expo-apple-authentication';
@@ -45,6 +47,14 @@ const AuthScreen = ({ mode, onBack, onSuccess }) => {
     Alert.alert(
       t('comingSoon', language) || 'Coming Soon',
       t('googleSignInMessage', language) || 'Google Sign-In will be available in the standalone app version. For now, please use email/password authentication.',
+      [{ text: 'OK' }]
+    );
+  };
+
+  const handleFacebookSignIn = () => {
+    Alert.alert(
+      t('comingSoon', language) || 'Coming Soon',
+      'Facebook Login will be available in the standalone app release. Please use email/password for now.',
       [{ text: 'OK' }]
     );
   };
@@ -104,6 +114,32 @@ const AuthScreen = ({ mode, onBack, onSuccess }) => {
         return t('tooManyAttempts', language) || 'Too many attempts. Please try again later';
       default:
         return error.message;
+    }
+  };
+
+  const handlePasswordReset = async () => {
+    if (!email) {
+      Alert.alert(t('enterYourEmail', language), t('passwordResetEmail', language));
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email.trim())) {
+      Alert.alert(t('error', language), t('invalidEmail', language));
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await sendPasswordResetEmail(auth, email.trim());
+      Alert.alert(
+        t('checkYourEmail', language),
+        `${t('passwordResetSent', language)} ${email.trim()}`
+      );
+    } catch (error) {
+      Alert.alert(t('error', language), getAuthErrorMessage(error));
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -172,62 +208,74 @@ const AuthScreen = ({ mode, onBack, onSuccess }) => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.safeArea}>
+      <StatusBar style="light" />
       <KeyboardAvoidingView 
         style={styles.keyboardView}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
         <ScrollView contentContainerStyle={styles.scrollContent}>
-          {/* Header */}
-          <View style={styles.header}>
-            <TouchableOpacity style={styles.backButton} onPress={onBack}>
-              <Text style={styles.backButtonText}>← {t('back', language)}</Text>
+          <View style={styles.topSection}>
+            <TouchableOpacity style={styles.backPill} onPress={onBack}>
+              <Text style={styles.backPillText}>← {t('back', language)}</Text>
             </TouchableOpacity>
-            <Text style={styles.logo}>🥫</Text>
-            <Text style={styles.appName}>Shelfze</Text>
-            <Text style={styles.title}>
-              {isSignup ? t('createAccount', language) : t('login', language)}
+            <Text style={styles.heroBadge}>🥫 Shelfze</Text>
+            <Text style={styles.heroTitle}>
+              {isSignup
+                ? 'Create your account'
+                : 'Welcome back'}
+            </Text>
+            <Text style={styles.heroSubtitle}>
+              {isSignup
+                ? 'Unlock cloud sync, bonuses, and saved history across devices.'
+                : 'Sign in to pick up where you left off—your pantry stays in sync.'}
             </Text>
           </View>
 
-          {/* Form */}
-          <View style={styles.form}>
+          <View style={styles.formCard}>
             {/* Social Sign In Buttons */}
-            {!isSignup && (
-              <View style={styles.socialButtons}>
-                <TouchableOpacity 
-                  style={styles.googleButton}
-                  onPress={handleGoogleSignIn}
-                  disabled={loading}
-                >
-                  <Text style={styles.googleButtonIcon}>G</Text>
-                  <Text style={styles.googleButtonText}>
-                    {t('continueWithGoogle', language) || 'Continue with Google'}
-                  </Text>
-                </TouchableOpacity>
+            <View style={styles.socialButtons}>
+              <TouchableOpacity 
+                style={[styles.socialButton, styles.googleButton]}
+                onPress={handleGoogleSignIn}
+                disabled={loading}
+              >
+                <Text style={[styles.socialButtonIcon, styles.googleText]}>G</Text>
+                <Text style={[styles.socialButtonText, styles.googleText]}>
+                  {t('continueWithGoogle', language) || 'Continue with Google'}
+                </Text>
+              </TouchableOpacity>
 
-                {Platform.OS === 'ios' && appleAuthAvailable && (
-                  <TouchableOpacity 
-                    style={styles.appleButton}
-                    onPress={handleAppleSignIn}
-                    disabled={loading}
-                  >
-                    <Text style={styles.appleButtonIcon}></Text>
-                    <Text style={styles.appleButtonText}>
-                      {t('continueWithApple', language) || 'Continue with Apple'}
-                    </Text>
-                  </TouchableOpacity>
-                )}
+              <TouchableOpacity 
+                style={[styles.socialButton, styles.facebookButton]}
+                onPress={handleFacebookSignIn}
+                disabled={loading}
+              >
+                <Text style={[styles.socialButtonIcon, styles.facebookIcon]}>f</Text>
+                <Text style={[styles.socialButtonText, styles.facebookText]}>
+                  {t('continueWithFacebook', language) || 'Continue with Facebook'}
+                </Text>
+              </TouchableOpacity>
 
-                <View style={styles.divider}>
-                  <View style={styles.dividerLine} />
-                  <Text style={styles.dividerText}>
-                    {t('orContinueWithEmail', language) || 'or continue with email'}
-                  </Text>
-                  <View style={styles.dividerLine} />
-                </View>
+              <TouchableOpacity 
+                style={[styles.socialButton, styles.appleButton, (!appleAuthAvailable || Platform.OS !== 'ios') && styles.socialButtonDisabled]}
+                onPress={handleAppleSignIn}
+                disabled={loading || Platform.OS !== 'ios' || !appleAuthAvailable}
+              >
+                <Text style={[styles.socialButtonIcon, styles.appleIcon]}></Text>
+                <Text style={[styles.socialButtonText, styles.appleText]}>
+                  {t('continueWithApple', language) || 'Continue with Apple'}
+                </Text>
+              </TouchableOpacity>
+
+              <View style={styles.divider}>
+                <View style={styles.dividerLine} />
+                <Text style={styles.dividerText}>
+                  {t('orContinueWithEmail', language) || 'or continue with email'}
+                </Text>
+                <View style={styles.dividerLine} />
               </View>
-            )}
+            </View>
 
             {isSignup && (
               <TextInput
@@ -267,6 +315,14 @@ const AuthScreen = ({ mode, onBack, onSuccess }) => {
                 secureTextEntry
                 autoCapitalize="none"
               />
+            )}
+
+            {!isSignup && (
+              <TouchableOpacity style={styles.forgotPasswordButton} onPress={handlePasswordReset}>
+                <Text style={styles.forgotPasswordText}>
+                  {t('forgotPassword', language) || 'Forgot Password?'}
+                </Text>
+              </TouchableOpacity>
             )}
 
             {isSignup && (
@@ -309,16 +365,13 @@ const AuthScreen = ({ mode, onBack, onSuccess }) => {
             </TouchableOpacity>
           </View>
 
-          {/* Info */}
-          <View style={styles.infoBox}>
-            <Text style={styles.infoTitle}>
-              ✨ {t('freeAccountBenefits', language) || 'Free Account Benefits'}
-            </Text>
-            <Text style={styles.infoItem}>📸 30 {t('scans', language)} / {t('month', language)}</Text>
-            <Text style={styles.infoItem}>🍳 30 {t('recipes', language)} / {t('month', language)}</Text>
-            <Text style={styles.infoItem}>🎁 {t('monthlyBonus', language)}</Text>
-            <Text style={styles.infoItem}>☁️ {t('syncAcrossDevices', language)}</Text>
-            <Text style={styles.infoItem}>🔒 {t('secureBackup', language)}</Text>
+          <View style={styles.benefitsCard}>
+            <Text style={styles.benefitsTitle}>Why create an account?</Text>
+            <BenefitRow icon="📸" text="30 scans right away" />
+            <BenefitRow icon="🍳" text="30 chef-crafted recipes" />
+            <BenefitRow icon="🎁" text="Monthly +5 bonus refills" />
+            <BenefitRow icon="☁️" text="Sync pantry across devices" />
+            <BenefitRow icon="🔒" text="Secure cloud backup" />
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -326,102 +379,126 @@ const AuthScreen = ({ mode, onBack, onSuccess }) => {
   );
 };
 
+const BenefitRow = ({ icon, text }) => (
+  <View style={styles.benefitRow}>
+    <Text style={styles.benefitIcon}>{icon}</Text>
+    <Text style={styles.benefitText}>{text}</Text>
+  </View>
+);
+
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: '#0F172A',
   },
   keyboardView: {
     flex: 1,
   },
   scrollContent: {
-    padding: 20,
-    paddingTop: Platform.OS === 'ios' ? 20 : 40,
+    paddingHorizontal: 24,
+    paddingTop: Platform.OS === 'ios' ? 32 : 48,
+    paddingBottom: 48,
   },
-  header: {
-    alignItems: 'center',
-    marginBottom: 30,
+  topSection: {
+    marginBottom: 20,
   },
-  backButton: {
+  backPill: {
     alignSelf: 'flex-start',
     paddingVertical: 8,
     paddingHorizontal: 12,
-    marginBottom: 20,
+    borderRadius: 999,
+    backgroundColor: 'rgba(248, 250, 252, 0.08)',
+    borderWidth: 1,
+    borderColor: 'rgba(226, 232, 240, 0.2)',
+    marginBottom: 18,
   },
-  backButtonText: {
-    fontSize: 16,
-    color: '#0984e3',
+  backPillText: {
+    color: '#E2E8F0',
+    fontSize: 14,
     fontWeight: '600',
   },
-  logo: {
-    fontSize: 64,
+  heroBadge: {
+    fontSize: 15,
+    color: '#CBD5F5',
+    marginBottom: 8,
+    letterSpacing: 1,
+    textTransform: 'uppercase',
+  },
+  heroTitle: {
+    fontSize: 30,
+    fontWeight: '800',
+    color: '#F8FAFC',
     marginBottom: 8,
   },
-  appName: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: '#2d3436',
-    marginBottom: 8,
+  heroSubtitle: {
+    fontSize: 15,
+    color: '#94A3B8',
+    lineHeight: 22,
   },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#2d3436',
-  },
-  form: {
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    padding: 20,
+  formCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 22,
+    padding: 22,
+    borderWidth: 1.5,
+    borderColor: '#E2E8F0',
     marginBottom: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 3,
   },
   socialButtons: {
-    marginBottom: 20,
+    marginBottom: 16,
+  },
+  socialButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 16,
+    paddingVertical: 14,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    backgroundColor: '#F8FAFC',
+  },
+  socialButtonIcon: {
+    fontSize: 18,
+    fontWeight: '700',
+    marginRight: 10,
+    color: '#0F172A',
+  },
+  socialButtonText: {
+    color: '#0F172A',
+    fontSize: 15,
+    fontWeight: '600',
   },
   googleButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 14,
-    marginBottom: 12,
-    borderWidth: 1.5,
-    borderColor: '#dfe6e9',
+    backgroundColor: '#E11D48',
+    borderColor: '#E11D48',
   },
-  googleButtonIcon: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginRight: 12,
-    color: '#4285F4',
-  },
-  googleButtonText: {
-    color: '#2d3436',
-    fontSize: 15,
-    fontWeight: '600',
+  googleText: {
+    color: '#FFFFFF',
   },
   appleButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#000',
-    borderRadius: 12,
-    padding: 14,
-    marginBottom: 12,
+    backgroundColor: '#0F172A',
+    borderColor: '#0F172A',
   },
-  appleButtonIcon: {
-    fontSize: 20,
-    marginRight: 8,
-    color: '#fff',
+  appleIcon: {
+    color: '#FFFFFF',
+    fontSize: 18,
   },
-  appleButtonText: {
-    color: '#fff',
-    fontSize: 15,
-    fontWeight: '600',
+  appleText: {
+    color: '#FFFFFF',
+  },
+  socialButtonDisabled: {
+    opacity: 0.5,
+  },
+  facebookButton: {
+    backgroundColor: '#1877F2',
+    borderColor: '#1877F2',
+  },
+  facebookIcon: {
+    color: '#FFFFFF',
+    fontWeight: '800',
+  },
+  facebookText: {
+    color: '#FFFFFF',
   },
   divider: {
     flexDirection: 'row',
@@ -440,29 +517,30 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   input: {
-    backgroundColor: '#f8f9fa',
-    borderRadius: 12,
+    backgroundColor: '#F8FAFC',
+    borderRadius: 14,
     padding: 16,
     fontSize: 16,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: '#dfe6e9',
+    borderColor: '#E2E8F0',
+    color: '#0F172A',
   },
   hint: {
     fontSize: 13,
-    color: '#636e72',
+    color: '#64748B',
     marginBottom: 12,
     marginLeft: 4,
   },
   submitButton: {
-    backgroundColor: '#00b894',
-    borderRadius: 12,
-    padding: 16,
+    backgroundColor: '#E11D48',
+    borderRadius: 16,
+    paddingVertical: 15,
     alignItems: 'center',
     marginTop: 8,
   },
   submitButtonDisabled: {
-    opacity: 0.6,
+    opacity: 0.7,
   },
   submitButtonText: {
     color: '#fff',
@@ -475,28 +553,46 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   toggleButtonText: {
-    color: '#0984e3',
+    color: '#0F172A',
     fontSize: 15,
     fontWeight: '600',
   },
-  infoBox: {
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    padding: 20,
-    borderWidth: 2,
-    borderColor: '#00b894',
-  },
-  infoTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#2d3436',
-    marginBottom: 12,
-  },
-  infoItem: {
-    fontSize: 15,
-    color: '#2d3436',
+  forgotPasswordButton: {
+    alignSelf: 'flex-end',
+    paddingVertical: 8,
     marginBottom: 8,
-    lineHeight: 22,
+  },
+  forgotPasswordText: {
+    color: '#0F172A',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  benefitsCard: {
+    backgroundColor: 'rgba(248, 250, 252, 0.08)',
+    borderRadius: 22,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(226, 232, 240, 0.2)',
+  },
+  benefitsTitle: {
+    color: '#E2E8F0',
+    fontSize: 16,
+    fontWeight: '700',
+    marginBottom: 14,
+  },
+  benefitRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  benefitIcon: {
+    width: 28,
+    fontSize: 18,
+  },
+  benefitText: {
+    flex: 1,
+    color: '#CBD5F5',
+    fontSize: 15,
   },
 });
 

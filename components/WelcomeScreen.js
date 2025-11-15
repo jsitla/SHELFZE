@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   View,
   Text,
@@ -8,270 +8,235 @@ import {
   SafeAreaView,
   Platform,
 } from 'react-native';
-import { useLanguage } from '../contexts/LanguageContext';
-import { t } from '../contexts/translations';
+import { StatusBar } from 'expo-status-bar';
 
 const WelcomeScreen = ({ onContinueAsGuest, onCreateAccount, onLogin }) => {
-  const { language } = useLanguage();
+  const guestBenefits = [
+    { icon: '⚡', text: 'Start scanning immediately' },
+    { icon: '📸', text: '10 free scans' },
+    { icon: '🍳', text: '10 free recipes' },
+    { icon: '📱', text: 'Data saved on this device' },
+  ];
+
+  const accountBenefits = [
+    { icon: '📸', text: '30 scans to start' },
+    { icon: '🍳', text: '30 recipes to start' },
+    { icon: '🎁', text: '+5 monthly bonus scans & recipes' },
+    { icon: '☁️', text: 'Sync across devices' },
+    { icon: '🔒', text: 'Secure cloud backup' },
+  ];
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.safeArea}>
+      <StatusBar style="light" />
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.logo}>🥫</Text>
-          <Text style={styles.appName}>Shelfze</Text>
-          <Text style={styles.tagline}>{t('welcomeTagline', language)}</Text>
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Choose how to begin</Text>
+          <Text style={styles.sectionCaption}>Pick a starting mode now—you can switch later without losing tracked items.</Text>
         </View>
 
-        {/* Welcome Message */}
-        <View style={styles.welcomeSection}>
-          <Text style={styles.welcomeTitle}>{t('welcomeTitle', language)}</Text>
-          <Text style={styles.welcomeSubtitle}>{t('welcomeSubtitle', language)}</Text>
-        </View>
-
-        {/* Option 1: Try It First (Anonymous) */}
         <TouchableOpacity
-          style={[styles.optionCard, styles.guestCard]}
+          style={[styles.planCard, styles.guestPlan]}
+          activeOpacity={0.9}
           onPress={onContinueAsGuest}
-          activeOpacity={0.8}
         >
-          <View style={styles.optionHeader}>
-            <Text style={styles.optionIcon}>🚀</Text>
-            <View style={styles.optionTitleContainer}>
-              <Text style={styles.optionTitle}>{t('tryItFirst', language)}</Text>
-              <Text style={styles.optionBadge}>{t('noAccountNeeded', language)}</Text>
+          <View style={styles.planHeader}>
+            <Text style={styles.planIcon}>🚀</Text>
+            <View style={styles.planTitleWrap}>
+              <Text style={styles.planTitle}>Try it first</Text>
+              <Text style={styles.planBadge}>No account needed</Text>
             </View>
           </View>
 
-          <View style={styles.benefitsList}>
-            <View style={styles.benefitItem}>
-              <Text style={styles.benefitIcon}>⚡</Text>
-              <Text style={styles.benefitText}>{t('startScanningNow', language)}</Text>
-            </View>
-            <View style={styles.benefitItem}>
-              <Text style={styles.benefitIcon}>📸</Text>
-              <Text style={styles.benefitText}>{t('guestScansLimit', language)}</Text>
-            </View>
-            <View style={styles.benefitItem}>
-              <Text style={styles.benefitIcon}>🍳</Text>
-              <Text style={styles.benefitText}>{t('guestRecipesLimit', language)}</Text>
-            </View>
-            <View style={styles.benefitItem}>
-              <Text style={styles.benefitIcon}>📱</Text>
-              <Text style={styles.benefitText}>{t('dataSavedLocally', language)}</Text>
-            </View>
+          <View style={styles.planBenefits}>
+            {guestBenefits.map((item) => (
+              <BenefitRow key={item.text} icon={item.icon} text={item.text} />
+            ))}
           </View>
 
-          <Text style={styles.optionCTA}>{t('continueAsGuest', language)} →</Text>
+          <View style={styles.planCTA}>
+            <Text style={styles.planCTAText}>Continue as guest</Text>
+          </View>
         </TouchableOpacity>
 
-        {/* Option 2: Create Account */}
         <TouchableOpacity
-          style={[styles.optionCard, styles.accountCard]}
+          style={[styles.planCard, styles.accountPlan]}
+          activeOpacity={0.9}
           onPress={onCreateAccount}
-          activeOpacity={0.8}
         >
-          <View style={styles.optionHeader}>
-            <Text style={styles.optionIcon}>✨</Text>
-            <View style={styles.optionTitleContainer}>
-              <Text style={styles.optionTitle}>{t('createFreeAccount', language)}</Text>
-              <Text style={[styles.optionBadge, styles.recommendedBadge]}>
-                {t('recommended', language)}
-              </Text>
+          <View style={styles.planHeader}>
+            <Text style={styles.planIcon}>✨</Text>
+            <View style={styles.planTitleWrap}>
+              <Text style={styles.planTitle}>Create a free account</Text>
+              <Text style={[styles.planBadge, styles.recommendedBadge]}>Recommended</Text>
             </View>
           </View>
 
-          <View style={styles.benefitsList}>
-            <View style={styles.benefitItem}>
-              <Text style={styles.benefitIcon}>📸</Text>
-              <Text style={styles.benefitText}>{t('freeScansLimit', language)}</Text>
-            </View>
-            <View style={styles.benefitItem}>
-              <Text style={styles.benefitIcon}>🍳</Text>
-              <Text style={styles.benefitText}>{t('freeRecipesLimit', language)}</Text>
-            </View>
-            <View style={styles.benefitItem}>
-              <Text style={styles.benefitIcon}>🎁</Text>
-              <Text style={styles.benefitText}>{t('monthlyBonus', language)}</Text>
-            </View>
-            <View style={styles.benefitItem}>
-              <Text style={styles.benefitIcon}>☁️</Text>
-              <Text style={styles.benefitText}>{t('syncAcrossDevices', language)}</Text>
-            </View>
-            <View style={styles.benefitItem}>
-              <Text style={styles.benefitIcon}>🔒</Text>
-              <Text style={styles.benefitText}>{t('secureBackup', language)}</Text>
-            </View>
+          <View style={styles.planBenefits}>
+            {accountBenefits.map((item) => (
+              <BenefitRow key={item.text} icon={item.icon} text={item.text} />
+            ))}
           </View>
 
-          <Text style={styles.optionCTA}>{t('getStarted', language)} →</Text>
+          <View style={[styles.planCTA, styles.primaryCTA]}>
+            <Text style={[styles.planCTAText, styles.primaryCTAText]}>Get started</Text>
+          </View>
         </TouchableOpacity>
 
-        {/* Login Link for Existing Users */}
-        <TouchableOpacity 
-          style={styles.loginLink}
-          onPress={onLogin}
-          activeOpacity={0.7}
-        >
-          <Text style={styles.loginLinkText}>
-            {t('alreadyHaveAccount', language)} 
-            <Text style={styles.loginLinkBold}> {t('login', language)}</Text>
-          </Text>
+        <TouchableOpacity style={styles.loginButton} onPress={onLogin} activeOpacity={0.85}>
+          <Text style={styles.loginButtonLabel}>Already have an account?</Text>
+          <Text style={styles.loginButtonAction}>Log in</Text>
         </TouchableOpacity>
 
-        {/* Footer Note */}
-        <Text style={styles.footerNote}>{t('upgradeAnytime', language)}</Text>
+        <Text style={styles.footerNote}>You can upgrade from guest to account anytime.</Text>
       </ScrollView>
     </SafeAreaView>
   );
 };
 
+const BenefitRow = ({ icon, text }) => (
+  <View style={styles.benefitRow}>
+    <Text style={styles.benefitIcon}>{icon}</Text>
+    <Text style={styles.benefitText}>{text}</Text>
+  </View>
+);
+
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: '#0F172A',
   },
   scrollContent: {
-    padding: 20,
-    paddingTop: Platform.OS === 'ios' ? 20 : 40,
+    padding: 24,
+    paddingTop: Platform.OS === 'ios' ? 32 : 48,
+    paddingBottom: 48,
+    backgroundColor: '#0F172A',
   },
-  header: {
-    alignItems: 'center',
-    marginBottom: 30,
+  sectionHeader: {
+    marginBottom: 16,
   },
-  logo: {
-    fontSize: 64,
-    marginBottom: 8,
-  },
-  appName: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: '#2d3436',
-    marginBottom: 8,
-  },
-  tagline: {
-    fontSize: 16,
-    color: '#636e72',
-    textAlign: 'center',
-  },
-  welcomeSection: {
-    marginBottom: 30,
-    alignItems: 'center',
-  },
-  welcomeTitle: {
+  sectionTitle: {
     fontSize: 24,
-    fontWeight: 'bold',
-    color: '#2d3436',
-    textAlign: 'center',
-    marginBottom: 8,
+    fontWeight: '800',
+    color: '#F8FAFC',
+    marginBottom: 6,
   },
-  welcomeSubtitle: {
-    fontSize: 16,
-    color: '#636e72',
-    textAlign: 'center',
-    lineHeight: 24,
+  sectionCaption: {
+    fontSize: 15,
+    color: '#CBD5F5',
+    lineHeight: 20,
   },
-  optionCard: {
+  planCard: {
     backgroundColor: '#fff',
-    borderRadius: 16,
-    padding: 20,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 3,
+    borderRadius: 22,
+    padding: 22,
+    marginBottom: 18,
   },
-  guestCard: {
-    borderWidth: 2,
-    borderColor: '#dfe6e9',
+  guestPlan: {
+    borderWidth: 1.5,
+    borderColor: '#E2E8F0',
   },
-  accountCard: {
-    borderWidth: 2,
-    borderColor: '#00b894',
+  accountPlan: {
+    borderWidth: 1.5,
+    borderColor: '#E11D48',
   },
-  optionHeader: {
+  planHeader: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     marginBottom: 16,
   },
-  optionIcon: {
+  planIcon: {
     fontSize: 32,
     marginRight: 12,
   },
-  optionTitleContainer: {
+  planTitleWrap: {
     flex: 1,
   },
-  optionTitle: {
+  planTitle: {
     fontSize: 20,
-    fontWeight: 'bold',
-    color: '#2d3436',
+    fontWeight: '700',
+    color: '#0F172A',
     marginBottom: 4,
   },
-  optionBadge: {
-    fontSize: 12,
-    color: '#636e72',
-    backgroundColor: '#f8f9fa',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 4,
+  planBadge: {
     alignSelf: 'flex-start',
-    overflow: 'hidden',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 999,
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#475569',
+    backgroundColor: '#F1F5F9',
+    textTransform: 'uppercase',
   },
   recommendedBadge: {
-    backgroundColor: '#00b894',
+    backgroundColor: '#E11D48',
     color: '#fff',
-    fontWeight: '600',
   },
-  benefitsList: {
-    marginBottom: 16,
+  planBenefits: {
+    marginBottom: 20,
   },
-  benefitItem: {
+  benefitRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 10,
   },
   benefitIcon: {
-    fontSize: 18,
-    marginRight: 12,
-    width: 24,
-    textAlign: 'center',
+    fontSize: 20,
+    width: 28,
   },
   benefitText: {
-    fontSize: 15,
-    color: '#2d3436',
     flex: 1,
-    lineHeight: 22,
+    fontSize: 15,
+    color: '#0F172A',
   },
-  optionCTA: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#00b894',
-    textAlign: 'center',
-  },
-  loginLink: {
-    marginTop: 16,
-    marginBottom: 8,
+  planCTA: {
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
     paddingVertical: 12,
-    paddingHorizontal: 20,
     alignItems: 'center',
   },
-  loginLinkText: {
-    fontSize: 15,
-    color: '#636e72',
-    textAlign: 'center',
+  planCTAText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#0F172A',
   },
-  loginLinkBold: {
-    fontWeight: 'bold',
-    color: '#0984e3',
+  primaryCTA: {
+    backgroundColor: '#E11D48',
+    borderColor: '#E11D48',
+  },
+  primaryCTAText: {
+    color: '#fff',
+  },
+  loginButton: {
+    marginTop: 8,
+    marginBottom: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 18,
+    borderWidth: 1.5,
+    borderColor: '#F8FAFC',
+    backgroundColor: 'rgba(248, 250, 252, 0.08)',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 8,
+  },
+  loginButtonLabel: {
+    fontSize: 15,
+    color: '#E2E8F0',
+  },
+  loginButtonAction: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#FFFFFF',
   },
   footerNote: {
     fontSize: 13,
-    color: '#95a5a6',
+    color: '#94A3B8',
     textAlign: 'center',
-    marginTop: 8,
-    marginBottom: 20,
+    marginTop: 12,
   },
 });
 
