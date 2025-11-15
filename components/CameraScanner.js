@@ -46,16 +46,67 @@ export default function CameraScanner({ navigation }) {
   const [editItemCategory, setEditItemCategory] = useState('');
   const [usageData, setUsageData] = useState(null);
   const [loadingUsage, setLoadingUsage] = useState(true);
+  const [processingMode, setProcessingMode] = useState('photo'); // 'photo' or 'video'
   const cameraRef = useRef(null);
   const fileInputRef = useRef(null);
   const recordingIntervalRef = useRef(null);
   const isRecordingRef = useRef(false);
   const latestPhotoUriRef = useRef(null);
+  const isCameraReadyRef = useRef(false);
+  const cameraReadyTimestampRef = useRef(0);
+  const [isCameraReady, setIsCameraReady] = useState(false);
+  const cameraReadyResolvers = useRef([]);
   const { language } = useLanguage(); // Get current language
   const db = getFirestore(app);
 
   const CLOUD_FUNCTION_URL = 'https://analyzeimage-awiyk42b4q-uc.a.run.app';
   const VIDEO_FRAME_SAMPLE_MS = [500, 2000, 4000, 6000, 8000];
+  const CAMERA_READY_BUFFER_MS = Platform.OS === 'android' ? 500 : 0; // More buffer for Android
+
+  const handleCameraReady = useCallback(() => {
+    console.log('[LIFECYCLE] onCameraReady fired.');
+    isCameraReadyRef.current = true;
+    cameraReadyTimestampRef.current = Date.now();
+    setIsCameraReady(true);
+    if (cameraReadyResolvers.current.length > 0) {
+      console.log('[LIFECYCLE] Resolving pending camera-ready promises.');
+      cameraReadyResolvers.current.forEach(resolve => resolve());
+      cameraReadyResolvers.current = [];
+    }
+  }, []);
+
+  const waitForCameraReady = useCallback(() => {
+    if (isCameraReadyRef.current) {
+      return Promise.resolve();
+    }
+
+    return new Promise((resolve, reject) => {
+      const timeout = setTimeout(() => {
+        reject(new Error('Camera ready timeout - camera did not initialize within 5 seconds'));
+      }, 5000);
+      
+      const wrappedResolve = () => {
+        clearTimeout(timeout);
+        resolve();
+      };
+      
+      cameraReadyResolvers.current.push(wrappedResolve);
+    });
+  }, []);
+
+  const resetCameraReadyState = useCallback(() => {
+    console.log('[LIFECYCLE] Resetting camera ready state.');
+    isCameraReadyRef.current = false;
+    setIsCameraReady(false);
+  }, []);
+
+  const waitForStableCamera = useCallback(async () => {
+    await waitForCameraReady();
+    const elapsed = Date.now() - cameraReadyTimestampRef.current;
+    if (elapsed < CAMERA_READY_BUFFER_MS) {
+      await new Promise(resolve => setTimeout(resolve, CAMERA_READY_BUFFER_MS - elapsed));
+    }
+  }, [waitForCameraReady]);
 
   // Load usage data on mount and when user changes
   useEffect(() => {
@@ -233,17 +284,34 @@ export default function CameraScanner({ navigation }) {
     latestPhotoUriRef.current = photoUri;
   }, [photoUri]);
 
+  // Remount camera when capture mode changes
+  useEffect(() => {
+    // Only remount if not recording to avoid interruptions
+    if (!isRecording) {
+      console.log(`[EFFECT] Capture mode changed to: ${captureMode}. Remounting camera.`);
+      resetCameraReadyState();
+      setCameraKey(prev => prev + 1);
+    }
+  }, [captureMode]);
+
   // Reset camera when screen comes into focus (fixes black screen when returning from other tabs)
   useFocusEffect(
     useCallback(() => {
-      // Force camera remount by changing key
-      setCameraKey(prev => prev + 1);
+      console.log('[FOCUS] Screen focused.');
+      // Only remount if the camera isn't already ready or if we are on Android
+      // This prevents unnecessary remounts on iOS when switching tabs
+      if (!isCameraReadyRef.current || Platform.OS === 'android') {
+        console.log('[FOCUS] Remounting camera.');
+        resetCameraReadyState();
+        setCameraKey(prev => prev + 1);
+      }
       
       // Reset photo state when screen is focused
       setPhotoUri(null);
       setScanResult('');
       
       return () => {
+        console.log('[FOCUS] Screen blurred. Cleaning up.');
         // Cleanup when leaving screen
         if (isRecordingRef.current) {
           stopVideoRecording();
@@ -260,6 +328,8 @@ export default function CameraScanner({ navigation }) {
 
   // 5. Write a function called 'takePicture' that will be called by a button.
   const takePicture = async () => {
+    console.log('[ACTION] takePicture called.');
+    setProcessingMode('photo'); // Set mode for loading text
     // Check if user has scans remaining
     if (usageData && usageData.scansRemaining <= 0) {
       const tierText = usageData.tier === 'anonymous' 
@@ -288,18 +358,31 @@ export default function CameraScanner({ navigation }) {
       if (!isLoading) {
         fileInputRef.current?.click();
       }
-    } else if (cameraRef.current) {
+    } else {
+      console.log('[CAPTURE] Waiting for stable camera...');
+      await waitForStableCamera();
+      console.log('[CAPTURE] Camera is stable.');
+
+      if (!cameraRef.current) {
+        console.error('[CAPTURE] Camera reference not available after wait.');
+        Alert.alert('Error', 'Camera reference not available');
+        return;
+      }
+
       try {
+        console.log('[CAPTURE] Calling takePictureAsync...');
         const photo = await cameraRef.current.takePictureAsync({
           quality: 0.8,
           base64: false,
         });
         
         if (!photo || !photo.uri) {
+          console.error('[CAPTURE] takePictureAsync returned no URI.');
           Alert.alert('Error', 'Failed to capture image');
           return;
         }
         
+        console.log(`[CAPTURE] Photo captured successfully: ${photo.uri}`);
         setPhotoUri(photo.uri);
         // PHASE 2: Process the image after capture
         await processImage(photo.uri);
@@ -307,8 +390,6 @@ export default function CameraScanner({ navigation }) {
         console.error('Camera error:', error);
         Alert.alert('Error', 'Failed to take picture: ' + error.message);
       }
-    } else {
-      Alert.alert('Error', 'Camera reference not available');
     }
   };
 
@@ -348,15 +429,19 @@ export default function CameraScanner({ navigation }) {
 
   // Toggle between photo and video mode
   const toggleCaptureMode = () => {
+    console.log(`[ACTION] Toggling capture mode from ${captureMode} to ${captureMode === 'photo' ? 'video' : 'photo'}`);
     if (isRecording) {
       Alert.alert('Recording in Progress', 'Please stop recording first.');
       return;
     }
+    // Just change mode - CameraView key already includes captureMode, so it will remount automatically
     setCaptureMode(prev => prev === 'photo' ? 'video' : 'photo');
   };
 
   // Video recording functions - SIMPLE VERSION THAT WORKED
   const startVideoRecording = async () => {
+    console.log('[ACTION] startVideoRecording called.');
+    setProcessingMode('video'); // Set mode for loading text
     // Check if user has scans remaining
     if (usageData && usageData.scansRemaining <= 0) {
       const tierText = usageData.tier === 'anonymous' 
@@ -385,17 +470,22 @@ export default function CameraScanner({ navigation }) {
       return;
     }
 
-    if (!cameraRef.current) {
-      Alert.alert('Error', 'Camera not available');
-      return;
-    }
-
-    // Ensure camera is in video mode; if not, switch and remount
+    // Ensure camera is in video mode; if not, switch and wait for remount
     if (captureMode !== 'video') {
+      console.log('[CAPTURE] Mode is not video, switching...');
+      resetCameraReadyState();
       setCaptureMode('video');
       setCameraKey(prev => prev + 1);
-      // wait a tick for remount
-      await new Promise(r => setTimeout(r, 300));
+    }
+
+    console.log('[CAPTURE] Waiting for stable camera for video...');
+    await waitForStableCamera();
+    console.log('[CAPTURE] Camera is stable for video.');
+
+    if (!cameraRef.current) {
+      console.error('[CAPTURE] Camera reference not available for video after wait.');
+      Alert.alert('Error', 'Camera not available');
+      return;
     }
 
     // Mic permission: request if not granted; if denied, record muted
@@ -420,6 +510,7 @@ export default function CameraScanner({ navigation }) {
     }
 
     try {
+      console.log('[CAPTURE] Starting video recording...');
       setIsRecording(true);
       isRecordingRef.current = true;
       setRecordingDuration(0);
@@ -442,6 +533,7 @@ export default function CameraScanner({ navigation }) {
       recordingIntervalRef.current = interval;
 
       // Simple direct call - this worked before!
+      console.log('[CAPTURE] Calling recordAsync...');
       const video = await cameraRef.current.recordAsync({
         maxDuration: 10,
         quality: '720p',
@@ -454,7 +546,10 @@ export default function CameraScanner({ navigation }) {
       }
 
       if (video && video.uri) {
+        console.log(`[CAPTURE] Video recorded successfully: ${video.uri}`);
         await processVideoRecording(video.uri);
+      } else {
+        console.warn('[CAPTURE] recordAsync finished but returned no URI.');
       }
 
     } catch (error) {
@@ -463,8 +558,23 @@ export default function CameraScanner({ navigation }) {
         recordingIntervalRef.current = null;
       }
       console.error('Video recording error:', error);
-      Alert.alert('Recording Error', error.message);
+      const transientInitIssue = typeof error?.message === 'string' &&
+        error.message.toLowerCase().includes('stopped before any data');
+
+      if (transientInitIssue) {
+        // Reinitialize camera to recover from Android race condition
+        console.warn('[RECOVERY] Android transient init issue detected. Remounting camera.');
+        resetCameraReadyState();
+        setCameraKey(prev => prev + 1);
+        Alert.alert(
+          'Camera Not Ready Yet',
+          'Android sometimes stops recording if the lens has not fully warmed up. We reset the camera—please wait a second and try again.'
+        );
+      } else {
+        Alert.alert('Recording Error', error.message);
+      }
     } finally {
+      console.log('[CAPTURE] Finalizing video recording process.');
       setIsRecording(false);
       isRecordingRef.current = false;
       setRecordingDuration(0);
@@ -501,6 +611,15 @@ export default function CameraScanner({ navigation }) {
     try {
       let detectionFound = false;
 
+      // Set a temporary photo URI for the preview, but keep processingMode as 'video'
+      const { uri: firstFrameUri } = await VideoThumbnails.getThumbnailAsync(videoUri, {
+        time: VIDEO_FRAME_SAMPLE_MS[0],
+        quality: 0.8,
+      });
+      if (firstFrameUri) {
+        setPhotoUri(firstFrameUri);
+      }
+
       for (let i = 0; i < VIDEO_FRAME_SAMPLE_MS.length; i++) {
         const sampleTime = VIDEO_FRAME_SAMPLE_MS[i];
         console.log(`📹 Extracting frame at ${sampleTime}ms from video:`, videoUri);
@@ -514,13 +633,14 @@ export default function CameraScanner({ navigation }) {
           continue;
         }
 
-        if (i === 0) {
-          setPhotoUri(frameUri);
-        }
+        // We already set the first frame, no need to set it again
+        // if (i === 0) {
+        //   setPhotoUri(frameUri);
+        // }
 
         const result = await analyzeImageFromUri(frameUri);
         const isFinalAttempt = i === VIDEO_FRAME_SAMPLE_MS.length - 1;
-        const success = await handleDetectionResult(result, { silentNoItem: true });
+        const success = await handleDetectionResult(result, { silentNoItem: !isFinalAttempt });
 
         if (success) {
           detectionFound = true;
@@ -530,21 +650,7 @@ export default function CameraScanner({ navigation }) {
 
       if (!detectionFound) {
         console.log('⚠️ No items detected in sampled frames');
-        Alert.alert(
-          t('noItemsDetected', language),
-          t('detectionTips', language),
-          [
-            { text: t('tryAgain', language), onPress: () => scanAgain() },
-            {
-              text: t('addManually', language),
-              style: 'default',
-              onPress: () => {
-                scanAgain();
-                navigation.navigate('Pantry', { screen: 'ManualEntry' });
-              },
-            },
-          ]
-        );
+        // Alert is handled by the last handleDetectionResult call
       }
     } catch (error) {
       console.error('Video processing error:', error);
@@ -586,6 +692,12 @@ export default function CameraScanner({ navigation }) {
     setScanResult('');
     setDetectedItems(null);
     setShowReviewModal(false);
+    
+    // On Android, a remount is often necessary after processing
+    if (Platform.OS === 'android') {
+      resetCameraReadyState();
+      setCameraKey(prev => prev + 1);
+    }
   };
 
   const deleteDetectedItem = async (itemId) => {
@@ -714,6 +826,8 @@ export default function CameraScanner({ navigation }) {
     );
   }
 
+  const captureDisabled = !isCameraReady || isLoading;
+
   // 9. Add another conditional render: If photoUri exists, display an Image component with the photo
   if (photoUri) {
     return (
@@ -724,8 +838,18 @@ export default function CameraScanner({ navigation }) {
           <View style={styles.loadingOverlay}>
             <View style={styles.loadingContent}>
               <ActivityIndicator size="large" color="#E53E3E" />
-              <Text style={styles.loadingText}>🤖 Analyzing Image...</Text>
-              <Text style={styles.loadingSubtext}>Detecting food items & expiry dates</Text>
+              <Text style={styles.loadingText}>
+                {processingMode === 'video'
+                  ? t('processingVideo', language)
+                  : t('analyzing', language)
+                }
+              </Text>
+              <Text style={styles.loadingSubtext}>
+                {processingMode === 'video'
+                  ? t('extractingFrame', language)
+                  : t('detectingItems', language)
+                }
+              </Text>
             </View>
           </View>
         )}
@@ -940,6 +1064,7 @@ export default function CameraScanner({ navigation }) {
             // Ensure camera is configured for the intended operation
             mode={captureMode === 'video' ? 'video' : 'picture'}
             ref={cameraRef}
+            onCameraReady={handleCameraReady}
           />
           {/* Overlay UI positioned absolutely over camera */}
           <View style={styles.cameraOverlay}>
@@ -959,7 +1084,7 @@ export default function CameraScanner({ navigation }) {
             {/* Mode Toggle at top */}
             <View style={styles.topControls}>
               <TouchableOpacity 
-                style={[styles.modeButton, captureMode === 'photo' && styles.modeButtonActive]}
+                style={[styles.modeButton, captureMode === 'video' && styles.modeButtonActive]}
                 onPress={toggleCaptureMode}
                 disabled={isRecording}
               >
@@ -980,6 +1105,9 @@ export default function CameraScanner({ navigation }) {
                   ? t('tapToRecord', language)
                   : t('tapToCapture', language)}
               </Text>
+              {!isCameraReady && (
+                <Text style={styles.cameraReadyHint}>Camera initializing...</Text>
+              )}
             </View>
 
             {/* Capture Button at bottom */}
@@ -1008,9 +1136,11 @@ export default function CameraScanner({ navigation }) {
                   <TouchableOpacity 
                     style={[
                       styles.captureButton,
-                      captureMode === 'video' && styles.videoCaptureButton
+                      captureMode === 'video' && styles.videoCaptureButton,
+                      captureDisabled && styles.captureButtonDisabled
                     ]} 
                     onPress={captureMode === 'photo' ? takePicture : startVideoRecording}
+                    disabled={captureDisabled}
                   >
                     <View style={[
                       styles.captureButtonInner,
@@ -1020,9 +1150,11 @@ export default function CameraScanner({ navigation }) {
                     </View>
                   </TouchableOpacity>
                   <Text style={styles.captureHint}>
-                    {captureMode === 'video' 
-                      ? t('tapToRecord', language)
-                      : t('tapToCapture', language)}
+                    {!isCameraReady
+                      ? 'Camera initializing...'
+                      : captureMode === 'video'
+                        ? t('tapToRecord', language)
+                        : t('tapToCapture', language)}
                   </Text>
                 </>
               )}
