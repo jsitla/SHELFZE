@@ -5,6 +5,7 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
+    "scheme": "shelfze",
     "userInterfaceStyle": "light",
     "splash": {
       "image": "./assets/splash.png",
@@ -17,8 +18,16 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.shelfze.app",
+      "usesAppleSignIn": true,
       "infoPlist": {
-        "NSCameraUsageDescription": "Shelfze needs access to your camera to scan food items and expiry dates."
+        "NSCameraUsageDescription": "Shelfze needs access to your camera to scan food items and expiry dates.",
+        "CFBundleURLTypes": [
+          {
+            "CFBundleURLSchemes": [
+              "com.googleusercontent.apps.747247644525-bmcc1cc6uq06kdd8aiobr0d2iu0h8s53"
+            ]
+          }
+        ]
       },
       "googleServicesFile": "./GoogleService-Info.plist"
     },
@@ -36,6 +45,11 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "sdkVersion": "54.0.0"
+    "sdkVersion": "54.0.0",
+    "extra": {
+      "googleIosClientId": "747247644525-bmcc1cc6uq06kdd8aiobr0d2iu0h8s53.apps.googleusercontent.com",
+      "googleAndroidClientId": "747247644525-hpg8l19sug00gqmk33s6vfe9442b7t15.apps.googleusercontent.com",
+      "googleWebClientId": "747247644525-q07j97skv56o7b5vp3vt30bbh6ges476.apps.googleusercontent.com"
+    }
   }
 }

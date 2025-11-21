@@ -20,6 +20,7 @@
 
 - [Overview](#-overview)
 - [Key Features](#-key-features)
+- [Monetization & Tiers](#-monetization--tiers)
 - [AI Technology](#-ai-technology)
 - [Technology Stack](#-technology-stack)
 - [Quick Start](#-quick-start)
@@ -54,6 +55,7 @@
 - 📱 **Cross-Platform** - Works seamlessly on iOS, Android, and Web
 - 🎨 **Modern Design** - Professional design system with consistent UI/UX
 - 🔄 **Real-time Sync** - Cloud-powered inventory with Firebase Firestore
+- **Flexible Tiers** - From anonymous guest access to a feature-rich premium plan
 
 ### Impact
 
@@ -147,6 +149,25 @@
 - **Instant Updates** - Changes reflect immediately across sessions
 - **Offline Support** - Works offline, syncs when connection restores
 - **Data Persistence** - Items stored securely in cloud database
+
+---
+
+## 💰 Monetization & Tiers
+
+Shelfze operates on a flexible 3-tier system to accommodate every type of user, from casual testers to power users.
+
+| Feature | 🚀 Anonymous | ✨ Free | 👑 Premium |
+|---|---|---|---|
+| **Scans** | 10 (Lifetime) | 30 + 5/month (Bank) | **1000/month** (Quota) |
+| **Recipes** | 10 (Lifetime) | 30 + 5/month (Bank) | **1000/month** (Quota) |
+| **Cloud Sync & Backup** | ❌ | ✅ | ✅ |
+| **Monthly Bonus** | ❌ | ✅ (+5 scans/recipes) | ❌ (Resets) |
+| **Quota Model** | Lifetime | Accumulates | Resets Monthly |
+| **Gift Codes** | ✅ | ✅ | ✅ |
+
+- **Anonymous Tier**: Perfect for trying the app. You get 10 lifetime scans and recipes. Data is stored locally.
+- **Free Tier**: Create a free account to get 30 scans and 30 recipes, plus a monthly bonus of 5 of each that accumulates over time. Your data is synced and backed up to the cloud.
+- **Premium Tier**: For the ultimate experience, premium users receive a massive quota of 1,000 scans and 1,000 recipes every month.
 
 ---
 

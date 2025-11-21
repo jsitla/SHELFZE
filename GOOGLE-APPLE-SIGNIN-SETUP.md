@@ -9,8 +9,8 @@
 ## What Works Now
 
 - ✅ Email/Password authentication (fully functional)
-- ✅ Google Sign-In button (shows "Coming Soon" message)
-- ✅ Apple Sign-In button (iOS only, shows "Coming Soon" message)
+- ✅ Google Sign-In flow in code (requires real client IDs)
+- ✅ Apple Sign-In flow in code (iOS only, requires proper Apple keys)
 - ✅ Proper UI with social auth buttons on login screen
 - ✅ Fallback to email/password authentication
 
@@ -38,37 +38,23 @@
 2. Place it in project root: `./google-services.json`
 3. Note the `client_id` from the JSON file
 
-### 3. Update AuthScreen.js
+### 3. Add client IDs to `app.json`
 
-Replace the `handleGoogleSignIn` function with actual Google OAuth implementation using Firebase:
+`AuthScreen.js` reads Google client IDs from `app.json > expo.extra`. Populate them with the values gathered above:
 
-```javascript
-import { GoogleAuthProvider, signInWithCredential } from 'firebase/auth';
-import * as Google from 'expo-auth-session/providers/google';
-
-const [request, response, promptAsync] = Google.useIdTokenAuthRequest({
-  clientId: 'YOUR_IOS_CLIENT_ID.apps.googleusercontent.com',
-  androidClientId: 'YOUR_ANDROID_CLIENT_ID.apps.googleusercontent.com',
-});
-
-const handleGoogleSignIn = async () => {
-  try {
-    setLoading(true);
-    const result = await promptAsync();
-    
-    if (result.type === 'success') {
-      const { id_token } = result.params;
-      const credential = GoogleAuthProvider.credential(id_token);
-      await signInWithCredential(auth, credential);
-      if (onSuccess) onSuccess();
+```json
+{
+  "expo": {
+    "extra": {
+      "googleIosClientId": "YOUR_IOS_CLIENT_ID.apps.googleusercontent.com",
+      "googleAndroidClientId": "YOUR_ANDROID_CLIENT_ID.apps.googleusercontent.com",
+      "googleWebClientId": "YOUR_WEB_CLIENT_ID.apps.googleusercontent.com"
     }
-  } catch (error) {
-    Alert.alert(t('error', language), error.message);
-  } finally {
-    setLoading(false);
   }
-};
+}
 ```
+
+If these keys are missing, the new Google Sign-In button will warn that configuration is incomplete.
 
 ### 4. Build Standalone App
 
@@ -103,44 +89,11 @@ eas build --platform android
 5. Add Firebase callback URL to Service ID:
    - `https://pantryai-3d396.firebaseapp.com/__/auth/handler`
 
-### 3. Update AuthScreen.js
-
-Replace the `handleAppleSignIn` function with actual Apple OAuth implementation:
-
-```javascript
-import { OAuthProvider, signInWithCredential } from 'firebase/auth';
-
-const handleAppleSignIn = async () => {
-  try {
-    setLoading(true);
-    const credential = await AppleAuthentication.signInAsync({
-      requestedScopes: [
-        AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
-        AppleAuthentication.AppleAuthenticationScope.EMAIL,
-      ],
-    });
-
-    const { identityToken } = credential;
-    const provider = new OAuthProvider('apple.com');
-    const authCredential = provider.credential({
-      idToken: identityToken,
-    });
-
-    await signInWithCredential(auth, authCredential);
-    if (onSuccess) onSuccess();
-  } catch (error) {
-    if (error.code !== 'ERR_CANCELED') {
-      Alert.alert(t('error', language), error.message);
-    }
-  } finally {
-    setLoading(false);
-  }
-};
-```
+`AuthScreen.js` already exchanges the Apple identity token for a Firebase credential. Once Firebase and Apple developer settings are complete, no additional code updates are required.
 
 ### 4. Update app.json
 
-Ensure Apple Sign-In entitlement is configured:
+Ensure Apple Sign-In entitlement is configured and keep Google client IDs inside `extra`:
 
 ```json
 {
@@ -156,11 +109,23 @@ Ensure Apple Sign-In entitlement is configured:
 }
 ```
 
+```json
+{
+  "expo": {
+    "extra": {
+      "googleIosClientId": "...",
+      "googleAndroidClientId": "...",
+      "googleWebClientId": "..."
+    }
+  }
+}
+```
+
 ## Testing
 
 ### In Expo Go (Current State)
-- ❌ Google Sign-In - Shows "Coming Soon" message
-- ❌ Apple Sign-In - Shows "Coming Soon" message  
+- ⚠️ Google Sign-In - Requires real client IDs and only works on supported devices
+- ⚠️ Apple Sign-In - Only works on iOS devices with proper Apple config  
 - ✅ Email/Password - Fully functional
 
 ### In Standalone App (After Setup)

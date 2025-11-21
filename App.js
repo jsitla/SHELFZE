@@ -1,5 +1,6 @@
 // Required for React Navigation gestures - MUST be at the top
 import 'react-native-gesture-handler';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 // 1. Import necessary components from React, React Native, and Expo
 import React, { useState, useEffect, Component } from 'react';
@@ -14,15 +15,18 @@ import PantryList from './components/PantryList';
 import RecipeGenerator from './components/RecipeGenerator';
 import ManualEntry from './components/ManualEntry';
 import Profile from './components/Profile';
+import PremiumPlansScreen from './components/PremiumPlansScreen';
 import WelcomeScreen from './components/WelcomeScreen';
 import AuthScreen from './components/AuthScreen';
 import LanguageSelector from './components/LanguageSelector';
+import ShoppingList from './components/ShoppingList';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
 import { t } from './contexts/translations';
 import { getFirestore, collection, query, onSnapshot } from 'firebase/firestore';
 import { onAuthStateChanged, signInAnonymously } from 'firebase/auth';
 import { app, auth } from './firebase.config';
 import { checkAndApplyMonthlyBonus, initializeUsageTracking } from './utils/usageTracking';
+import LegalConsentScreen, { getStoredLegalConsent } from './components/LegalConsentScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -183,6 +187,17 @@ function AppNavigator() {
           }}
         />
         <Tab.Screen 
+          name="ShoppingList" 
+          component={ShoppingList}
+          options={{
+            title: t('shoppingList', language),
+            tabBarLabel: t('shoppingList', language),
+            tabBarIcon: ({ color }) => (
+              <Text style={{ fontSize: 24 }}>🛒</Text>
+            ),
+          }}
+        />
+        <Tab.Screen 
           name="Recipes" 
           component={RecipeWrapper}
           options={{
@@ -249,6 +264,14 @@ function PantryStack() {
           ...UNIFIED_HEADER,
         }}
       />
+      <Stack.Screen
+        name="PremiumPlans"
+        component={PremiumPlansScreen}
+        options={{
+          title: t('upgradeToPremium', language),
+          ...UNIFIED_HEADER,
+        }}
+      />
     </Stack.Navigator>
   );
 }
@@ -261,6 +284,18 @@ export default function App() {
   const [showAuth, setShowAuth] = useState(false);
   const [authMode, setAuthMode] = useState('login'); // 'login' or 'signup'
   const [checkingFirstLaunch, setCheckingFirstLaunch] = useState(true);
+  const [hasLegalConsent, setHasLegalConsent] = useState(false);
+  const [checkingLegalConsent, setCheckingLegalConsent] = useState(true);
+
+  // Check stored legal consent (per device / session)
+  useEffect(() => {
+    const checkLegal = async () => {
+      const consentDate = await getStoredLegalConsent();
+      setHasLegalConsent(!!consentDate);
+      setCheckingLegalConsent(false);
+    };
+    checkLegal();
+  }, []);
 
   // Check if this is first launch
   useEffect(() => {
@@ -280,6 +315,10 @@ export default function App() {
 
     checkFirstLaunch();
   }, []);
+
+  const handleLegalAccepted = () => {
+    setHasLegalConsent(true);
+  };
 
   // Handle welcome screen choices
   const handleContinueAsGuest = async () => {
@@ -387,18 +426,22 @@ export default function App() {
     return () => unsubscribe();
   }, []);
 
-  // Show loading while checking first launch
-  if (checkingFirstLaunch) {
-    return (
+  let content = null;
+
+  if (checkingLegalConsent || checkingFirstLaunch) {
+    content = (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#E53E3E" />
       </View>
     );
-  }
-
-  // Show welcome screen on first launch
-  if (showWelcome) {
-    return (
+  } else if (!hasLegalConsent) {
+    content = (
+      <LanguageProvider>
+        <LegalConsentScreen onAccepted={handleLegalAccepted} />
+      </LanguageProvider>
+    );
+  } else if (showWelcome) {
+    content = (
       <LanguageProvider>
         <WelcomeScreen
           onContinueAsGuest={handleContinueAsGuest}
@@ -407,11 +450,8 @@ export default function App() {
         />
       </LanguageProvider>
     );
-  }
-
-  // Show auth screen (login/signup)
-  if (showAuth) {
-    return (
+  } else if (showAuth) {
+    content = (
       <LanguageProvider>
         <AuthScreen
           mode={authMode}
@@ -420,39 +460,39 @@ export default function App() {
         />
       </LanguageProvider>
     );
-  }
-
-  // Show loading screen while authenticating
-  if (authLoading) {
-    return (
+  } else if (authLoading) {
+    content = (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#E53E3E" />
         <Text style={styles.loadingText}>Loading Shelfze...</Text>
       </View>
     );
-  }
-
-  // Show error if authentication failed
-  if (!user) {
-    return (
+  } else if (!user) {
+    content = (
       <View style={styles.loadingContainer}>
         <Text style={styles.errorText}>⚠️ Authentication Error</Text>
         <Text style={styles.errorSubtext}>Please restart the app</Text>
       </View>
     );
+  } else {
+    content = (
+      <ErrorBoundary>
+        <LanguageProvider>
+          <NavigationContainer>
+            <View style={styles.container}>
+              <StatusBar style="auto" />
+              <AppNavigator />
+            </View>
+          </NavigationContainer>
+        </LanguageProvider>
+      </ErrorBoundary>
+    );
   }
 
   return (
-    <ErrorBoundary>
-      <LanguageProvider>
-        <NavigationContainer>
-          <View style={styles.container}>
-            <StatusBar style="auto" />
-            <AppNavigator />
-          </View>
-        </NavigationContainer>
-      </LanguageProvider>
-    </ErrorBoundary>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      {content}
+    </GestureHandlerRootView>
   );
 }
 

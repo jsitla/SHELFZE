@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "747247644525",
+    "project_id": "pantryai-3d396",
+    "storage_bucket": "pantryai-3d396.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:747247644525:android:4bfe8431925907505e7464",
+        "android_client_info": {
+          "package_name": "com.shelfze.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "747247644525-hpg8l19sug00gqmk33s6vfe9442b7t15.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.shelfze.app",
+            "certificate_hash": "d70bd64978874bc456a6e2a91c3b9afe9a19ecab"
+          }
+        },
+        {
+          "client_id": "747247644525-q07j97skv56o7b5vp3vt30bbh6ges476.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAPtEqsqoJa3eutHA33D3PSmY3LnSJmnIs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "747247644525-q07j97skv56o7b5vp3vt30bbh6ges476.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "747247644525-bmcc1cc6uq06kdd8aiobr0d2iu0h8s53.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.shelfze.app"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

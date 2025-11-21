@@ -13,16 +13,24 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
+import * as WebBrowser from 'expo-web-browser';
+import * as Google from 'expo-auth-session/providers/google';
+import Constants from 'expo-constants';
 import { 
   signInWithEmailAndPassword, 
   createUserWithEmailAndPassword,
   sendPasswordResetEmail,
   updateProfile,
+  signInWithCredential,
+  GoogleAuthProvider,
+  OAuthProvider,
 } from 'firebase/auth';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import { auth } from '../firebase.config';
 import { useLanguage } from '../contexts/LanguageContext';
 import { t } from '../contexts/translations';
+
+WebBrowser.maybeCompleteAuthSession();
 
 const AuthScreen = ({ mode, onBack, onSuccess }) => {
   const { language } = useLanguage();
@@ -33,6 +41,20 @@ const AuthScreen = ({ mode, onBack, onSuccess }) => {
   const [loading, setLoading] = useState(false);
   const [isSignup, setIsSignup] = useState(mode === 'signup');
   const [appleAuthAvailable, setAppleAuthAvailable] = useState(false);
+  const extraConfig = Constants?.expoConfig?.extra || {};
+  const googleClients = {
+    ios: extraConfig.googleIosClientId || '',
+    android: extraConfig.googleAndroidClientId || '',
+    web: extraConfig.googleWebClientId || '',
+  };
+  const hasGoogleConfig = Boolean(googleClients.ios || googleClients.android || googleClients.web);
+  const [googleRequest, , promptGoogleAsync] = Google.useIdTokenAuthRequest({
+    clientId: googleClients.web || googleClients.ios || googleClients.android || undefined,
+    iosClientId: googleClients.ios || undefined,
+    androidClientId: googleClients.android || undefined,
+    webClientId: googleClients.web || undefined,
+  });
+  const isAppleButtonDisabled = Platform.OS !== 'ios' || !appleAuthAvailable;
 
   useEffect(() => {
     checkAppleAuthAvailability();
@@ -43,12 +65,44 @@ const AuthScreen = ({ mode, onBack, onSuccess }) => {
     setAppleAuthAvailable(isAvailable);
   };
 
-  const handleGoogleSignIn = () => {
-    Alert.alert(
-      t('comingSoon', language) || 'Coming Soon',
-      t('googleSignInMessage', language) || 'Google Sign-In will be available in the standalone app version. For now, please use email/password authentication.',
-      [{ text: 'OK' }]
-    );
+  const handleGoogleSignIn = async () => {
+    if (!hasGoogleConfig) {
+      Alert.alert(
+        t('error', language),
+        'Google Sign-In is not configured. Please add your client IDs to app.json > extra.'
+      );
+      return;
+    }
+
+    if (!googleRequest) {
+      Alert.alert(
+        t('error', language),
+        'Google Sign-In is still initializing. Please try again in a moment.'
+      );
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const result = await promptGoogleAsync({
+        useProxy: Constants.appOwnership === 'expo',
+        showInRecents: true,
+      });
+
+      if (result?.type === 'success' && result.params?.id_token) {
+        const credential = GoogleAuthProvider.credential(result.params.id_token);
+        await signInWithCredential(auth, credential);
+        if (onSuccess) onSuccess();
+      } else if (result?.type === 'dismiss') {
+        // user closed sheet silently; no alert
+      } else if (result?.type === 'error') {
+        Alert.alert(t('error', language), result.error?.message || 'Google sign-in failed.');
+      }
+    } catch (error) {
+      Alert.alert(t('error', language), error.message || 'Unable to sign in with Google');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleFacebookSignIn = () => {
@@ -60,6 +114,15 @@ const AuthScreen = ({ mode, onBack, onSuccess }) => {
   };
 
   const handleAppleSignIn = async () => {
+    if (Platform.OS !== 'ios') {
+      Alert.alert(
+        t('notAvailable', language) || 'Not Available',
+        'Apple Sign-In is only available on iOS devices.',
+        [{ text: 'OK' }]
+      );
+      return;
+    }
+
     if (!appleAuthAvailable) {
       Alert.alert(
         t('notAvailable', language) || 'Not Available',
@@ -78,13 +141,17 @@ const AuthScreen = ({ mode, onBack, onSuccess }) => {
         ],
       });
 
-      // In a production app, you would send this credential to Firebase
-      // For now, show coming soon message
-      Alert.alert(
-        t('comingSoon', language) || 'Coming Soon',
-        t('appleSignInCompleteMessage', language) || 'Apple Sign-In integration will be completed in the standalone app version.',
-        [{ text: 'OK' }]
-      );
+      if (!credential.identityToken) {
+        throw new Error('No identity token returned from Apple.');
+      }
+
+      const provider = new OAuthProvider('apple.com');
+      const authCredential = provider.credential({
+        idToken: credential.identityToken,
+      });
+
+      await signInWithCredential(auth, authCredential);
+      if (onSuccess) onSuccess();
     } catch (error) {
       if (error.code !== 'ERR_CANCELED') {
         Alert.alert(t('error', language), error.message);
@@ -258,9 +325,9 @@ const AuthScreen = ({ mode, onBack, onSuccess }) => {
               </TouchableOpacity>
 
               <TouchableOpacity 
-                style={[styles.socialButton, styles.appleButton, (!appleAuthAvailable || Platform.OS !== 'ios') && styles.socialButtonDisabled]}
+                style={[styles.socialButton, styles.appleButton, isAppleButtonDisabled && styles.socialButtonDisabled]}
                 onPress={handleAppleSignIn}
-                disabled={loading || Platform.OS !== 'ios' || !appleAuthAvailable}
+                disabled={loading || isAppleButtonDisabled}
               >
                 <Text style={[styles.socialButtonIcon, styles.appleIcon]}></Text>
                 <Text style={[styles.socialButtonText, styles.appleText]}>
