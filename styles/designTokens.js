@@ -36,8 +36,12 @@ export const Colors = {
   // Neutral Colors - Professional palette
   background: '#F9FAFB', // Softer white
   backgroundDark: '#F3F4F6',
+  backgroundSlate: '#0F172A', // Dark slate for headers/sections
+  backgroundSlateMid: '#1E293B', // Slate 800
+  backgroundSlateLight: '#334155', // Slate 700
   surface: '#FFFFFF',
   surfaceElevated: '#FFFFFF',
+  surfaceDark: '#1E293B', // Dark surface for cards on dark bg
   overlay: 'rgba(0, 0, 0, 0.5)',
   overlayLight: 'rgba(0, 0, 0, 0.3)',
   
@@ -46,7 +50,9 @@ export const Colors = {
   textSecondary: '#6B7280',
   textTertiary: '#9CA3AF',
   textInverse: '#FFFFFF',
+  textInverseSecondary: '#CBD5E1', // Light gray for dark backgrounds
   textMuted: '#D1D5DB',
+  textDark: '#0F172A', // Very dark text for emphasis
   
   // Border Colors
   border: '#E2E8F0',
@@ -321,6 +327,19 @@ export const CommonStyles = {
     color: Colors.textPrimary,
     marginBottom: Spacing.sm,
     letterSpacing: -0.3,
+  },
+  sectionHeader: {
+    backgroundColor: Colors.backgroundSlate,
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.base,
+    marginBottom: Spacing.md,
+    borderRadius: BorderRadius.md,
+  },
+  sectionTitle: {
+    fontSize: Typography.fontSize.lg,
+    fontWeight: Typography.fontWeight.bold,
+    color: Colors.textInverse,
+    letterSpacing: -0.2,
   },
   h3: {
     fontSize: Typography.fontSize.xl,
