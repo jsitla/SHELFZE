@@ -21,7 +21,7 @@ import * as FileSystem from 'expo-file-system/legacy';
 import * as VideoThumbnails from 'expo-video-thumbnails';
 import { useLanguage } from '../contexts/LanguageContext';
 import { t } from '../contexts/translations';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect, useIsFocused } from '@react-navigation/native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { getFirestore, doc, deleteDoc, updateDoc } from 'firebase/firestore';
 import { app, auth } from '../firebase.config';
@@ -58,6 +58,7 @@ export default function CameraScanner({ navigation }) {
   const [isCameraReady, setIsCameraReady] = useState(false);
   const cameraReadyResolvers = useRef([]);
   const { language } = useLanguage(); // Get current language
+  const isFocused = useIsFocused();
   const db = getFirestore(app);
 
   const VIDEO_FRAME_SAMPLE_MS = [500, 2000, 4000, 6000, 8000];
@@ -306,13 +307,6 @@ export default function CameraScanner({ navigation }) {
   useFocusEffect(
     useCallback(() => {
       console.log('[FOCUS] Screen focused.');
-      // Only remount if the camera isn't already ready or if we are on Android
-      // This prevents unnecessary remounts on iOS when switching tabs
-      if (!isCameraReadyRef.current || Platform.OS === 'android') {
-        console.log('[FOCUS] Remounting camera.');
-        resetCameraReadyState();
-        setCameraKey(prev => prev + 1);
-      }
       
       // Reset photo state when screen is focused
       setPhotoUri(null);
@@ -330,6 +324,10 @@ export default function CameraScanner({ navigation }) {
         if (Platform.OS === 'web' && latestPhotoUri && latestPhotoUri.startsWith('blob:')) {
           URL.revokeObjectURL(latestPhotoUri);
         }
+
+        // Reset readiness when leaving
+        setIsCameraReady(false);
+        isCameraReadyRef.current = false;
       };
     }, [])
   );
@@ -1065,15 +1063,17 @@ export default function CameraScanner({ navigation }) {
             </View>
           )}
           
-          <CameraView 
-            key={`${cameraKey}-${captureMode}`}
-            style={styles.camera} 
-            facing="back"
-            // Ensure camera is configured for the intended operation
-            mode={captureMode === 'video' ? 'video' : 'picture'}
-            ref={cameraRef}
-            onCameraReady={handleCameraReady}
-          />
+          {isFocused && (
+            <CameraView 
+              key={`${cameraKey}-${captureMode}`}
+              style={styles.camera} 
+              facing="back"
+              // Ensure camera is configured for the intended operation
+              mode={captureMode === 'video' ? 'video' : 'picture'}
+              ref={cameraRef}
+              onCameraReady={handleCameraReady}
+            />
+          )}
           {/* Overlay UI positioned absolutely over camera */}
           <View style={styles.cameraOverlay}>
             {/* Usage counter badge at top */}
