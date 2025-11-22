@@ -136,7 +136,7 @@ const styles = StyleSheet.create({
       },
       nutritionBadge: {
         backgroundColor: '#FEE2E2',
-        color: '#E53E3E',
+        color: '#E11D48',
         fontSize: 12,
         fontWeight: 'bold',
         paddingHorizontal: 8,
@@ -197,7 +197,7 @@ const styles = StyleSheet.create({
       },
       recipeCardArrow: {
         fontSize: 24,
-        color: '#E53E3E',
+        color: '#E11D48',
       },
 });
 

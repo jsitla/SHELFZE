@@ -126,7 +126,7 @@ const styles = StyleSheet.create({
   languageItemSelected: {
     backgroundColor: '#FEE2E2',
     borderWidth: 2,
-    borderColor: '#E53E3E',
+    borderColor: '#E11D48',
   },
   languageInfo: {
     flex: 1,
@@ -138,7 +138,7 @@ const styles = StyleSheet.create({
   },
   languageNameSelected: {
     fontWeight: 'bold',
-    color: '#E53E3E',
+    color: '#E11D48',
   },
   languageNativeName: {
     fontSize: 13,
@@ -147,7 +147,7 @@ const styles = StyleSheet.create({
   },
   checkmark: {
     fontSize: 20,
-    color: '#E53E3E',
+    color: '#E11D48',
     fontWeight: 'bold',
   },
   languageBadge: {
@@ -160,7 +160,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#E0E0E0',
   },
   languageBadgeSelected: {
-    backgroundColor: '#E53E3E',
+    backgroundColor: '#E11D48',
   },
   languageBadgeText: {
     fontSize: 14,

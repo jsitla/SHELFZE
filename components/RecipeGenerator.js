@@ -738,7 +738,7 @@ ${t('sharedFromShelfze', language)}
   if (loading) {
     return (
       <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color="#E53E3E" />
+        <ActivityIndicator size="large" color="#E11D48" />
         <Text style={styles.loadingText}>{t('loading', language)}</Text>
       </View>
     );
@@ -972,7 +972,7 @@ ${t('sharedFromShelfze', language)}
   if (selectedRecipe && loadingDetails) {
     return (
       <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color="#E53E3E" />
+        <ActivityIndicator size="large" color="#E11D48" />
         <Text style={styles.loadingText}>{t('preparingRecipe', language)}</Text>
       </View>
     );
@@ -1526,7 +1526,7 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   categoryButtonSelected: {
-    borderColor: '#E53E3E', // Vibrant red
+    borderColor: '#E11D48', // Vibrant red
     backgroundColor: '#FED7D7', // Light red background
   },
   categoryEmoji: {
@@ -1540,7 +1540,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   categoryLabelSelected: {
-    color: '#E53E3E', // Vibrant red text
+    color: '#E11D48', // Vibrant red text
     fontWeight: 'bold',
   },
   loadingText: {
@@ -1577,8 +1577,8 @@ const styles = StyleSheet.create({
     borderColor: '#E5E7EB',
   },
   timeFilterChipActive: {
-    backgroundColor: '#E53E3E',
-    borderColor: '#E53E3E',
+    backgroundColor: '#E11D48',
+    borderColor: '#E11D48',
   },
   timeFilterText: {
     fontSize: 14,
@@ -1636,7 +1636,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   clearFiltersButton: {
-    backgroundColor: '#E53E3E',
+    backgroundColor: '#E11D48',
     paddingVertical: 12,
     paddingHorizontal: 24,
     borderRadius: 25,
@@ -1678,7 +1678,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   selectAllButton: {
-    backgroundColor: '#E53E3E',
+    backgroundColor: '#E11D48',
     paddingHorizontal: 15,
     paddingVertical: 10,
     borderRadius: 8,
@@ -1759,7 +1759,7 @@ const styles = StyleSheet.create({
   },
   dropdownArrow: {
     fontSize: 18,
-    color: '#E53E3E',
+    color: '#E11D48',
     fontWeight: 'bold',
   },
   collectionFilterContainer: {
@@ -1776,8 +1776,8 @@ const styles = StyleSheet.create({
     borderColor: '#E0E0E0',
   },
   collectionFilterTabActive: {
-    backgroundColor: '#E53E3E',
-    borderColor: '#E53E3E',
+    backgroundColor: '#E11D48',
+    borderColor: '#E11D48',
   },
   collectionFilterText: {
     fontSize: 14,
@@ -1892,7 +1892,7 @@ const styles = StyleSheet.create({
   },
   recipeCardSource: {
     fontSize: 12,
-    color: '#E53E3E',
+    color: '#E11D48',
     fontStyle: 'italic',
     marginBottom: 5,
   },
@@ -1905,7 +1905,7 @@ const styles = StyleSheet.create({
   },
   nutritionBadge: {
     backgroundColor: '#FEE2E2',
-    color: '#E53E3E',
+    color: '#E11D48',
     fontSize: 12,
     fontWeight: 'bold',
     paddingHorizontal: 8,
@@ -1966,7 +1966,7 @@ const styles = StyleSheet.create({
   },
   recipeCardArrow: {
     fontSize: 24,
-    color: '#E53E3E',
+    color: '#E11D48',
   },
   detailSafeArea: {
     flex: 1,
@@ -1987,7 +1987,7 @@ const styles = StyleSheet.create({
   },
   backButtonText: {
     fontSize: 16,
-    color: '#E53E3E',
+    color: '#E11D48',
     fontWeight: '600',
   },
   shareButton: {
@@ -2028,7 +2028,7 @@ const styles = StyleSheet.create({
   },
   recipeSource: {
     fontSize: 14,
-    color: '#E53E3E',
+    color: '#E11D48',
     fontStyle: 'italic',
     marginBottom: 10,
   },
@@ -2044,7 +2044,7 @@ const styles = StyleSheet.create({
   nutritionTitle: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#E53E3E',
+    color: '#E11D48',
     marginBottom: 12,
     textAlign: 'center',
   },
@@ -2059,7 +2059,7 @@ const styles = StyleSheet.create({
   nutritionValue: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#E53E3E',
+    color: '#E11D48',
     marginBottom: 4,
   },
   nutritionLabel: {
@@ -2137,7 +2137,7 @@ const styles = StyleSheet.create({
   stepNumber: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#E53E3E',
+    color: '#E11D48',
     marginBottom: 5,
   },
   stepText: {
@@ -2197,7 +2197,7 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
   saveRatingButton: {
-    backgroundColor: '#E53E3E',
+    backgroundColor: '#E11D48',
     borderRadius: 25,
     paddingVertical: 12,
     paddingHorizontal: 30,

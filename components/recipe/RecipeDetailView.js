@@ -298,7 +298,7 @@ const styles = StyleSheet.create({
       },
       backButtonText: {
         fontSize: 16,
-        color: '#E53E3E',
+        color: '#E11D48',
         fontWeight: '600',
       },
       recipeHeader: {
@@ -349,7 +349,7 @@ const styles = StyleSheet.create({
       nutritionTitle: {
         fontSize: 16,
         fontWeight: 'bold',
-        color: '#E53E3E',
+        color: '#E11D48',
         marginBottom: 12,
         textAlign: 'center',
       },
@@ -364,7 +364,7 @@ const styles = StyleSheet.create({
       nutritionValue: {
         fontSize: 20,
         fontWeight: 'bold',
-        color: '#E53E3E',
+        color: '#E11D48',
         marginBottom: 4,
       },
       nutritionLabel: {
@@ -432,7 +432,7 @@ const styles = StyleSheet.create({
       stepNumber: {
         fontSize: 16,
         fontWeight: 'bold',
-        color: '#E53E3E',
+        color: '#E11D48',
         marginRight: 10,
         width: 50,
       },
@@ -496,7 +496,7 @@ const styles = StyleSheet.create({
         color: '#fff',
       },
       saveRatingButton: {
-        backgroundColor: '#E53E3E',
+        backgroundColor: '#E11D48',
         borderRadius: 25,
         paddingVertical: 12,
         paddingHorizontal: 30,

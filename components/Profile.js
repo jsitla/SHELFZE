@@ -382,7 +382,7 @@ export default function Profile({ navigation }) {
   if (loading && !user) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#E53E3E" />
+        <ActivityIndicator size="large" color="#E11D48" />
         <Text style={styles.loadingText}>{t('loading', language)}</Text>
       </View>
     );
@@ -541,7 +541,7 @@ export default function Profile({ navigation }) {
         <View style={styles.tierHeader}>
           <Text style={styles.tierTitle}>{t('tier', language)}</Text>
           {loadingUsage ? (
-            <ActivityIndicator size="small" color="#E53E3E" />
+            <ActivityIndicator size="small" color="#E11D48" />
           ) : (
             <View style={[
               styles.tierBadge,
@@ -863,7 +863,7 @@ export default function Profile({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#F9FAFB',
   },
   scrollContent: {
     padding: 20,
@@ -872,7 +872,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#F9FAFB',
   },
   loadingText: {
     marginTop: 10,
@@ -899,8 +899,8 @@ const styles = StyleSheet.create({
   },
   profileCard: {
     backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 20,
+    borderRadius: 22,
+    padding: 22,
     marginBottom: 20,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -922,7 +922,7 @@ const styles = StyleSheet.create({
   accountType: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#E53E3E',
+    color: '#E11D48',
     marginBottom: 10,
   },
   accountWarning: {
@@ -936,11 +936,11 @@ const styles = StyleSheet.create({
   },
   upgradeSection: {
     backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 20,
+    borderRadius: 22,
+    padding: 22,
     marginBottom: 20,
     borderWidth: 2,
-    borderColor: '#E53E3E',
+    borderColor: '#E11D48',
   },
   sectionTitle: {
     fontSize: 20,
@@ -954,9 +954,9 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
   upgradeButton: {
-    backgroundColor: '#E53E3E',
+    backgroundColor: '#E11D48',
     padding: 15,
-    borderRadius: 8,
+    borderRadius: 14,
     alignItems: 'center',
   },
   upgradeButtonText: {
@@ -981,7 +981,7 @@ const styles = StyleSheet.create({
   largeButton: {
     backgroundColor: '#fff',
     padding: 20,
-    borderRadius: 12,
+    borderRadius: 22,
     alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -1000,8 +1000,8 @@ const styles = StyleSheet.create({
   },
   formContainer: {
     backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 20,
+    borderRadius: 22,
+    padding: 22,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
@@ -1016,12 +1016,12 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   input: {
-    backgroundColor: '#f9f9f9',
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
+    backgroundColor: '#F1F5F9',
+    borderWidth: 1.5,
+    borderColor: '#E2E8F0',
+    borderRadius: 14,
+    padding: 14,
+    fontSize: 15,
     marginBottom: 15,
   },
   forgotPasswordButton: {
@@ -1035,9 +1035,9 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   primaryButton: {
-    backgroundColor: '#E53E3E',
+    backgroundColor: '#E11D48',
     padding: 15,
-    borderRadius: 8,
+    borderRadius: 14,
     alignItems: 'center',
     marginBottom: 10,
   },
@@ -1047,9 +1047,9 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   secondaryButton: {
-    backgroundColor: '#f0f0f0',
+    backgroundColor: '#F1F5F9',
     padding: 15,
-    borderRadius: 8,
+    borderRadius: 14,
     alignItems: 'center',
   },
   secondaryButtonText: {
@@ -1058,9 +1058,9 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   signOutButton: {
-    backgroundColor: '#666',
+    backgroundColor: '#64748B',
     padding: 15,
-    borderRadius: 8,
+    borderRadius: 14,
     alignItems: 'center',
     marginTop: 10,
   },
@@ -1071,8 +1071,8 @@ const styles = StyleSheet.create({
   },
   tierCard: {
     backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 20,
+    borderRadius: 22,
+    padding: 22,
     marginBottom: 20,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -1136,7 +1136,7 @@ const styles = StyleSheet.create({
   usageValue: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#E53E3E',
+    color: '#E11D48',
   },
   upgradePremiumButton: {
     backgroundColor: '#FFB74D',
@@ -1151,8 +1151,8 @@ const styles = StyleSheet.create({
   },
   giftCodeSection: {
     backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 20,
+    borderRadius: 22,
+    padding: 22,
     marginBottom: 20,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -1166,12 +1166,12 @@ const styles = StyleSheet.create({
   },
   giftCodeInput: {
     flex: 1,
-    backgroundColor: '#f9f9f9',
+    backgroundColor: '#F1F5F9',
     padding: 15,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#ddd',
-    fontSize: 16,
+    borderRadius: 14,
+    borderWidth: 1.5,
+    borderColor: '#E2E8F0',
+    fontSize: 15,
     fontWeight: '600',
     marginRight: 10,
   },
@@ -1179,7 +1179,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#00b894',
     paddingHorizontal: 20,
     paddingVertical: 15,
-    borderRadius: 8,
+    borderRadius: 14,
     justifyContent: 'center',
     alignItems: 'center',
     minWidth: 100,
@@ -1190,9 +1190,9 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   showGiftCodeButton: {
-    backgroundColor: '#f9f9f9',
+    backgroundColor: '#F1F5F9',
     padding: 15,
-    borderRadius: 8,
+    borderRadius: 14,
     borderWidth: 2,
     borderColor: '#00b894',
     borderStyle: 'dashed',
@@ -1213,8 +1213,8 @@ const styles = StyleSheet.create({
   },
   languageSection: {
     backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 20,
+    borderRadius: 22,
+    padding: 22,
     marginBottom: 20,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -1223,11 +1223,11 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   languageButton: {
-    backgroundColor: '#f9f9f9',
+    backgroundColor: '#F1F5F9',
     padding: 15,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#ddd',
+    borderRadius: 14,
+    borderWidth: 1.5,
+    borderColor: '#E2E8F0',
   },
   languageButtonText: {
     fontSize: 18,
@@ -1241,8 +1241,8 @@ const styles = StyleSheet.create({
   },
   legalSection: {
     backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 20,
+    borderRadius: 22,
+    padding: 22,
     marginBottom: 20,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -1251,11 +1251,11 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   legalLink: {
-    backgroundColor: '#f9f9f9',
+    backgroundColor: '#F1F5F9',
     padding: 15,
-    borderRadius: 8,
+    borderRadius: 14,
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: '#E2E8F0',
     marginBottom: 10,
   },
   legalLinkText: {
@@ -1287,11 +1287,11 @@ const styles = StyleSheet.create({
   },
   devResetButton: {
     marginTop: 15,
-    backgroundColor: '#ffe5e5',
+    backgroundColor: '#FEF2F2',
     padding: 12,
-    borderRadius: 8,
+    borderRadius: 14,
     borderWidth: 2,
-    borderColor: '#ff6b6b',
+    borderColor: '#EF4444',
     borderStyle: 'dashed',
     alignItems: 'center',
   },

@@ -1,13 +1,13 @@
-// Shelfze Design System - Professional Design Tokens v2.0
-// Modern, premium, and delightful design for customer appeal
+// Shelfze Design System - Professional Design Tokens v3.0
+// Modern, rounded, and delightful design matching WelcomeScreen aesthetic
 
 export const Colors = {
-  // Primary Colors - Vibrant Red (Food, Urgency, Appetite)
-  primary: '#E53E3E', // Bold red
-  primaryDark: '#C53030',
-  primaryLight: '#FC8181',
-  primaryLighter: '#FED7D7',
-  primaryGradient: ['#E53E3E', '#C53030'],
+  // Primary Colors - Rose/Pink (Modern, Friendly, Appetite)
+  primary: '#E11D48', // Rose 600 - matches WelcomeScreen
+  primaryDark: '#BE123C', // Rose 700
+  primaryLight: '#FB7185', // Rose 400
+  primaryLighter: '#FECDD3', // Rose 200
+  primaryGradient: ['#E11D48', '#BE123C'],
   
   // Secondary Colors - Deep Orange (Warmth, Energy)  
   secondary: '#DD6B20', // Warm orange
@@ -49,10 +49,10 @@ export const Colors = {
   textMuted: '#D1D5DB',
   
   // Border Colors
-  border: '#E5E7EB',
-  borderLight: '#F3F4F6',
-  borderDark: '#D1D5DB',
-  borderFocus: '#3B82F6',
+  border: '#E2E8F0',
+  borderLight: '#F1F5F9',
+  borderDark: '#CBD5E1',
+  borderFocus: '#E11D48',
   
   // Semantic Colors for pantry items
   expired: '#FEE2E2',
@@ -81,9 +81,9 @@ export const Spacing = {
 export const BorderRadius = {
   xs: 4,
   sm: 8,
-  md: 12,
-  lg: 16,
-  xl: 20,
+  md: 14,
+  lg: 18,
+  xl: 22,
   xxl: 24,
   full: 9999,
 };
@@ -187,31 +187,31 @@ export const CommonStyles = {
   // Cards - Enhanced with better elevation
   card: {
     backgroundColor: Colors.surface,
-    borderRadius: BorderRadius.lg,
-    padding: Spacing.base,
+    borderRadius: 22,
+    padding: 22,
     ...Shadows.sm,
     borderWidth: 1,
-    borderColor: Colors.borderLight,
+    borderColor: '#E2E8F0',
   },
   cardElevated: {
     backgroundColor: Colors.surface,
-    borderRadius: BorderRadius.lg,
-    padding: Spacing.base,
+    borderRadius: 22,
+    padding: 22,
     ...Shadows.md,
   },
   cardInteractive: {
     backgroundColor: Colors.surface,
-    borderRadius: BorderRadius.lg,
-    padding: Spacing.base,
+    borderRadius: 22,
+    padding: 22,
     ...Shadows.sm,
     borderWidth: 1,
-    borderColor: Colors.borderLight,
+    borderColor: '#E2E8F0',
   },
   
   // Buttons - Professional with better feedback
   buttonPrimary: {
     backgroundColor: Colors.primary,
-    borderRadius: BorderRadius.md,
+    borderRadius: 14,
     paddingVertical: Spacing.md,
     paddingHorizontal: Spacing.xl,
     alignItems: 'center',
@@ -276,13 +276,13 @@ export const CommonStyles = {
   // Input - Enhanced with focus states
   input: {
     backgroundColor: Colors.surface,
-    borderRadius: BorderRadius.md,
+    borderRadius: 14,
     paddingVertical: Spacing.md,
     paddingHorizontal: Spacing.base,
     fontSize: Typography.fontSize.base,
     color: Colors.textPrimary,
     borderWidth: 1.5,
-    borderColor: Colors.border,
+    borderColor: '#E2E8F0',
   },
   inputFocused: {
     borderColor: Colors.borderFocus,

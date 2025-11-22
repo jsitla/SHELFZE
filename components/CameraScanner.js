@@ -843,7 +843,7 @@ export default function CameraScanner({ navigation }) {
         {isLoading && (
           <View style={styles.loadingOverlay}>
             <View style={styles.loadingContent}>
-              <ActivityIndicator size="large" color="#E53E3E" />
+              <ActivityIndicator size="large" color="#E11D48" />
               <Text style={styles.loadingText}>
                 {processingMode === 'video'
                   ? t('processingVideo', language)
@@ -1012,7 +1012,7 @@ export default function CameraScanner({ navigation }) {
           {isLoading ? (
             // Show loading overlay on web
             <View style={styles.webLoadingContainer}>
-              <ActivityIndicator size="large" color="#E53E3E" />
+              <ActivityIndicator size="large" color="#E11D48" />
               <Text style={styles.webLoadingText}>{t('analyzing', language)}</Text>
               <Text style={styles.webLoadingSubtext}>{t('detectingItems', language)}</Text>
             </View>
@@ -1050,7 +1050,7 @@ export default function CameraScanner({ navigation }) {
           {isLoading && !photoUri && (
             <View style={styles.loadingOverlay}>
               <View style={styles.loadingContent}>
-                <ActivityIndicator size="large" color="#E53E3E" />
+                <ActivityIndicator size="large" color="#E11D48" />
                 <Text style={styles.loadingText}>
                   {captureMode === 'video' 
                     ? t('processingVideo', language)
@@ -1321,7 +1321,7 @@ const styles = StyleSheet.create({
   webTitle: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: '#E53E3E',
+    color: '#E11D48',
     marginBottom: 10,
   },
   webSubtitle: {
@@ -1362,7 +1362,7 @@ const styles = StyleSheet.create({
   },
   webLoadingText: {
     fontSize: 20,
-    color: '#E53E3E',
+    color: '#E11D48',
     marginTop: 20,
     fontWeight: 'bold',
   },
@@ -1402,8 +1402,8 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255,255,255,0.3)',
   },
   modeButtonActive: {
-    backgroundColor: '#E53E3E',
-    borderColor: '#E53E3E',
+    backgroundColor: '#E11D48',
+    borderColor: '#E11D48',
   },
   modeButtonContent: {
     flexDirection: 'row',
@@ -1454,7 +1454,7 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: '#E53E3E',
+    backgroundColor: '#E11D48',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -1580,11 +1580,11 @@ const styles = StyleSheet.create({
   },
   loadingContent: {
     alignItems: 'center',
-    backgroundColor: 'rgba(229, 62, 62, 0.2)',
+    backgroundColor: 'rgba(225, 29, 72, 0.2)',
     padding: 30,
     borderRadius: 20,
     borderWidth: 2,
-    borderColor: '#E53E3E',
+    borderColor: '#E11D48',
   },
   loadingText: {
     color: '#fff',
@@ -1608,7 +1608,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   resultText: {
-    color: '#E53E3E',
+    color: '#E11D48',
     fontSize: 16,
     fontWeight: 'bold',
     marginBottom: 5,
@@ -1637,7 +1637,7 @@ const styles = StyleSheet.create({
   reviewModalTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#E53E3E',
+    color: '#E11D48',
     marginBottom: 5,
     textAlign: 'center',
   },
@@ -1660,7 +1660,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     marginBottom: 10,
     borderLeftWidth: 4,
-    borderLeftColor: '#E53E3E',
+    borderLeftColor: '#E11D48',
   },
   reviewItemInfo: {
     flex: 1,
@@ -1674,7 +1674,7 @@ const styles = StyleSheet.create({
   },
   reviewItemCategory: {
     fontSize: 13,
-    color: '#E53E3E',
+    color: '#E11D48',
     backgroundColor: '#FEE2E2',
     paddingHorizontal: 8,
     paddingVertical: 2,

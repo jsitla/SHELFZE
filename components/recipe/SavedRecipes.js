@@ -117,7 +117,7 @@ const styles = StyleSheet.create({
       },
       dropdownArrow: {
         fontSize: 18,
-        color: '#E53E3E',
+        color: '#E11D48',
         fontWeight: 'bold',
       },
       collectionFilterContainer: {
@@ -134,8 +134,8 @@ const styles = StyleSheet.create({
         borderColor: '#E0E0E0',
       },
       collectionFilterTabActive: {
-        backgroundColor: '#E53E3E',
-        borderColor: '#E53E3E',
+        backgroundColor: '#E11D48',
+        borderColor: '#E11D48',
       },
       collectionFilterText: {
         fontSize: 14,

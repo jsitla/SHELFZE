@@ -421,7 +421,7 @@ const styles = StyleSheet.create({
     borderColor: '#DDD',
   },
   categoryButtonSelected: {
-    borderColor: '#E53E3E', // Vibrant red
+    borderColor: '#E11D48', // Rose 600
     backgroundColor: '#FED7D7', // Light red background
   },
   categoryEmoji: {
@@ -433,7 +433,7 @@ const styles = StyleSheet.create({
     color: '#666',
   },
   categoryLabelSelected: {
-    color: '#E53E3E', // Vibrant red
+    color: '#E11D48', // Rose 600
     fontWeight: 'bold',
   },
   quantityRow: {
@@ -465,7 +465,7 @@ const styles = StyleSheet.create({
     borderRightColor: '#EEE',
   },
   unitButtonSelected: {
-    backgroundColor: '#E53E3E', // Vibrant red
+    backgroundColor: '#E11D48', // Rose 600
   },
   unitText: {
     fontSize: 14,
@@ -496,7 +496,7 @@ const styles = StyleSheet.create({
     borderColor: '#DDD',
   },
   datePickerDone: {
-    backgroundColor: '#E53E3E',
+    backgroundColor: '#E11D48',
     borderRadius: 8,
     padding: 12,
     alignItems: 'center',

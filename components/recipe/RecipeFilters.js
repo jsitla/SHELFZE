@@ -96,8 +96,8 @@ const styles = StyleSheet.create({
     borderColor: '#E5E7EB',
   },
   timeFilterChipActive: {
-    backgroundColor: '#E53E3E',
-    borderColor: '#E53E3E',
+    backgroundColor: '#E11D48',
+    borderColor: '#E11D48',
   },
   timeFilterText: {
     fontSize: 14,

@@ -127,7 +127,7 @@ function RecipeWrapper() {
 // Unified header style for ALL screens
 const UNIFIED_HEADER = {
   headerStyle: { 
-    backgroundColor: '#E53E3E', // Vibrant red - SAME everywhere
+    backgroundColor: '#E11D48', // Rose 600 - SAME everywhere
     height: 100,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -166,8 +166,8 @@ function AppNavigator() {
             shadowRadius: 12,
             elevation: 20,
           },
-          tabBarActiveTintColor: '#E53E3E', // Vibrant red
-          tabBarInactiveTintColor: '#9CA3AF',
+          tabBarActiveTintColor: '#E11D48', // Rose 600
+          tabBarInactiveTintColor: '#94A3B8',
           tabBarLabelStyle: {
             fontSize: 13,
             fontWeight: '700',
@@ -421,7 +421,7 @@ export default function App() {
   if (checkingLegalConsent || checkingFirstLaunch) {
     content = (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#E53E3E" />
+        <ActivityIndicator size="large" color="#E11D48" />
       </View>
     );
   } else if (!hasLegalConsent) {
@@ -453,7 +453,7 @@ export default function App() {
   } else if (authLoading) {
     content = (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#E53E3E" />
+        <ActivityIndicator size="large" color="#E11D48" />
         <Text style={styles.loadingText}>Loading Shelfze...</Text>
       </View>
     );
@@ -547,7 +547,7 @@ const styles = StyleSheet.create({
   errorText: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#E53E3E',
+    color: '#E11D48',
     marginBottom: 8,
   },
   errorSubtext: {
@@ -579,7 +579,7 @@ const styles = StyleSheet.create({
     marginBottom: 30,
   },
   restartButton: {
-    backgroundColor: '#E53E3E',
+    backgroundColor: '#E11D48',
     paddingHorizontal: 30,
     paddingVertical: 15,
     borderRadius: 10,

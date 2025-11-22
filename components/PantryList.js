@@ -742,8 +742,8 @@ const styles = StyleSheet.create({
     marginHorizontal: 4,
   },
   filterButtonActive: {
-    backgroundColor: '#E53E3E',
-    borderColor: '#E53E3E',
+    backgroundColor: '#E11D48',
+    borderColor: '#E11D48',
   },
   filterButtonText: {
     fontSize: 14,
@@ -771,7 +771,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 20,
     right: 20,
-    backgroundColor: '#E53E3E',
+    backgroundColor: '#E11D48',
     paddingHorizontal: 20,
     paddingVertical: 12,
     borderRadius: 30,
@@ -794,11 +794,11 @@ const styles = StyleSheet.create({
   },
   item: {
     backgroundColor: '#fff',
-    padding: 15,
+    padding: 18,
     marginVertical: 8,
-    borderRadius: 10,
+    borderRadius: 22,
     borderLeftWidth: 5,
-    borderLeftColor: '#E53E3E',
+    borderLeftColor: '#E11D48',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
@@ -807,9 +807,9 @@ const styles = StyleSheet.create({
   },
   itemExpiringSoon: {
     backgroundColor: '#fff',
-    padding: 15,
+    padding: 18,
     marginVertical: 8,
-    borderRadius: 10,
+    borderRadius: 22,
     borderLeftWidth: 5,
     borderLeftColor: '#FF9800',
     shadowColor: '#000',
@@ -820,9 +820,9 @@ const styles = StyleSheet.create({
   },
   itemExpired: {
     backgroundColor: '#ffebee',
-    padding: 15,
+    padding: 18,
     marginVertical: 8,
-    borderRadius: 10,
+    borderRadius: 22,
     borderLeftWidth: 5,
     borderLeftColor: '#f44336',
     shadowColor: '#000',
@@ -870,7 +870,7 @@ const styles = StyleSheet.create({
   },
   quantityText: {
     fontSize: 14,
-    color: '#E53E3E',
+    color: '#E11D48',
     fontWeight: '600',
     marginBottom: 5,
   },
@@ -881,7 +881,7 @@ const styles = StyleSheet.create({
   },
   daysLeft: {
     fontSize: 13,
-    color: '#E53E3E',
+    color: '#E11D48',
     fontWeight: '600',
   },
   daysLeftSoon: {
@@ -895,7 +895,7 @@ const styles = StyleSheet.create({
   categoryTag: {
     fontSize: 13,
     color: '#fff',
-    backgroundColor: '#E53E3E',
+    backgroundColor: '#E11D48',
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 12,
@@ -915,13 +915,13 @@ const styles = StyleSheet.create({
   },
   editButton: {
     padding: 10,
-    backgroundColor: '#F3F4F6',
-    borderRadius: 8,
+    backgroundColor: '#F1F5F9',
+    borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
     minWidth: 45,
     borderWidth: 1,
-    borderColor: '#D1D5DB',
+    borderColor: '#E2E8F0',
   },
   editButtonText: {
     fontSize: 20,
@@ -929,7 +929,7 @@ const styles = StyleSheet.create({
   deleteButton: {
     padding: 10,
     backgroundColor: '#FEF2F2',
-    borderRadius: 8,
+    borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
     minWidth: 45,
@@ -966,7 +966,7 @@ const styles = StyleSheet.create({
   },
   modalContent: {
     backgroundColor: '#fff',
-    borderRadius: 20,
+    borderRadius: 24,
     padding: 25,
     width: '90%',
     maxWidth: 400,
@@ -994,12 +994,12 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   editInput: {
-    backgroundColor: '#F5F5F5',
-    borderRadius: 10,
-    padding: 12,
-    fontSize: 16,
-    borderWidth: 1,
-    borderColor: '#DDD',
+    backgroundColor: '#F1F5F9',
+    borderRadius: 14,
+    padding: 14,
+    fontSize: 15,
+    borderWidth: 1.5,
+    borderColor: '#E2E8F0',
   },
   categoryScroll: {
     flexDirection: 'row',
@@ -1015,8 +1015,8 @@ const styles = StyleSheet.create({
     borderColor: '#DDD',
   },
   categoryChipSelected: {
-    backgroundColor: '#E53E3E', // Vibrant red
-    borderColor: '#E53E3E',
+    backgroundColor: '#E11D48', // Rose 600
+    borderColor: '#E11D48',
   },
   categoryChipText: {
     fontSize: 14,
@@ -1047,8 +1047,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   unitChipSelected: {
-    backgroundColor: '#E53E3E', // Vibrant red
-    borderColor: '#E53E3E',
+    backgroundColor: '#E11D48', // Rose 600
+    borderColor: '#E11D48',
   },
   unitChipText: {
     fontSize: 14,
@@ -1060,11 +1060,11 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   datePickerButton: {
-    backgroundColor: '#F5F5F5',
-    borderRadius: 10,
-    padding: 12,
-    borderWidth: 1,
-    borderColor: '#DDD',
+    backgroundColor: '#F1F5F9',
+    borderRadius: 14,
+    padding: 14,
+    borderWidth: 1.5,
+    borderColor: '#E2E8F0',
   },
   datePickerText: {
     fontSize: 16,
@@ -1078,7 +1078,7 @@ const styles = StyleSheet.create({
   modalButton: {
     flex: 1,
     padding: 15,
-    borderRadius: 10,
+    borderRadius: 14,
     alignItems: 'center',
   },
   cancelButton: {

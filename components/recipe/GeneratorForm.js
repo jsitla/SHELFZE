@@ -176,7 +176,7 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   categoryButtonSelected: {
-    borderColor: '#E53E3E', // Vibrant red
+    borderColor: '#E11D48', // Vibrant red
     backgroundColor: '#FED7D7', // Light red background
   },
   categoryEmoji: {
@@ -190,7 +190,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   categoryLabelSelected: {
-    color: '#E53E3E', // Vibrant red text
+    color: '#E11D48', // Vibrant red text
     fontWeight: 'bold',
   },
   ingredientSelectorContainer: {
