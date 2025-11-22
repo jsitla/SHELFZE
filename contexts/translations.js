@@ -1937,7 +1937,7 @@ export const translations = {
 		existingAccountDesc: 'Prijavite se s svojim obstoječim računom. Opomba: Vaši gostujoči podatki ne bodo preneseni.',
 		loginExisting: 'Prijava z obstoječim računom',
 		switchedToExistingAccount: 'Uspešno preklopljeno na obstoječi račun!',
-	},
+	}),
 };
 
 export const t = (key, lang = 'en') => {

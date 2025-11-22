@@ -39,6 +39,21 @@ export default function PantryList({ navigation }) {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const { language } = useLanguage();
 
+  // Helper for safe date parsing
+  const parseDate = (dateInput) => {
+    if (!dateInput) return new Date();
+    if (dateInput instanceof Date) return dateInput;
+    
+    const date = new Date(dateInput);
+    // Check if valid date
+    if (!isNaN(date.getTime())) {
+      return date;
+    }
+    
+    console.warn('Invalid date encountered:', dateInput);
+    return new Date(); // Fallback to today
+  };
+
   // Food categories for filtering
   const categories = [
     'All',
@@ -116,9 +131,9 @@ export default function PantryList({ navigation }) {
       
       // The query should order items by 'expiryDate' in ascending order.
       // NOW USING USER-SPECIFIC PATH: users/{userId}/pantry
+      // REMOVED orderBy('expiryDate') to ensure items without expiry date are also fetched
       const q = query(
-        collection(db, `users/${userId}/pantry`),
-        orderBy('expiryDate', 'asc')
+        collection(db, `users/${userId}/pantry`)
       );
 
       // Use the onSnapshot() method.
@@ -136,6 +151,16 @@ export default function PantryList({ navigation }) {
               id: doc.id,
               ...doc.data()
             });
+          });
+
+          // Sort items client-side: items with expiry date first (asc), then items without
+          pantryItems.sort((a, b) => {
+            if (a.expiryDate && b.expiryDate) {
+              return new Date(a.expiryDate) - new Date(b.expiryDate);
+            }
+            if (a.expiryDate) return -1; // a has date, b doesn't -> a comes first
+            if (b.expiryDate) return 1;  // b has date, a doesn't -> b comes first
+            return 0; // neither has date
           });
           
           if (__DEV__) {
@@ -328,7 +353,7 @@ export default function PantryList({ navigation }) {
     setEditCategory(item.category || 'Other');
     setEditQuantity(item.quantity ? item.quantity.toString() : '1');
     setEditUnit(item.unit || 'pcs');
-    setEditExpiryDate(item.expiryDate ? new Date(item.expiryDate) : new Date());
+    setEditExpiryDate(parseDate(item.expiryDate));
     setEditModalVisible(true);
   };
 
@@ -389,7 +414,7 @@ export default function PantryList({ navigation }) {
   // Helper function to check if item is expiring soon
   const isExpiringSoon = (expiryDate) => {
     if (!expiryDate) return false;
-    const expiry = new Date(expiryDate);
+    const expiry = parseDate(expiryDate);
     const today = new Date();
     const daysUntilExpiry = Math.ceil((expiry - today) / (1000 * 60 * 60 * 24));
     return daysUntilExpiry <= 7 && daysUntilExpiry >= 0;
@@ -397,14 +422,14 @@ export default function PantryList({ navigation }) {
 
   const isExpired = (expiryDate) => {
     if (!expiryDate) return false;
-    const expiry = new Date(expiryDate);
+    const expiry = parseDate(expiryDate);
     const today = new Date();
     return expiry < today;
   };
 
   const getDaysUntilExpiry = (expiryDate) => {
     if (!expiryDate) return null;
-    const expiry = new Date(expiryDate);
+    const expiry = parseDate(expiryDate);
     const today = new Date();
     const days = Math.ceil((expiry - today) / (1000 * 60 * 60 * 24));
     
@@ -447,7 +472,7 @@ export default function PantryList({ navigation }) {
             {item.expiryDate && (
               <>
                 <Text style={styles.expiryDate}>
-                  📅 Expires: {formatDate(new Date(item.expiryDate))}
+                  📅 Expires: {formatDate(parseDate(item.expiryDate))}
                 </Text>
                 <Text style={[
                   styles.daysLeft,

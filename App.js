@@ -391,35 +391,11 @@ export default function App() {
         }
       } else {
         // No user signed in
-        // Check if this is first launch to decide whether to auto-sign in
-        const hasLaunched = await AsyncStorage.getItem('hasLaunchedBefore');
-        
-        if (hasLaunched === null) {
-          // First time user - don't auto-sign in, show welcome screen
-          console.log('First time user - showing welcome screen');
-          setShowWelcome(true);
-          setAuthLoading(false);
-        } else {
-          // Returning user - auto-sign in anonymously
-          console.log('No user found, signing in anonymously...');
-          signInAnonymously(auth)
-            .then(async (result) => {
-              console.log('Anonymous sign-in successful:', result.user.uid);
-              setUser(result.user);
-              setAuthLoading(false);
-              
-              // Initialize usage tracking for new anonymous user
-              try {
-                await initializeUsageTracking(result.user.uid, 'anonymous');
-              } catch (error) {
-                console.log('Note: Usage tracking initialization:', error.message);
-              }
-            })
-            .catch((error) => {
-              console.error('Authentication error:', error);
-              setAuthLoading(false);
-            });
-        }
+        // Always show welcome screen to let user choose their auth method
+        // instead of auto-creating anonymous accounts
+        console.log('No user found, showing welcome screen');
+        setShowWelcome(true);
+        setAuthLoading(false);
       }
     });
     

@@ -26,6 +26,7 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { getFirestore, doc, deleteDoc, updateDoc } from 'firebase/firestore';
 import { app, auth } from '../firebase.config';
 import { getUserUsage, decrementScanCount } from '../utils/usageTracking';
+import { config } from '../config';
 
 // 2. Create a functional component named CameraScanner.
 export default function CameraScanner({ navigation }) {
@@ -59,7 +60,6 @@ export default function CameraScanner({ navigation }) {
   const { language } = useLanguage(); // Get current language
   const db = getFirestore(app);
 
-  const CLOUD_FUNCTION_URL = 'https://analyzeimage-awiyk42b4q-uc.a.run.app';
   const VIDEO_FRAME_SAMPLE_MS = [500, 2000, 4000, 6000, 8000];
   const CAMERA_READY_BUFFER_MS = Platform.OS === 'android' ? 500 : 0; // More buffer for Android
 
@@ -187,21 +187,29 @@ export default function CameraScanner({ navigation }) {
       throw new Error('No authenticated user found');
     }
 
-    const response = await fetch(CLOUD_FUNCTION_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        image: base64,
-        language,
-        userId, // Pass userId to Cloud Function
-      }),
-    });
+    try {
+      const response = await fetch(config.analyzeImage, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          image: base64,
+          language,
+          userId, // Pass userId to Cloud Function
+        }),
+      });
 
-    const result = await response.json();
-    if (!response.ok) {
-      throw new Error(result.error || 'Server error');
+      const result = await response.json();
+      if (!response.ok) {
+        throw new Error(result.error || `Server error: ${response.status}`);
+      }
+      return result;
+    } catch (error) {
+      console.error('Analyze image error:', error);
+      if (error.message.includes('Network request failed')) {
+        throw new Error(t('networkError', language) || 'Network error. Please check your connection.');
+      }
+      throw error;
     }
-    return result;
   };
 
   const analyzeImageFromUri = async (uri) => {

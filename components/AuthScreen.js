@@ -48,11 +48,19 @@ const AuthScreen = ({ mode, onBack, onSuccess }) => {
     web: extraConfig.googleWebClientId || '',
   };
   const hasGoogleConfig = Boolean(googleClients.ios || googleClients.android || googleClients.web);
+  
+  // Determine if running in Expo Go
+  const isExpoGo = Constants.appOwnership === 'expo';
+
+  // In Expo Go, we must use the Web Client ID to avoid "audience mismatch" errors with Firebase.
+  // Firebase expects the iOS bundle ID (com.shelfze.app) for native tokens, but Expo Go 
+  // produces tokens for host.exp.Exponent. Using the Web Client ID produces a token 
+  // with the Web Client ID as audience, which Firebase accepts.
   const [googleRequest, , promptGoogleAsync] = Google.useIdTokenAuthRequest({
-    clientId: googleClients.web || googleClients.ios || googleClients.android || undefined,
-    iosClientId: googleClients.ios || undefined,
-    androidClientId: googleClients.android || undefined,
-    webClientId: googleClients.web || undefined,
+    clientId: googleClients.web,
+    iosClientId: isExpoGo ? undefined : googleClients.ios,
+    androidClientId: isExpoGo ? undefined : googleClients.android,
+    webClientId: googleClients.web,
   });
   const isAppleButtonDisabled = Platform.OS !== 'ios' || !appleAuthAvailable;
 

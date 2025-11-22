@@ -104,7 +104,7 @@ export default function ManualEntry({ navigation, onItemAdded }) {
       }
 
       if (__DEV__) console.log('🔵 Getting Firestore instance for user:', userId);
-      const db = getFirestore();
+      const db = getFirestore(app);
       const pantryRef = collection(db, `users/${userId}/pantry`);
 
       const newItem = {
