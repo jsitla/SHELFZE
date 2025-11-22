@@ -303,7 +303,7 @@ export default function RecipeGenerator() {
           ingredients, 
           language,
           dishCategory: selectedDishCategory,
-          maxRecipes: 10, // Request up to 10 recipes
+          maxRecipes: 7, // Request up to 7 recipes
           userGuidance: userGuidance.trim() // Include user's custom guidance
         }),
       }, 45000); // 45 second timeout for recipe generation
@@ -625,11 +625,8 @@ export default function RecipeGenerator() {
     setRecipeDetails(null);
 
     try {
-      // Get all ingredient names - support both 'name' (manual) and 'itemName' (scanned)
-      const ingredients = pantryItems
-        .map(item => item.itemName || item.name)
-        .filter(name => name) // Remove any undefined/null values
-        .join(', ');
+      // Use currently selected ingredients to ensure consistency with generation
+      const ingredients = selectedIngredients.join(', ');
       
       const idToken = await auth.currentUser.getIdToken();
       

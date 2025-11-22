@@ -1754,8 +1754,8 @@ Thank you to all contributors who have helped make Shelfze better!
 
 ---
 
-*Last Updated: November 8, 2025*  
-*Version: 1.0.0*  
+*Last Updated: November 22, 2025*  
+*Version: 1.0.1*  
 *Expo SDK: 54*
 
 </div>

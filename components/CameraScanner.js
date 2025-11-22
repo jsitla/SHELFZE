@@ -47,6 +47,7 @@ export default function CameraScanner({ navigation }) {
   const [usageData, setUsageData] = useState(null);
   const [loadingUsage, setLoadingUsage] = useState(true);
   const [processingMode, setProcessingMode] = useState('photo'); // 'photo' or 'video'
+  const [torchEnabled, setTorchEnabled] = useState(false);
   const cameraRef = useRef(null);
   const fileInputRef = useRef(null);
   const recordingIntervalRef = useRef(null);
@@ -98,6 +99,19 @@ export default function CameraScanner({ navigation }) {
     isCameraReadyRef.current = false;
     setIsCameraReady(false);
   }, []);
+
+  // Auto-recovery for camera initialization
+  useEffect(() => {
+    let timeout;
+    // If focused, not ready, and not showing a photo/loading
+    if (isFocused && !isCameraReady && !photoUri && !isLoading) {
+      timeout = setTimeout(() => {
+        console.log('[RECOVERY] Camera initialization timed out. Remounting...');
+        setCameraKey(prev => prev + 1);
+      }, 3000); // Retry after 3 seconds if not ready
+    }
+    return () => clearTimeout(timeout);
+  }, [isFocused, isCameraReady, photoUri, isLoading, cameraKey]);
 
   const waitForStableCamera = useCallback(async () => {
     await waitForCameraReady();
@@ -204,7 +218,15 @@ export default function CameraScanner({ navigation }) {
         }),
       });
 
-      const result = await response.json();
+      const text = await response.text();
+      let result;
+      try {
+        result = JSON.parse(text);
+      } catch (e) {
+        console.error('Failed to parse response as JSON:', text);
+        throw new Error(`Server returned non-JSON response: ${text.substring(0, 100)}...`);
+      }
+
       if (!response.ok) {
         throw new Error(result.error || `Server error: ${response.status}`);
       }
@@ -1040,6 +1062,7 @@ export default function CameraScanner({ navigation }) {
               mode={captureMode === 'video' ? 'video' : 'picture'}
               ref={cameraRef}
               onCameraReady={handleCameraReady}
+              enableTorch={torchEnabled}
             />
           )}
           {/* Overlay UI positioned absolutely over camera */}
@@ -1056,6 +1079,18 @@ export default function CameraScanner({ navigation }) {
                 </Text>
               </View>
             )}
+
+            {/* Flashlight Toggle */}
+            <TouchableOpacity 
+              style={styles.torchButton}
+              onPress={() => setTorchEnabled(!torchEnabled)}
+            >
+              <Ionicons 
+                name={torchEnabled ? "flash" : "flash-off"} 
+                size={24} 
+                color={torchEnabled ? "#FFD700" : "#FFF"} 
+              />
+            </TouchableOpacity>
             
             {/* Mode Toggle at top */}
             <View style={styles.topControls}>
@@ -1773,6 +1808,15 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 14,
     fontWeight: '600',
+  },
+  torchButton: {
+    position: 'absolute',
+    top: 60,
+    right: 20,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    padding: 12,
+    borderRadius: 25,
+    zIndex: 20,
   },
 });
 

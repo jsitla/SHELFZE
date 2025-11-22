@@ -37,7 +37,11 @@ async function verifyAuth(req) {
   }
 }
 
-exports.analyzeImage = onRequest({cors: true}, async (req, res) => {
+exports.analyzeImage = onRequest({
+  cors: true,
+  memory: "1GiB",
+  timeoutSeconds: 300,
+}, async (req, res) => {
   if (req.method !== "POST") {
     res.status(405).json({error: "Method not allowed. Use POST."});
     return;
@@ -306,9 +310,15 @@ CRITICAL GUIDELINES - FOOD AND INGREDIENTS:
      * "Sea Salt (Coarse)" vs "Table Salt (Fine)"
      * "Whole Cinnamon Sticks" vs "Ground Cinnamon"
 7. For SPICES and SEASONINGS:
+   - **NEVER use generic names** like "Spices", "Seasoning", "Herbs",
+     "Condiment".
+   - **MUST identify the specific type** (e.g., "Ground Cumin",
+     "Dried Oregano", "Paprika", "Curry Powder", "Chili Flakes").
    - Check if it's POWDER/GROUND, WHOLE, or FRESH
    - Look at packaging text for clues (e.g., "powder", "ground", "whole")
    - Note the texture and appearance
+   - If the specific spice is unrecognizable, describe it (e.g.,
+     "Red Spice Powder", "Green Dried Herbs").
 8. Include the BRAND NAME if visible and relevant
 9. **TRANSLATE all product names to ${targetLanguageName}**
 10. Be specific about packaging type: jar, bottle, bag, fresh, etc.
@@ -725,7 +735,7 @@ exports.generateRecipes = onRequest({cors: true}, async (req, res) => {
         filteredIngredients);
 
     const ingredientCount = filteredIngredients.length;
-    let maxRecipeCount = 5;
+    let maxRecipeCount = 7;
     if (typeof maxRecipes === "number" && maxRecipes > 0) {
       maxRecipeCount = maxRecipes;
     } else {
@@ -772,6 +782,7 @@ exports.generateRecipes = onRequest({cors: true}, async (req, res) => {
 
     promptLines.push("🚨 QUALITY STANDARDS - EVERY RECIPE MUST BE:");
     promptLines.push("✓ DELICIOUS - Balanced flavors (sweet/salty/umami/acid)");
+    promptLines.push("✓ SIMPLE - Focus on minimal effort for maximum taste");
     promptLines.push("✓ TESTED - Only suggest combinations you KNOW work well");
     promptLines.push("✓ ACHIEVABLE - Realistic cooking times and techniques");
     promptLines.push("✓ SATISFYING - Proper portion sizes and nutritional");
@@ -783,9 +794,15 @@ exports.generateRecipes = onRequest({cors: true}, async (req, res) => {
         "water, sugar");
     promptLines.push("3. Do NOT assume any other ingredients exist unless " +
         "listed");
-    promptLines.push("4. Return at most " + maxRecipeCount + " recipes");
-    promptLines.push("5. Each recipe must use multiple ingredients for depth");
-    promptLines.push("6. Avoid one-note or boring flavor profiles");
+    promptLines.push("4. **QUANTITY TARGET**: Generate between 5 and " +
+        maxRecipeCount + " recipes.");
+    promptLines.push("5. **CRITICAL: DO NOT USE ALL INGREDIENTS.**");
+    promptLines.push("6. Select a SMALL SUBSET (3-6 items) that create a " +
+        "classic dish.");
+    promptLines.push("7. IGNORE the rest of the pantry list for that recipe.");
+    promptLines.push("8. Do not force incompatible ingredients together.");
+    promptLines.push("9. To reach the target of 5-7 recipes, consider " +
+        "different cooking styles (e.g., roasted vs. boiled vs. stir-fried).");
     promptLines.push("");
     promptLines.push("🚨 FLAVOR VALIDATION:");
     promptLines.push("- Every recipe needs contrast (texture, flavor, temp)");
@@ -938,6 +955,7 @@ exports.getRecipeDetails = onRequest({cors: true}, async (req, res) => {
       "",
       "🚨 QUALITY FIRST - THIS RECIPE MUST:",
       "✓ Taste genuinely DELICIOUS with proper flavor balance",
+      "✓ Be SIMPLE and EFFICIENT to prepare",
       "✓ Have tested, proven cooking techniques",
       "✓ Include clear WHY explanations for each step",
       "✓ Balance flavors: sweet/salty/umami/acid/fat",
@@ -949,10 +967,12 @@ exports.getRecipeDetails = onRequest({cors: true}, async (req, res) => {
       "3. **DO NOT add ANY other ingredients** unless listed",
       "4. If recipe needs unlisted ingredients, adapt creatively",
       "5. Mark any \"nice-to-have\" as OPTIONAL: \"(Optional if available)\"",
-      "6. Focus on maximizing flavor with what's available",
-      "7. Include precise measurements, temperatures, and timing",
-      "8. Explain WHY each step matters for the final taste",
-      "9. **ALL text must be in " + targetLanguageName + "**",
+      "6. Focus on maximizing flavor with MINIMAL complexity",
+      "7. **CRITICAL: Use ONLY the ingredients necessary for this dish**",
+      "8. IGNORE other available ingredients if they don't belong",
+      "9. Include precise measurements, temperatures, and timing",
+      "10. Explain WHY each step matters for the final taste",
+      "11. **ALL text must be in " + targetLanguageName + "**",
       "",
       "EXAMPLE OPTIONAL INGREDIENT:",
       "\"1 tbsp butter (Optional - substitute with extra oil)\"",
