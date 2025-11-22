@@ -76,10 +76,19 @@ function RecipeWrapper() {
   const db = getFirestore(app);
 
   React.useEffect(() => {
+    let unsubscribeSnapshot = null;
+
     // Wait for auth to be ready
     const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
+      // Unsubscribe from previous listener if it exists
+      if (unsubscribeSnapshot) {
+        unsubscribeSnapshot();
+        unsubscribeSnapshot = null;
+      }
+
       if (!user) {
         console.log('RecipeWrapper: Waiting for user authentication...');
+        setIngredientCount(0);
         return;
       }
 
@@ -88,14 +97,19 @@ function RecipeWrapper() {
 
       // Query user-specific pantry collection
       const q = query(collection(db, `users/${userId}/pantry`));
-      const unsubscribe = onSnapshot(q, (snapshot) => {
+      unsubscribeSnapshot = onSnapshot(q, (snapshot) => {
         setIngredientCount(snapshot.size);
+      }, (error) => {
+        console.log('RecipeWrapper snapshot error (likely logout):', error.code);
       });
-      
-      return () => unsubscribe();
     });
 
-    return () => unsubscribeAuth();
+    return () => {
+      if (unsubscribeSnapshot) {
+        unsubscribeSnapshot();
+      }
+      unsubscribeAuth();
+    };
   }, []);
 
   return (

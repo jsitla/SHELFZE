@@ -4,6 +4,11 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     // Users can only read/write their own pantry items
+    match /users/{userId}/pantry/{itemId} {
+      allow read, write, delete: if request.auth.uid == userId;
+    }
+
+    // Legacy path support (if needed)
     match /pantry/{userId}/{pantryId} {
       allow read, write, delete: if request.auth.uid == userId;
     }
