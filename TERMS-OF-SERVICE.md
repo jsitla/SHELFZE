@@ -91,7 +91,7 @@ By using Shelfze, you acknowledge and accept the data policies of:
 
 ### 4.1 Maximum Liability
 
-**TO THE MAXIMUM EXTENT PERMITTED BY LAW, SHELFZE AND ITS DEVELOPERS SHALL NOT BE LIABLE FOR ANY:**
+**TO THE MAXIMUM EXTENT PERMITTED BY LAW, SHELFZE AND ITS DEVELOPERS SHALL NOT BE LIABLE FOR ANY:
 - Food poisoning or foodborne illness
 - Allergic reactions
 - Health complications from following AI-generated recipes
@@ -147,10 +147,29 @@ Shelfze uses the following third-party services:
 - **Google Firebase** - Data storage and authentication
 - **Google Cloud Vision API** - Image recognition and OCR
 - **Google Gemini AI** - Food detection and recipe generation
+- **RevenueCat** - Subscription and purchase management
 
 Your use of the App is also subject to the terms and policies of these third-party providers.
 
-## 8. Intellectual Property
+## 8. Subscriptions and Payments
+
+### 8.1 Premium Subscriptions
+Shelfze offers optional "Premium" subscription plans that unlock additional features, such as increased scan limits and unlimited recipe generation.
+
+### 8.2 Billing and Renewal
+- **Payment Processing:** All payments are handled directly by the Apple App Store or Google Play Store. Shelfze does not process payments or store financial information.
+- **Auto-Renewal:** Subscriptions automatically renew unless auto-renew is turned off at least 24 hours before the end of the current period.
+- **Charges:** Your account will be charged for renewal within 24 hours prior to the end of the current period.
+
+### 8.3 Cancellations and Refunds
+- **Cancellation:** You can manage or cancel your subscription at any time in your device's Account Settings (Apple ID or Google Play account).
+- **Refunds:** Refund requests are handled by Apple or Google according to their respective refund policies. Shelfze cannot directly issue refunds for App Store or Play Store purchases.
+- **Effect of Cancellation:** If you cancel, your Premium access will continue until the end of your current billing period.
+
+### 8.4 Price Changes
+We reserve the right to change subscription prices at any time. Any price changes will take effect following notice to you and/or in accordance with App Store/Play Store policies.
+
+## 9. Intellectual Property
 
 ### 8.1 App Ownership
 

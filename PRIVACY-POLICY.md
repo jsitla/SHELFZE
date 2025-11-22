@@ -58,7 +58,7 @@ Welcome to Shelfze. This Privacy Policy explains how we collect, use, store, and
 
 We do NOT collect:
 - Your real name, email, or phone number (unless you contact support)
-- Payment information (app is currently free)
+- **Credit Card or Banking Information:** All payments are processed securely by Apple (App Store) or Google (Play Store). We never see or store your financial details.
 - Contacts or address book
 - Location data
 - Health data or biometric information

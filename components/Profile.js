@@ -161,32 +161,49 @@ export default function Profile({ navigation }) {
     }
   };
 
+  const performSignOut = async () => {
+    try {
+      // Clear first-launch flag so App.js shows welcome flow instead of auto re-authenticating
+      await AsyncStorage.removeItem('hasLaunchedBefore');
+      await signOut(auth);
+      // Don't show success alert - let App.js handle re-auth
+      // Navigate to Pantry tab after sign out
+      if (navigation) {
+        navigation.navigate('Pantry');
+      }
+    } catch (error) {
+      Alert.alert(t('error', language), error.message);
+    }
+  };
+
   const handleSignOut = async () => {
-    Alert.alert(
-      t('signOut', language),
-      t('signOutConfirm', language),
-      [
-        { text: t('cancel', language), style: 'cancel' },
-        {
-          text: t('signOut', language),
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              // Clear first-launch flag so App.js shows welcome flow instead of auto re-authenticating
-              await AsyncStorage.removeItem('hasLaunchedBefore');
-              await signOut(auth);
-              // Don't show success alert - let App.js handle re-auth
-              // Navigate to Pantry tab after sign out
-              if (navigation) {
-                navigation.navigate('Pantry');
-              }
-            } catch (error) {
-              Alert.alert(t('error', language), error.message);
-            }
+    if (user?.isAnonymous) {
+      Alert.alert(
+        t('warning', language),
+        t('guestSignOutWarning', language),
+        [
+          { text: t('cancel', language), style: 'cancel' },
+          {
+            text: t('signOutAnyway', language),
+            style: 'destructive',
+            onPress: performSignOut
           },
-        },
-      ]
-    );
+        ]
+      );
+    } else {
+      Alert.alert(
+        t('signOut', language),
+        t('signOutConfirm', language),
+        [
+          { text: t('cancel', language), style: 'cancel' },
+          {
+            text: t('signOut', language),
+            style: 'destructive',
+            onPress: performSignOut,
+          },
+        ]
+      );
+    }
   };
 
   const handleLogin = async () => {
