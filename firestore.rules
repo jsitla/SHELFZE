@@ -19,7 +19,7 @@ service cloud.firestore {
     }
 
     // Usage data: users can read their own, but only cloud functions can write/update it
-    match /usage/{userId} {
+    match /users/{userId}/usage/current {
       allow read: if request.auth.uid == userId;
       allow write: if false; // Prevent client-side writes
     }

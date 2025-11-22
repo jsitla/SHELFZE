@@ -530,9 +530,6 @@ export default function PantryList({ navigation }) {
   return (
     <View style={styles.container}>
       {/* Category Filter */}
-      <View style={styles.sectionHeaderContainer}>
-        <Text style={styles.sectionHeaderText}>{t('categories', language)}</Text>
-      </View>
       <View style={styles.filterContainer}>
         <ScrollView 
           horizontal 
@@ -757,18 +754,14 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
   countContainer: {
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: '#1E293B',
-    marginHorizontal: 16,
-    marginBottom: 12,
-    borderRadius: 14,
+    paddingHorizontal: 15,
+    paddingVertical: 10,
+    backgroundColor: '#f5f5f5',
   },
   countText: {
-    fontSize: 15,
-    color: '#FFFFFF',
-    fontWeight: '600',
-    letterSpacing: -0.1,
+    fontSize: 14,
+    color: '#666',
+    fontWeight: '500',
   },
   listContainer: {
     padding: 10,

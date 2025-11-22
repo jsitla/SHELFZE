@@ -18,14 +18,13 @@ import {
 } from 'react-native';
 import { CameraView, useCameraPermissions, useMicrophonePermissions } from 'expo-camera';
 import * as FileSystem from 'expo-file-system/legacy';
-import * as VideoThumbnails from 'expo-video-thumbnails';
 import { useLanguage } from '../contexts/LanguageContext';
 import { t } from '../contexts/translations';
 import { useFocusEffect, useIsFocused } from '@react-navigation/native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { getFirestore, doc, deleteDoc, updateDoc } from 'firebase/firestore';
 import { app, auth } from '../firebase.config';
-import { getUserUsage, decrementScanCount } from '../utils/usageTracking';
+import { getUserUsage } from '../utils/usageTracking';
 import { config } from '../config';
 
 // 2. Create a functional component named CameraScanner.
@@ -61,7 +60,6 @@ export default function CameraScanner({ navigation }) {
   const isFocused = useIsFocused();
   const db = getFirestore(app);
 
-  const VIDEO_FRAME_SAMPLE_MS = [500, 2000, 4000, 6000, 8000];
   const CAMERA_READY_BUFFER_MS = Platform.OS === 'android' ? 500 : 0; // More buffer for Android
 
   const handleCameraReady = useCallback(() => {
@@ -176,7 +174,7 @@ export default function CameraScanner({ navigation }) {
     return await FileSystem.readAsStringAsync(uri, { encoding: 'base64' });
   };
 
-  const analyzeImageBase64 = async (base64) => {
+  const analyzeImageBase64 = async (base64, mimeType = 'image/jpeg') => {
     if (!base64) {
       throw new Error('Failed to convert image to base64');
     }
@@ -188,12 +186,19 @@ export default function CameraScanner({ navigation }) {
       throw new Error('No authenticated user found');
     }
 
+    // Get ID Token
+    const idToken = await auth.currentUser.getIdToken();
+
     try {
       const response = await fetch(config.analyzeImage, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${idToken}`
+        },
         body: JSON.stringify({
           image: base64,
+          mimeType,
           language,
           userId, // Pass userId to Cloud Function
         }),
@@ -233,13 +238,9 @@ export default function CameraScanner({ navigation }) {
       });
       setShowReviewModal(true);
       
-      // Decrement scan count after successful detection
+      // Refresh usage data to show updated count (decremented by server)
       if (auth.currentUser) {
-        const decrementResult = await decrementScanCount(auth.currentUser.uid);
-        if (decrementResult.success) {
-          // Refresh usage data to show updated count
-          loadUsageData(auth.currentUser.uid);
-        }
+        loadUsageData(auth.currentUser.uid);
       }
       
       return true;
@@ -542,7 +543,7 @@ export default function CameraScanner({ navigation }) {
       console.log('[CAPTURE] Calling recordAsync...');
       const video = await cameraRef.current.recordAsync({
         maxDuration: 10,
-        quality: '720p',
+        quality: '480p',
         mute: shouldMute,
       });
 
@@ -609,60 +610,27 @@ export default function CameraScanner({ navigation }) {
     }
   };
 
-  // Process video recording - analyze multiple key frames for better accuracy
+  // Process video recording - analyze the video file directly
   const processVideoRecording = async (videoUri) => {
     setIsLoading(true);
     setScanResult('Processing video...');
 
     try {
-      let detectionFound = false;
-
-      // Set a temporary photo URI for the preview, but keep processingMode as 'video'
-      const { uri: firstFrameUri } = await VideoThumbnails.getThumbnailAsync(videoUri, {
-        time: VIDEO_FRAME_SAMPLE_MS[0],
-        quality: 0.8,
-      });
-      if (firstFrameUri) {
-        setPhotoUri(firstFrameUri);
-      }
-
-      for (let i = 0; i < VIDEO_FRAME_SAMPLE_MS.length; i++) {
-        const sampleTime = VIDEO_FRAME_SAMPLE_MS[i];
-        console.log(`📹 Extracting frame at ${sampleTime}ms from video:`, videoUri);
-
-        const { uri: frameUri } = await VideoThumbnails.getThumbnailAsync(videoUri, {
-          time: sampleTime,
-          quality: 0.8,
-        });
-
-        if (!frameUri) {
-          continue;
-        }
-
-        // We already set the first frame, no need to set it again
-        // if (i === 0) {
-        //   setPhotoUri(frameUri);
-        // }
-
-        const result = await analyzeImageFromUri(frameUri);
-        const isFinalAttempt = i === VIDEO_FRAME_SAMPLE_MS.length - 1;
-        const success = await handleDetectionResult(result, { silentNoItem: !isFinalAttempt });
-
-        if (success) {
-          detectionFound = true;
-          break;
-        }
-      }
-
-      if (!detectionFound) {
-        console.log('⚠️ No items detected in sampled frames');
-        // Alert is handled by the last handleDetectionResult call
-      }
+      console.log(`📹 Processing video: ${videoUri}`);
+      
+      // Read video file as base64
+      const base64 = await FileSystem.readAsStringAsync(videoUri, { encoding: 'base64' });
+      
+      // Send to backend as video/mp4
+      const result = await analyzeImageBase64(base64, 'video/mp4');
+      
+      handleDetectionResult(result);
+      
     } catch (error) {
       console.error('Video processing error:', error);
       Alert.alert(
         'Video Processing Error', 
-        'Failed to process video frames. Please try again or use photo mode.',
+        'Failed to process video. Please try again or use photo mode.',
         [{ text: 'OK', onPress: () => scanAgain() }]
       );
     } finally {

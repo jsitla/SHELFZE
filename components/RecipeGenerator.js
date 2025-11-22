@@ -21,7 +21,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { t } from '../contexts/translations';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
-import { getUserUsage, decrementRecipeCount } from '../utils/usageTracking';
+import { getUserUsage } from '../utils/usageTracking';
 import { config } from '../config';
 import { fetchWithTimeout } from '../utils/fetchWithTimeout';
 
@@ -291,10 +291,13 @@ export default function RecipeGenerator() {
         return;
       }
 
+      const idToken = await auth.currentUser.getIdToken();
+
       const response = await fetchWithTimeout(config.generateRecipes, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${idToken}`
         },
         body: JSON.stringify({ 
           ingredients, 
@@ -332,13 +335,9 @@ export default function RecipeGenerator() {
       setSelectedDietaryFilter('all'); // Reset dietary filter
 
       if (sanitizedRecipes.length > 0) {
-        // Decrement recipe count after successful generation
+        // Refresh usage data to show updated count (decremented by server)
         if (auth.currentUser) {
-          const decrementResult = await decrementRecipeCount(auth.currentUser.uid);
-          if (decrementResult.success) {
-            // Refresh usage data to show updated count
-            loadUsageData(auth.currentUser.uid);
-          }
+          loadUsageData(auth.currentUser.uid);
         }
 
         const successMessage =
@@ -632,10 +631,13 @@ export default function RecipeGenerator() {
         .filter(name => name) // Remove any undefined/null values
         .join(', ');
       
+      const idToken = await auth.currentUser.getIdToken();
+      
       const response = await fetchWithTimeout(config.getRecipeDetails, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${idToken}`
         },
         body: JSON.stringify({ 
           recipeName,

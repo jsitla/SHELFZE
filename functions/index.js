@@ -1,115 +1,157 @@
-// PHASE 2 & 3: Cloud Function for Vision API + Gemini AI Integration
-
-// 1. Initialize Firebase Functions, Google Cloud Vision, and Gemini AI
-const functions = require("firebase-functions");
+const {onRequest} = require("firebase-functions/v2/https");
+const functions = require("firebase-functions/v1");
 const admin = require("firebase-admin");
 const vision = require("@google-cloud/vision");
 const {VertexAI} = require("@google-cloud/vertexai");
 
-// Initialize Firebase Admin
 admin.initializeApp();
 
-// Create Vision API client
 const client = new vision.ImageAnnotatorClient();
 
-// Initialize Gemini AI
 const vertexAI = new VertexAI({
   project: "pantryai-3d396",
   location: "us-central1",
 });
 
-// Use gemini-2.0-flash-001 (latest stable model)
 const generativeModel = vertexAI.getGenerativeModel({
   model: "gemini-2.0-flash-001",
 });
 
-// 2. Create and export an HTTPS callable function named 'analyzeImage'.
-exports.analyzeImage = functions.https.onRequest(async (req, res) => {
-  // 3. Add CORS handling to allow requests from your app.
-  res.set("Access-Control-Allow-Origin", "*");
-
-  if (req.method === "OPTIONS") {
-    res.set("Access-Control-Allow-Methods", "POST");
-    res.set("Access-Control-Allow-Headers", "Content-Type");
-    res.set("Access-Control-Max-Age", "3600");
-    res.status(204).send("");
-    return;
+/**
+ * Helper function to verify Firebase ID token
+ * @param {Object} req - The request object
+ * @return {Promise<string|null>} The UID or null
+ */
+async function verifyAuth(req) {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return null;
   }
+  const idToken = authHeader.split("Bearer ")[1];
+  try {
+    const decodedToken = await admin.auth().verifyIdToken(idToken);
+    return decodedToken.uid;
+  } catch (error) {
+    console.error("Error verifying auth token:", error);
+    return null;
+  }
+}
 
-  // 4. Inside the function, check if the request method is POST. If not, send an error.
+exports.analyzeImage = onRequest({cors: true}, async (req, res) => {
   if (req.method !== "POST") {
     res.status(405).json({error: "Method not allowed. Use POST."});
     return;
   }
 
   try {
-    // 5. Get the base64 image data from the request body.
+    const uid = await verifyAuth(req);
+    if (!uid) {
+      res.status(401).json({error: "Unauthorized. Invalid or missing token."});
+      return;
+    }
+
+    const db = admin.firestore();
+    const usageRef = db.collection("users").doc(uid)
+        .collection("usage").doc("current");
+    const usageDoc = await usageRef.get();
+
+    let usageData = usageDoc.exists ? usageDoc.data() : null;
+
+    if (!usageData) {
+      usageData = {
+        tier: "anonymous",
+        scansRemaining: 10,
+        recipesRemaining: 10,
+        totalScansUsed: 0,
+        totalRecipesUsed: 0,
+        lastMonthlyBonusDate: admin.firestore.FieldValue.serverTimestamp(),
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        resetDate: null,
+      };
+      await usageRef.set(usageData);
+    }
+
+    if (usageData.scansRemaining <= 0) {
+      res.status(403).json({error: "No scans remaining."});
+      return;
+    }
+
     const imageData = req.body.image;
-    const targetLanguage = req.body.language || "en"; // Get language from request
-    const userId = req.body.userId; // Get userId from request
+    const targetLanguage = req.body.language || "en";
+    const mimeType = req.body.mimeType || "image/jpeg";
+    const userId = uid;
 
     if (!imageData) {
       res.status(400).json({error: "No image data provided"});
       return;
     }
 
-    if (!userId) {
-      res.status(400).json({error: "No userId provided. User must be authenticated."});
-      return;
-    }
-
-    // 6. Improved Vision API request for better sensitivity
-    const request = {
-      image: {content: imageData},
-      features: [
-        {type: "TEXT_DETECTION"},
-        {type: "LABEL_DETECTION", maxResults: 30}, // 3x boost
-        {type: "OBJECT_LOCALIZATION"},
-        {type: "WEB_DETECTION"}, // Product ID
-        {type: "CROP_HINTS", maxResults: 1}, // Focus area
-      ],
-    };
-
-    // 7. Call the Vision API with the request.
-    const [result] = await client.annotateImage(request);
-
-    const textAnnotations = result.textAnnotations || [];
-    const labelAnnotations = result.labelAnnotations || [];
-    const objects = result.localizedObjectAnnotations || [];
-
-    // 8. Process the result:
-    const fullText = textAnnotations.length > 0 ? textAnnotations[0].description : "";
-
-    // PRIORITY 1: Try Gemini AI first (most intelligent)
+    let fullText = "";
+    let detectedLabels = [];
+    let detectedObjects = [];
     let geminiResult = null;
-    try {
-      console.log("Attempting Gemini AI analysis...");
-      geminiResult = await analyzeWithGemini(imageData, targetLanguage);
-      console.log("Gemini analysis result:", geminiResult);
-    } catch (error) {
-      console.error("Gemini failed, falling back to Vision API:");
-      console.error("Error message:", error.message);
-      console.error("Error stack:", error.stack);
+    let allDetections = [];
+
+    // If video, skip Vision API and go straight to Gemini
+    if (mimeType.startsWith("video/")) {
+      console.log("Processing video with Gemini...");
+      try {
+        geminiResult = await analyzeWithGemini(
+            imageData, targetLanguage, mimeType,
+        );
+        console.log("Gemini video analysis result:", geminiResult);
+      } catch (error) {
+        console.error("Gemini video analysis failed:", error);
+        throw error; // No fallback for video
+      }
+    } else {
+      // Existing Image Logic with Vision API
+      const request = {
+        image: {content: imageData},
+        features: [
+          {type: "TEXT_DETECTION"},
+          {type: "LABEL_DETECTION", maxResults: 30},
+          {type: "OBJECT_LOCALIZATION"},
+          {type: "WEB_DETECTION"},
+          {type: "CROP_HINTS", maxResults: 1},
+        ],
+      };
+
+      const [result] = await client.annotateImage(request);
+
+      const textAnnotations = result.textAnnotations || [];
+      const labelAnnotations = result.labelAnnotations || [];
+      const objects = result.localizedObjectAnnotations || [];
+
+      fullText = textAnnotations.length > 0 ?
+          textAnnotations[0].description : "";
+
+      detectedLabels = labelAnnotations.map((label) => ({
+        name: label.description,
+        confidence: label.score,
+        source: "label",
+      }));
+
+      detectedObjects = objects.map((obj) => ({
+        name: obj.name,
+        confidence: obj.score,
+        source: "object",
+      }));
+
+      allDetections = [...detectedLabels, ...detectedObjects];
+
+      try {
+        console.log("Attempting Gemini AI analysis...");
+        geminiResult = await analyzeWithGemini(
+            imageData, targetLanguage, mimeType,
+        );
+        console.log("Gemini analysis result:", geminiResult);
+      } catch (error) {
+        console.error("Gemini failed, falling back to Vision API:");
+        console.error("Error message:", error.message);
+      }
     }
 
-    // Combine labels (AI content understanding) and objects (physical detection)
-    // Labels are more accurate for food content, objects for containers
-    const detectedLabels = labelAnnotations.map((label) => ({
-      name: label.description,
-      confidence: label.score,
-      source: "label", // AI understanding
-    }));
-
-    const detectedObjects = objects.map((obj) => ({
-      name: obj.name,
-      confidence: obj.score,
-      source: "object", // Physical object
-    }));
-
-    // Combine labels and objects
-    const allDetections = [...detectedLabels, ...detectedObjects];
-
-    // Helper function to normalize categories from Gemini (lowercase) to app format (Title Case)
     const normalizeCategory = (category) => {
       const categoryMap = {
         "dairy": "Dairy",
@@ -131,20 +173,17 @@ exports.analyzeImage = functions.https.onRequest(async (req, res) => {
       return categoryMap[category.toLowerCase()] || category;
     };
 
-    // PRIORITY DETECTION: Gemini AI > OCR Text > Vision API
     let foodItems = [];
     if (geminiResult && geminiResult.items && geminiResult.items.length > 0) {
-      // Use Gemini's intelligent analysis (detects multiple items)
       foodItems = geminiResult.items.map((item) => ({
         name: item.productName,
         category: normalizeCategory(item.category || "Other"),
-        confidence: item.confidence || 0.70, // Lowered for sensitivity
+        confidence: item.confidence || 0.70,
         source: "Gemini AI",
         details: item.details || "",
       }));
       console.log("Using Gemini detection for", foodItems.length, "items");
     } else if (geminiResult && geminiResult.productName) {
-      // Old format - single item
       foodItems = [{
         name: geminiResult.productName,
         category: normalizeCategory(geminiResult.category || "Other"),
@@ -154,37 +193,33 @@ exports.analyzeImage = functions.https.onRequest(async (req, res) => {
       }];
       console.log("Using Gemini detection (single item):", foodItems[0].name);
     } else {
-      // Fallback to existing OCR + Vision API logic
       const singleItem = categorizeFoodItem(allDetections, fullText);
       foodItems = [singleItem];
       console.log("Using Vision API detection:", singleItem.name);
     }
 
-    // PHASE 3: Find expiry date in the text (optional)
     const expiryDate = findExpiryDate(fullText);
     const formattedDate = expiryDate ? formatDate(expiryDate) : null;
 
-    // Save all detected food items to Firestore
     const savedItems = [];
     for (const foodItem of foodItems) {
       if (foodItem.name && foodItem.name !== "Unknown Item") {
-        // 5. Save to Firestore with enhanced data in user-specific collection
         const docRef = await admin.firestore()
             .collection("users")
             .doc(userId)
             .collection("pantry")
             .add({
-              name: foodItem.name, // Updated to 'name' for consistency
-              itemName: foodItem.name, // Keep for backward compatibility
+              name: foodItem.name,
+              itemName: foodItem.name,
               category: foodItem.category,
               confidence: foodItem.confidence,
               detectionSource: foodItem.source || "Vision API",
               geminiDetails: foodItem.details || null,
-              detectedLabels: detectedLabels.slice(0, 5), // Top 5 AI labels
-              detectedObjects: detectedObjects.slice(0, 5), // Top 5 objects
-              expiryDate: formattedDate || null, // Optional expiry date
-              quantity: 1, // Default quantity
-              unit: "pcs", // Default unit
+              detectedLabels: detectedLabels.slice(0, 5),
+              detectedObjects: detectedObjects.slice(0, 5),
+              expiryDate: formattedDate || null,
+              quantity: 1,
+              unit: "pcs",
               fullText: fullText.substring(0, 500),
               addedAt: admin.firestore.FieldValue.serverTimestamp(),
             });
@@ -195,13 +230,20 @@ exports.analyzeImage = functions.https.onRequest(async (req, res) => {
       }
     }
 
-    // 9. Send the processed data back as a JSON response.
+    if (savedItems.length > 0) {
+      await usageRef.update({
+        scansRemaining: admin.firestore.FieldValue.increment(-1),
+        totalScansUsed: admin.firestore.FieldValue.increment(1),
+      });
+    }
+
     res.status(200).json({
       fullText: fullText,
-      foodItems: foodItems, // Array of all detected items
+      foodItems: foodItems,
       totalItems: foodItems.length,
-      savedItems: savedItems, // Array of saved items with IDs
-      detectionSource: foodItems.length > 0 ? foodItems[0].source : "Vision API",
+      savedItems: savedItems,
+      detectionSource: foodItems.length > 0 ?
+          foodItems[0].source : "Vision API",
       geminiDetails: geminiResult || null,
       detectedLabels: detectedLabels.slice(0, 5),
       detectedObjects: detectedObjects,
@@ -217,19 +259,22 @@ exports.analyzeImage = functions.https.onRequest(async (req, res) => {
   }
 });
 
-// Gemini AI Analysis Function
 /**
  * Analyzes image using Google Gemini AI for intelligent food recognition
  * @param {string} base64Image - Base64 encoded image
+ * @param {string} targetLang - Target language code
+ * @param {string} mimeType - Mime type of the media (image/jpeg, video/mp4)
  * @return {Object} Intelligent analysis with specific product details
  */
-async function analyzeWithGemini(base64Image, targetLang = "en") {
+async function analyzeWithGemini(
+    base64Image, targetLang = "en", mimeType = "image/jpeg",
+) {
   try {
     console.log("=== GEMINI ANALYSIS START ===");
     console.log("Image data length:", base64Image ? base64Image.length : 0);
     console.log("Target language:", targetLang);
+    console.log("Mime Type:", mimeType);
 
-    // Language names
     const langNames = {
       en: "English", es: "Spanish", fr: "French", de: "German",
       it: "Italian", pt: "Portuguese", ru: "Russian", zh: "Chinese",
@@ -239,9 +284,9 @@ async function analyzeWithGemini(base64Image, targetLang = "en") {
     };
 
     const targetLanguageName = langNames[targetLang] || "English";
-    
-    const prompt = `You are a food recognition expert specializing in 
-precise ingredient identification. Analyze this image carefully.
+
+    const prompt = `You are a food recognition expert specializing in
+precise ingredient identification. Analyze this media carefully.
 
 CRITICAL GUIDELINES - FOOD AND INGREDIENTS:
 1. **DETECT FOOD ITEMS AND FOOD INGREDIENTS** - Focus on edible products
@@ -250,7 +295,7 @@ CRITICAL GUIDELINES - FOOD AND INGREDIENTS:
 4. Only return empty if CLEARLY no food items visible
 5. Be PERMISSIVE - when in doubt, include the item
 
-6. Detect MULTIPLE food items if present in the image
+6. Detect MULTIPLE food items if present in the image/video
 7. Be EXTREMELY SPECIFIC about the FORM of each ingredient:
    - Distinguish between WHOLE vs PROCESSED forms
    - Examples:
@@ -284,7 +329,8 @@ JSON response:
   "items": [
     {
       "productName": "Specific name with form in ${targetLanguageName}",
-      "category": "dairy|meat|fruit|vegetable|beverage|packaged|spices|condiments|bakery",
+      "category": "dairy|meat|fruit|vegetable|beverage|packaged|" +
+        "spices|condiments|bakery",
       "form": "fresh|dried|ground|powder|whole|minced|frozen|canned|bottled",
       "confidence": 0.9
     }
@@ -292,7 +338,8 @@ JSON response:
   "totalItems": 1
 }
 
-Remember: If the image contains NO food items, return {"items": [], "totalItems": 0}`;
+Remember: If the media contains NO food items, return {"items": [], ` +
+`"totalItems": 0}`;
 
     const result = await generativeModel.generateContent({
       contents: [{
@@ -301,7 +348,7 @@ Remember: If the image contains NO food items, return {"items": [], "totalItems"
           {text: prompt},
           {
             inlineData: {
-              mimeType: "image/jpeg",
+              mimeType: mimeType,
               data: base64Image,
             },
           },
@@ -312,24 +359,24 @@ Remember: If the image contains NO food items, return {"items": [], "totalItems"
     console.log("Gemini generateContent completed");
     const response = await result.response;
     console.log("Gemini response object:", JSON.stringify(response, null, 2));
-    
-    // Extract text from Gemini 2.0 response structure
+
     let responseText = "";
-    if (response.candidates && response.candidates[0] && 
-        response.candidates[0].content && response.candidates[0].content.parts &&
+    if (response.candidates && response.candidates[0] &&
+        response.candidates[0].content &&
+        response.candidates[0].content.parts &&
         response.candidates[0].content.parts[0]) {
       responseText = response.candidates[0].content.parts[0].text || "";
     }
     console.log("Gemini raw response text:", responseText);
-    
-    // Extract JSON from response (Gemini might wrap it in markdown)
+
     const jsonMatch = responseText.match(/\{[\s\S]*\}/);
     if (jsonMatch) {
       const parsed = JSON.parse(jsonMatch[0]);
       console.log("Gemini parsed result:", parsed);
       return parsed;
     }
-    console.log("No JSON found in Gemini response, full text was:", responseText);
+    console.log("No JSON found in Gemini response, full text was:",
+        responseText);
     return null;
   } catch (error) {
     console.error("Gemini analysis error (catch block):", error.message);
@@ -342,7 +389,6 @@ Remember: If the image contains NO food items, return {"items": [], "totalItems"
   }
 }
 
-// Food categorization function
 /**
  * Categorizes detected items into food items
  * Priority: AI labels > Text > Physical objects
@@ -377,7 +423,6 @@ function categorizeFoodItem(allDetections, fullText) {
       "syrup", "oil", "vinegar"],
   };
 
-  // Non-food items to COMPLETELY IGNORE
   const nonFoodItems = ["bottle", "jar", "package", "packaged goods",
     "container", "box", "can", "carton", "plastic", "glass", "metal",
     "paper", "cardboard", "bag", "wrapper", "label", "cap", "lid",
@@ -388,18 +433,14 @@ function categorizeFoodItem(allDetections, fullText) {
   let category = "Other";
   let confidence = 0;
 
-  // PRIORITY 1: Check OCR text first for specific products (most accurate)
   if (fullText) {
     const lines = fullText.split("\n").map((line) => line.trim());
     const fullTextLower = fullText.toLowerCase();
 
-    // Keywords that indicate milk in various languages
     const milkKeywords = ["milk", "mleko", "mleczny", "lait", "leche",
       "latte", "milch"];
 
-    // Check if text contains milk keywords
     if (milkKeywords.some((keyword) => fullTextLower.includes(keyword))) {
-      // Check for specific milk types
       if (fullTextLower.includes("sheep") || fullTextLower.includes("ovce") ||
           fullTextLower.includes("овче")) {
         itemName = "Sheep Milk";
@@ -409,26 +450,24 @@ function categorizeFoodItem(allDetections, fullText) {
         itemName = "Goat Milk";
         category = "Dairy";
         confidence = 0.9;
-      } else if (fullTextLower.includes("cow") || fullTextLower.includes("whole") ||
+      } else if (fullTextLower.includes("cow") ||
+                 fullTextLower.includes("whole") ||
                  fullTextLower.includes("skim")) {
         itemName = "Milk";
         category = "Dairy";
         confidence = 0.85;
       } else {
-        // Generic milk
         itemName = "Milk";
         category = "Dairy";
         confidence = 0.8;
       }
     }
 
-    // If no milk found, check for other specific products in text
     if (category === "Other") {
       for (let i = 0; i < Math.min(5, lines.length); i++) {
         const line = lines[i];
         const lineLower = line.toLowerCase();
 
-        // Check if line contains food keywords
         for (const [cat, keywords] of Object.entries(foodCategories)) {
           if (keywords.some((keyword) => lineLower.includes(keyword))) {
             if (line.length > 2 && line.length < 50) {
@@ -440,28 +479,22 @@ function categorizeFoodItem(allDetections, fullText) {
           }
         }
 
-        // If we found a match, stop looking
         if (category !== "Other") break;
       }
     }
   }
 
-  // PRIORITY 2: If no specific item found in text, check AI labels
   if (category === "Other" && allDetections && allDetections.length > 0) {
-    // Separate labels from objects
     const labels = allDetections.filter((d) => d.source === "label");
     const objects = allDetections.filter((d) => d.source === "object");
 
-    // Try labels first (AI content understanding)
     for (const label of labels) {
       const labelLower = label.name.toLowerCase();
 
-      // Skip non-food items
       if (nonFoodItems.some((word) => labelLower.includes(word))) {
         continue;
       }
 
-      // Check if label matches food category
       for (const [cat, keywords] of Object.entries(foodCategories)) {
         if (keywords.some((keyword) => labelLower.includes(keyword))) {
           itemName = label.name;
@@ -471,21 +504,17 @@ function categorizeFoodItem(allDetections, fullText) {
         }
       }
 
-      // If we found a food match, stop looking
       if (category !== "Other") break;
     }
 
-    // If no label match, try objects (but skip non-food items)
     if (category === "Other") {
       for (const obj of objects) {
         const objLower = obj.name.toLowerCase();
 
-        // Skip non-food items
         if (nonFoodItems.some((word) => objLower.includes(word))) {
           continue;
         }
 
-        // Check if object matches food category
         for (const [cat, keywords] of Object.entries(foodCategories)) {
           if (keywords.some((keyword) => objLower.includes(keyword))) {
             itemName = obj.name;
@@ -495,7 +524,6 @@ function categorizeFoodItem(allDetections, fullText) {
           }
         }
 
-        // If we found a food match, stop looking
         if (category !== "Other") break;
       }
     }
@@ -508,43 +536,39 @@ function categorizeFoodItem(allDetections, fullText) {
   };
 }
 
-// PHASE 3: Parsing & Storing (The "Memory")
-
-// 1. Write a helper function 'findExpiryDate' that takes the full text from the Vision API as input.
+/**
+ * Helper function to find expiry date in text
+ * @param {string} text - The text to search
+ * @return {string|null} The found date string or null
+ */
 function findExpiryDate(text) {
   if (!text) return null;
 
-  // 2. Use multiple regular expressions (regex) to find dates.
   const patterns = [
-    // DD/MM/YYYY or DD-MM-YYYY
-    /(?:EXP|BEST BEFORE|BBE|USE BY|EXPIRES?)[\s:]*(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/i,
-
-    // DD/MM/YY or DD-MM-YY
-    /(?:EXP|BEST BEFORE|BBE|USE BY|EXPIRES?)[\s:]*(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2})/i,
-
-    // MM/YYYY or MM-YYYY
-    /(?:EXP|BEST BEFORE|BBE|USE BY|EXPIRES?)[\s:]*(\d{1,2})[\/\-](\d{4})/i,
-
-    // MON YYYY (e.g., OCT 2025)
-    /(?:EXP|BEST BEFORE|BBE|USE BY|EXPIRES?)[\s:]*(JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)[A-Z]*[\s,]*(\d{4})/i,
-
-    // Standalone date patterns without keywords
-    /(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/,
-    /(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2})/,
-    /(JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)[A-Z]*[\s,]*(\d{1,2})[\s,]*(\d{4})/i,
+    /(?:EXP|BEST BEFORE|BBE|USE BY|EXPIRES?)[\s:]*(\d{1,2})[/-](\d{1,2})[/-](\d{4})/i, // eslint-disable-line max-len
+    /(?:EXP|BEST BEFORE|BBE|USE BY|EXPIRES?)[\s:]*(\d{1,2})[/-](\d{1,2})[/-](\d{2})/i, // eslint-disable-line max-len
+    /(?:EXP|BEST BEFORE|BBE|USE BY|EXPIRES?)[\s:]*(\d{1,2})[/-](\d{4})/i,
+    /(?:EXP|BEST BEFORE|BBE|USE BY|EXPIRES?)[\s:]*(JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)[A-Z]*[\s,]*(\d{4})/i, // eslint-disable-line max-len
+    /(\d{1,2})[/-](\d{1,2})[/-](\d{4})/,
+    /(\d{1,2})[/-](\d{1,2})[/-](\d{2})/,
+    /(JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)[A-Z]*[\s,]*(\d{1,2})[\s,]*(\d{4})/i, // eslint-disable-line max-len
   ];
 
   for (const pattern of patterns) {
     const match = text.match(pattern);
     if (match) {
-      return match[0]; // Return the first match found
+      return match[0];
     }
   }
 
   return null;
 }
 
-// Helper function to format dates to YYYY-MM-DD
+/**
+ * Helper function to format dates to YYYY-MM-DD
+ * @param {string} dateString - The date string to format
+ * @return {string|null} The formatted date or original string
+ */
 function formatDate(dateString) {
   if (!dateString) return null;
 
@@ -555,16 +579,18 @@ function formatDate(dateString) {
   };
 
   try {
-    // Handle MON YYYY format
-    const monthYearMatch = dateString.match(/(JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)[A-Z]*[\s,]*(\d{4})/i);
+    const monthYearMatch = dateString.match(
+        /(JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)[A-Z]*[\s,]*(\d{4})/i,
+    );
     if (monthYearMatch) {
       const month = monthMap[monthYearMatch[1].toUpperCase().substring(0, 3)];
       const year = monthYearMatch[2];
       return `${year}-${month}-01`;
     }
 
-    // Handle DD/MM/YYYY or DD-MM-YYYY
-    const fullDateMatch = dateString.match(/(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
+    const fullDateMatch = dateString.match(
+        /(\d{1,2})[/-](\d{1,2})[/-](\d{4})/,
+    );
     if (fullDateMatch) {
       const day = fullDateMatch[1].padStart(2, "0");
       const month = fullDateMatch[2].padStart(2, "0");
@@ -572,8 +598,9 @@ function formatDate(dateString) {
       return `${year}-${month}-${day}`;
     }
 
-    // Handle DD/MM/YY or DD-MM-YY (assume 20XX for YY)
-    const shortDateMatch = dateString.match(/(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2})/);
+    const shortDateMatch = dateString.match(
+        /(\d{1,2})[/-](\d{1,2})[/-](\d{2})/,
+    );
     if (shortDateMatch) {
       const day = shortDateMatch[1].padStart(2, "0");
       const month = shortDateMatch[2].padStart(2, "0");
@@ -581,44 +608,66 @@ function formatDate(dateString) {
       return `${year}-${month}-${day}`;
     }
 
-    // Handle MM/YYYY
-    const monthYearSlashMatch = dateString.match(/(\d{1,2})[\/\-](\d{4})/);
+    const monthYearSlashMatch = dateString.match(/(\d{1,2})[/-](\d{4})/);
     if (monthYearSlashMatch) {
       const month = monthYearSlashMatch[1].padStart(2, "0");
       const year = monthYearSlashMatch[2];
       return `${year}-${month}-01`;
     }
 
-    return dateString; // Return as-is if can't parse
+    return dateString;
   } catch (error) {
     console.error("Date formatting error:", error);
     return dateString;
   }
 }
 
-// RECIPE GENERATION FUNCTIONS
-
-/**
- * Generate recipe suggestions based on available ingredients
- */
-exports.generateRecipes = functions.https.onRequest(async (req, res) => {
-  res.set("Access-Control-Allow-Origin", "*");
-
-  if (req.method === "OPTIONS") {
-    res.set("Access-Control-Allow-Methods", "POST");
-    res.set("Access-Control-Allow-Headers", "Content-Type");
-    res.set("Access-Control-Max-Age", "3600");
-    res.status(204).send("");
-    return;
-  }
-
+exports.generateRecipes = onRequest({cors: true}, async (req, res) => {
   if (req.method !== "POST") {
     res.status(405).json({error: "Method not allowed. Use POST."});
     return;
   }
 
   try {
-    const {ingredients, language, dishCategory, maxRecipes, userGuidance} = req.body;
+    const uid = await verifyAuth(req);
+    if (!uid) {
+      res.status(401).json({error: "Unauthorized. Invalid or missing token."});
+      return;
+    }
+
+    const db = admin.firestore();
+    const usageRef = db.collection("users").doc(uid)
+        .collection("usage").doc("current");
+    const usageDoc = await usageRef.get();
+
+    let usageData = usageDoc.exists ? usageDoc.data() : null;
+
+    if (!usageData) {
+      usageData = {
+        tier: "anonymous",
+        scansRemaining: 10,
+        recipesRemaining: 10,
+        totalScansUsed: 0,
+        totalRecipesUsed: 0,
+        lastMonthlyBonusDate: admin.firestore.FieldValue.serverTimestamp(),
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        resetDate: null,
+      };
+      await usageRef.set(usageData);
+    }
+
+    if (usageData.recipesRemaining <= 0) {
+      res.status(403).json({error: "No recipes remaining."});
+      return;
+    }
+
+    const {
+      ingredients,
+      language,
+      dishCategory,
+      maxRecipes,
+      userGuidance,
+    } = req.body;
 
     if (!ingredients) {
       res.status(400).json({error: "No ingredients provided"});
@@ -627,13 +676,12 @@ exports.generateRecipes = functions.https.onRequest(async (req, res) => {
 
     const targetLanguage = language || "en";
     const selectedDishType = dishCategory || "mainCourse";
-    
+
     console.log("Generating recipes for ingredients:", ingredients);
     console.log("Target language:", targetLanguage);
     console.log("Dish category:", selectedDishType);
     console.log("Max recipes requested:", maxRecipes);
 
-    // Language names for the prompt
     const langNames = {
       en: "English", es: "Spanish", fr: "French", de: "German",
       it: "Italian", pt: "Portuguese", ru: "Russian", zh: "Chinese",
@@ -643,7 +691,6 @@ exports.generateRecipes = functions.https.onRequest(async (req, res) => {
     };
     const targetLanguageName = langNames[targetLanguage] || "English";
 
-    // Map dish categories to descriptive text
     const dishCategoryMap = {
       mainCourse: "Main Course / Dinner Entrée",
       appetizer: "Appetizer / Starter",
@@ -652,36 +699,36 @@ exports.generateRecipes = functions.https.onRequest(async (req, res) => {
       soupSalad: "Soup / Salad",
       snack: "Snack / Light Bite",
     };
-    const dishTypeDescription = dishCategoryMap[selectedDishType] || "Main Course";
+    const dishTypeDescription = dishCategoryMap[selectedDishType] ||
+        "Main Course";
 
-    // Ensure ingredients is an array
-    let ingredientsArray = Array.isArray(ingredients) ? ingredients : 
-                          (typeof ingredients === 'string' ? ingredients.split(',').map(i => i.trim()) : []);
+    const ingredientsArray = Array.isArray(ingredients) ? ingredients :
+        (typeof ingredients === "string" ?
+            ingredients.split(",").map((i) => i.trim()) : []);
 
-    // Filter out beverages unless they're cooking ingredients
     const filteredIngredients = ingredientsArray.filter((item) => {
-      if (!item || typeof item !== 'string') return false;
-      
+      if (!item || typeof item !== "string") return false;
+
       const name = item.toLowerCase();
       const isBeverage = name.includes("water") || name.includes("juice") ||
                         name.includes("soda") || name.includes("cola") ||
                         name.includes("beer") || name.includes("wine") ||
                         name.includes("coffee") || name.includes("tea");
-      const isCookingIngredient = name.includes("milk") || name.includes("cream") ||
-                                  name.includes("broth") || name.includes("stock");
+      const isCookingIngredient = name.includes("milk") ||
+                                  name.includes("cream") ||
+                                  name.includes("broth") ||
+                                  name.includes("stock");
       return !isBeverage || isCookingIngredient;
     });
 
-    console.log("Filtered ingredients (beverages removed):", filteredIngredients);
+    console.log("Filtered ingredients (beverages removed):",
+        filteredIngredients);
 
     const ingredientCount = filteredIngredients.length;
-    // Use maxRecipes parameter if provided, otherwise calculate based on ingredient count
     let maxRecipeCount = 5;
     if (typeof maxRecipes === "number" && maxRecipes > 0) {
-      // Use explicitly provided maxRecipes value
       maxRecipeCount = maxRecipes;
     } else {
-      // Apply ingredient-based limits when maxRecipes not provided
       if (ingredientCount <= 2) {
         maxRecipeCount = 0;
       } else if (ingredientCount === 3) {
@@ -717,64 +764,70 @@ exports.generateRecipes = functions.https.onRequest(async (req, res) => {
       "",
     ];
 
-    // Add user guidance if provided
     if (userGuidance && userGuidance.trim()) {
       promptLines.push("**USER'S SPECIAL REQUESTS:**");
       promptLines.push(userGuidance.trim());
       promptLines.push("");
     }
 
-    // Add remaining prompt instructions
     promptLines.push("🚨 QUALITY STANDARDS - EVERY RECIPE MUST BE:");
     promptLines.push("✓ DELICIOUS - Balanced flavors (sweet/salty/umami/acid)");
-    promptLines.push("✓ TESTED - Only suggest combinations you KNOW work well together");
+    promptLines.push("✓ TESTED - Only suggest combinations you KNOW work well");
     promptLines.push("✓ ACHIEVABLE - Realistic cooking times and techniques");
-    promptLines.push("✓ SATISFYING - Proper portion sizes and nutritional balance");
-    promptLines.push("✓ APPEALING - Attractive presentation and appetizing description");
+    promptLines.push("✓ SATISFYING - Proper portion sizes and nutritional");
+    promptLines.push("✓ APPEALING - Attractive presentation and appetizing");
     promptLines.push("");
     promptLines.push("🚨 STRICT INGREDIENT RULES:");
     promptLines.push("1. Use ONLY the listed pantry ingredients");
-    promptLines.push("2. You may assume: salt, black pepper, neutral oil, water, sugar");
-    promptLines.push("3. Do NOT assume any other ingredients exist unless listed");
+    promptLines.push("2. You may assume: salt, black pepper, neutral oil, " +
+        "water, sugar");
+    promptLines.push("3. Do NOT assume any other ingredients exist unless " +
+        "listed");
     promptLines.push("4. Return at most " + maxRecipeCount + " recipes");
-    promptLines.push("5. Each recipe must use multiple ingredients for depth of flavor");
+    promptLines.push("5. Each recipe must use multiple ingredients for depth");
     promptLines.push("6. Avoid one-note or boring flavor profiles");
     promptLines.push("");
     promptLines.push("🚨 FLAVOR VALIDATION:");
-    promptLines.push("- Every recipe needs contrast (texture, flavor, temperature)");
+    promptLines.push("- Every recipe needs contrast (texture, flavor, temp)");
     promptLines.push("- Consider: Is this genuinely tasty or just edible?");
     promptLines.push("- Would a professional chef be proud to serve this?");
     promptLines.push("- Does it have proper seasoning and flavor development?");
-    promptLines.push("- If ingredients are too limited for a good dish, suggest fewer recipes");
+    promptLines.push("- If ingredients are too limited for a good dish, " +
+        "suggest fewer recipes");
     promptLines.push("");
     promptLines.push("EXAMPLES OF WHAT NOT TO DO:");
     promptLines.push("❌ Add flour (unless flour is in pantry)");
     promptLines.push("❌ Mix in eggs (unless eggs are in pantry)");
-    promptLines.push("❌ Boring single-ingredient dishes (just boiled potatoes)");
+    promptLines.push("❌ Boring single-ingredient dishes " +
+        "(just boiled potatoes)");
     promptLines.push("❌ Untested weird combinations that might taste bad");
-    promptLines.push("❌ Missing crucial flavor elements (acid, salt, fat balance)");
+    promptLines.push("❌ Missing crucial flavor elements (acid, salt, fat)");
     promptLines.push("");
     promptLines.push("Respond with JSON format:");
     promptLines.push("{");
     promptLines.push("  \"recipes\": [");
     promptLines.push("    {");
-    promptLines.push("      \"name\": \"Recipe name in " + targetLanguageName + "\",");
+    promptLines.push("      \"name\": \"Recipe name in " + targetLanguageName +
+        "\",");
     promptLines.push("      \"emoji\": \"🍝\",");
-    promptLines.push("      \"description\": \"Appetizing 2-3 sentence description " +
-      "highlighting why it tastes great in " + targetLanguageName + "\",");
+    promptLines.push("      \"description\": \"Appetizing 2-3 sentence " +
+        "description highlighting why it tastes great in " +
+        targetLanguageName + "\",");
     promptLines.push("      \"prepTime\": \"15 minutes\",");
     promptLines.push("      \"cookTime\": \"30 minutes\",");
     promptLines.push("      \"servings\": \"4\",");
     promptLines.push("      \"difficulty\": \"Easy|Medium|Hard (in " +
       targetLanguageName + ")\",");
-    promptLines.push("      \"cuisine\": \"Cuisine name (in " + targetLanguageName + ")\",");
+    promptLines.push("      \"cuisine\": \"Cuisine name (in " +
+        targetLanguageName + ")\",");
     promptLines.push("      \"nutrition\": {");
     promptLines.push("        \"calories\": 450,");
     promptLines.push("        \"protein\": \"25g\",");
     promptLines.push("        \"carbs\": \"35g\",");
     promptLines.push("        \"fat\": \"18g\"");
     promptLines.push("      },");
-    promptLines.push("      \"skillLevel\": \"Beginner|Intermediate|Advanced (in " +
+    promptLines.push("      \"skillLevel\": \"Beginner|Intermediate|" +
+        "Advanced (in " +
       targetLanguageName + ")\"");
     promptLines.push("    }");
     promptLines.push("  ]");
@@ -786,8 +839,8 @@ exports.generateRecipes = functions.https.onRequest(async (req, res) => {
     promptLines.push("- Use standard USDA nutritional values");
     promptLines.push("- Round to nearest 5 calories");
     promptLines.push("");
-    promptLines.push("Remember: ONLY suggest recipes you're confident will taste delicious. " +
-      "Quality over quantity!");
+    promptLines.push("Remember: ONLY suggest recipes you're confident will " +
+        "taste delicious. Quality over quantity!");
 
     const prompt = promptLines.join("\n");
 
@@ -814,6 +867,11 @@ exports.generateRecipes = functions.https.onRequest(async (req, res) => {
 
     const jsonMatch = responseText.match(/\{[\s\S]*\}/);
     if (jsonMatch) {
+      await usageRef.update({
+        recipesRemaining: admin.firestore.FieldValue.increment(-1),
+        totalRecipesUsed: admin.firestore.FieldValue.increment(1),
+      });
+
       const parsed = JSON.parse(jsonMatch[0]);
       const recipesArray = Array.isArray(parsed.recipes) ? parsed.recipes : [];
       const payload = {
@@ -836,26 +894,19 @@ exports.generateRecipes = functions.https.onRequest(async (req, res) => {
   }
 });
 
-/**
- * Get detailed recipe with step-by-step instructions
- */
-exports.getRecipeDetails = functions.https.onRequest(async (req, res) => {
-  res.set("Access-Control-Allow-Origin", "*");
-
-  if (req.method === "OPTIONS") {
-    res.set("Access-Control-Allow-Methods", "POST");
-    res.set("Access-Control-Allow-Headers", "Content-Type");
-    res.set("Access-Control-Max-Age", "3600");
-    res.status(204).send("");
-    return;
-  }
-
+exports.getRecipeDetails = onRequest({cors: true}, async (req, res) => {
   if (req.method !== "POST") {
     res.status(405).json({error: "Method not allowed. Use POST."});
     return;
   }
 
   try {
+    const uid = await verifyAuth(req);
+    if (!uid) {
+      res.status(401).json({error: "Unauthorized. Invalid or missing token."});
+      return;
+    }
+
     const {recipeName, availableIngredients, language} = req.body;
 
     if (!recipeName) {
@@ -986,5 +1037,313 @@ exports.getRecipeDetails = functions.https.onRequest(async (req, res) => {
   } catch (error) {
     console.error("Error getting recipe details:", error);
     res.status(500).json({error: "Failed to get recipe details"});
+  }
+});
+
+exports.onUserCreated = functions.auth.user().onCreate(async (user) => {
+  const db = admin.firestore();
+  const usageRef = db.collection("users").doc(user.uid)
+      .collection("usage").doc("current");
+
+  const initialData = {
+    tier: "anonymous",
+    scansRemaining: 10,
+    recipesRemaining: 10,
+    totalScansUsed: 0,
+    totalRecipesUsed: 0,
+    lastMonthlyBonusDate: admin.firestore.FieldValue.serverTimestamp(),
+    createdAt: admin.firestore.FieldValue.serverTimestamp(),
+    resetDate: null,
+  };
+
+  try {
+    await usageRef.set(initialData);
+    console.log(`Initialized usage for user ${user.uid}`);
+  } catch (error) {
+    console.error(`Error initializing usage for user ${user.uid}:`, error);
+  }
+});
+
+exports.upgradeTier = onRequest({cors: true}, async (req, res) => {
+  if (req.method !== "POST") {
+    res.status(405).json({error: "Method not allowed. Use POST."});
+    return;
+  }
+
+  try {
+    const uid = await verifyAuth(req);
+    if (!uid) {
+      res.status(401).json({error: "Unauthorized"});
+      return;
+    }
+
+    const {newTier} = req.body;
+    if (!newTier) {
+      res.status(400).json({error: "Missing newTier"});
+      return;
+    }
+
+    const db = admin.firestore();
+    const usageRef = db.collection("users").doc(uid)
+        .collection("usage").doc("current");
+
+    const usageDoc = await usageRef.get();
+    let usage = usageDoc.exists ? usageDoc.data() : null;
+
+    if (!usage) {
+      usage = {
+        tier: newTier,
+        scansRemaining: newTier === "anonymous" ? 10 :
+            newTier === "free" ? 30 : 1000,
+        recipesRemaining: newTier === "anonymous" ? 10 :
+            newTier === "free" ? 30 : 1000,
+        totalScansUsed: 0,
+        totalRecipesUsed: 0,
+        lastMonthlyBonusDate: admin.firestore.FieldValue.serverTimestamp(),
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        resetDate: newTier === "premium" ?
+            admin.firestore.FieldValue.serverTimestamp() : null,
+      };
+      await usageRef.set(usage);
+      res.status(200).json(usage);
+      return;
+    }
+
+    const updates = {tier: newTier};
+
+    if (newTier === "free") {
+      updates.scansRemaining = 30;
+      updates.recipesRemaining = 30;
+      updates.lastMonthlyBonusDate =
+          admin.firestore.FieldValue.serverTimestamp();
+    } else if (newTier === "premium") {
+      updates.scansRemaining = 1000;
+      updates.recipesRemaining = 1000;
+      updates.resetDate = admin.firestore.FieldValue.serverTimestamp();
+    }
+
+    await usageRef.update(updates);
+    res.status(200).json({...usage, ...updates});
+  } catch (error) {
+    console.error("Error upgrading tier:", error);
+    res.status(500).json({error: "Internal server error"});
+  }
+});
+
+exports.redeemGiftCode = onRequest({cors: true}, async (req, res) => {
+  if (req.method !== "POST") {
+    res.status(405).json({error: "Method not allowed. Use POST."});
+    return;
+  }
+
+  try {
+    const uid = await verifyAuth(req);
+    if (!uid) {
+      res.status(401).json({error: "Unauthorized"});
+      return;
+    }
+
+    const {code} = req.body;
+    if (!code) {
+      res.status(400).json({error: "Missing code"});
+      return;
+    }
+
+    const db = admin.firestore();
+    const codeRef = db.collection("giftCodes").doc(code);
+    const usageRef = db.collection("users").doc(uid)
+        .collection("usage").doc("current");
+
+    const codeDoc = await codeRef.get();
+    if (!codeDoc.exists) {
+      res.status(400).json({success: false, message: "Invalid gift code"});
+      return;
+    }
+
+    const codeData = codeDoc.data();
+    if (codeData.used) {
+      res.status(400).json({
+        success: false,
+        message: "This gift code has already been used",
+        usedBy: codeData.usedBy,
+        usedAt: codeData.usedAt,
+      });
+      return;
+    }
+
+    if (codeData.expiresAt && codeData.expiresAt.toDate() < new Date()) {
+      res.status(400).json({
+        success: false,
+        message: "This gift code has expired",
+      });
+      return;
+    }
+
+    const usageDoc = await usageRef.get();
+    if (!usageDoc.exists) {
+      res.status(404).json({
+        success: false,
+        message: "User usage data not found",
+      });
+      return;
+    }
+
+    const usage = usageDoc.data();
+    const updates = {};
+
+    if (codeData.type === "premium") {
+      updates.tier = "premium";
+      updates.scansRemaining = 1000;
+      updates.recipesRemaining = 1000;
+      updates.resetDate = admin.firestore.FieldValue.serverTimestamp();
+      updates.subscription = {
+        tier: "premium",
+        source: "giftCode",
+        giftCode: code,
+        startDate: admin.firestore.FieldValue.serverTimestamp(),
+        durationMonths: codeData.durationMonths || 1,
+      };
+    } else if (codeData.type === "scans") {
+      updates.scansRemaining = (usage.scansRemaining || 0) +
+          (codeData.scansAmount || 0);
+    } else if (codeData.type === "recipes") {
+      updates.recipesRemaining = (usage.recipesRemaining || 0) +
+          (codeData.recipesAmount || 0);
+    } else if (codeData.type === "bundle") {
+      updates.scansRemaining = (usage.scansRemaining || 0) +
+          (codeData.scansAmount || 0);
+      updates.recipesRemaining = (usage.recipesRemaining || 0) +
+          (codeData.recipesAmount || 0);
+    }
+
+    await usageRef.update(updates);
+    await codeRef.update({
+      used: true,
+      usedBy: uid,
+      usedAt: admin.firestore.FieldValue.serverTimestamp(),
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "Gift code redeemed successfully!",
+      benefits: codeData,
+      newUsage: {...usage, ...updates},
+    });
+  } catch (error) {
+    console.error("Error redeeming gift code:", error);
+    res.status(500).json({error: "Internal server error"});
+  }
+});
+
+exports.checkMonthlyBonus = onRequest({cors: true}, async (req, res) => {
+  if (req.method !== "POST") {
+    res.status(405).json({error: "Method not allowed. Use POST."});
+    return;
+  }
+
+  try {
+    const uid = await verifyAuth(req);
+    if (!uid) {
+      res.status(401).json({error: "Unauthorized"});
+      return;
+    }
+
+    const db = admin.firestore();
+    const usageRef = db.collection("users").doc(uid)
+        .collection("usage").doc("current");
+
+    const usageDoc = await usageRef.get();
+    if (!usageDoc.exists) {
+      res.status(200).json({bonusApplied: false, message: "No usage data"});
+      return;
+    }
+
+    const usage = usageDoc.data();
+
+    if (usage.tier !== "free") {
+      res.status(200).json({
+        bonusApplied: false,
+        message: "Not a free tier user",
+      });
+      return;
+    }
+
+    const now = new Date();
+    const lastBonus = usage.lastMonthlyBonusDate ?
+        usage.lastMonthlyBonusDate.toDate() : new Date(0);
+
+    const monthsDiff = Math.floor(
+        (now - lastBonus) / (30 * 24 * 60 * 60 * 1000),
+    );
+
+    if (monthsDiff >= 1) {
+      const bonusAmount = monthsDiff * 5;
+      const newScansRemaining = (usage.scansRemaining || 0) + bonusAmount;
+      const newRecipesRemaining = (usage.recipesRemaining || 0) + bonusAmount;
+
+      await usageRef.update({
+        scansRemaining: newScansRemaining,
+        recipesRemaining: newRecipesRemaining,
+        lastMonthlyBonusDate: admin.firestore.FieldValue.serverTimestamp(),
+      });
+
+      res.status(200).json({
+        bonusApplied: true,
+        bonusAmount,
+        newScansRemaining,
+        newRecipesRemaining,
+        monthsMissed: monthsDiff,
+      });
+    } else {
+      res.status(200).json({
+        bonusApplied: false,
+        message: "Bonus already applied this month",
+      });
+    }
+  } catch (error) {
+    console.error("Error checking monthly bonus:", error);
+    res.status(500).json({error: "Internal server error"});
+  }
+});
+
+exports.initializeUsage = onRequest({cors: true}, async (req, res) => {
+  if (req.method !== "POST") {
+    res.status(405).json({error: "Method not allowed. Use POST."});
+    return;
+  }
+
+  try {
+    const uid = await verifyAuth(req);
+    if (!uid) {
+      res.status(401).json({error: "Unauthorized"});
+      return;
+    }
+
+    const db = admin.firestore();
+    const usageRef = db.collection("users").doc(uid)
+        .collection("usage").doc("current");
+
+    const usageDoc = await usageRef.get();
+    if (usageDoc.exists) {
+      res.status(200).json(usageDoc.data());
+      return;
+    }
+
+    const initialData = {
+      tier: "anonymous",
+      scansRemaining: 10,
+      recipesRemaining: 10,
+      totalScansUsed: 0,
+      totalRecipesUsed: 0,
+      lastMonthlyBonusDate: admin.firestore.FieldValue.serverTimestamp(),
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      resetDate: null,
+    };
+
+    await usageRef.set(initialData);
+    res.status(200).json(initialData);
+  } catch (error) {
+    console.error("Error initializing usage:", error);
+    res.status(500).json({error: "Internal server error"});
   }
 });

@@ -109,18 +109,17 @@ const styles = StyleSheet.create({
     inputContainer: {
         flexDirection: 'row',
         padding: 16,
-        backgroundColor: '#0F172A',
+        backgroundColor: '#fff',
         borderBottomWidth: 1,
-        borderBottomColor: '#1E293B',
+        borderBottomColor: '#E2E8F0',
     },
     input: {
         flex: 1,
         borderWidth: 1.5,
-        borderColor: '#334155',
+        borderColor: '#E2E8F0',
         padding: 14,
         borderRadius: 16,
-        backgroundColor: '#1E293B',
-        color: '#FFFFFF',
+        backgroundColor: '#F9FAFB',
         fontSize: 15,
     },
     addButton: {
@@ -166,21 +165,15 @@ const styles = StyleSheet.create({
         marginTop: 50,
     },
     clearButton: {
-        backgroundColor: '#0F172A',
+        backgroundColor: '#E11D48',
         padding: 16,
         alignItems: 'center',
         margin: 16,
         borderRadius: 16,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.15,
-        shadowRadius: 4,
-        elevation: 4,
     },
     clearButtonText: {
         color: 'white',
-        fontWeight: '700',
-        fontSize: 16,
+        fontWeight: 'bold',
     },
 });
 
