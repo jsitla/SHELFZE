@@ -26,8 +26,29 @@
             "CFBundleURLSchemes": [
               "com.googleusercontent.apps.747247644525-bmcc1cc6uq06kdd8aiobr0d2iu0h8s53"
             ]
+          },
+          {
+            "CFBundleURLSchemes": [
+              "com.googleusercontent.apps.747247644525-bmcc1cc6uq06kdd8aiobr0d2iu0h8s53"
+            ]
           }
-        ]
+        ],
+        "NSUserTrackingUsageDescription": "This identifier will be used to deliver personalized ads to you.",
+        "SKAdNetworkItems": [
+          {
+            "SKAdNetworkIdentifier": "v9wttpbfk9.skadnetwork"
+          },
+          {
+            "SKAdNetworkIdentifier": "n38lu8286q.skadnetwork"
+          },
+          {
+            "SKAdNetworkIdentifier": "v9wttpbfk9.skadnetwork"
+          },
+          {
+            "SKAdNetworkIdentifier": "n38lu8286q.skadnetwork"
+          }
+        ],
+        "ITSAppUsesNonExemptEncryption": false
       },
       "googleServicesFile": "./GoogleService-Info.plist"
     },
@@ -38,7 +59,8 @@
         "backgroundColor": "#ffffff"
       },
       "permissions": [
-        "CAMERA"
+        "CAMERA",
+        "android.permission.INTERNET"
       ],
       "googleServicesFile": "./google-services.json"
     },
@@ -64,7 +86,10 @@
     "extra": {
       "googleIosClientId": "747247644525-bmcc1cc6uq06kdd8aiobr0d2iu0h8s53.apps.googleusercontent.com",
       "googleAndroidClientId": "747247644525-hpg8l19sug00gqmk33s6vfe9442b7t15.apps.googleusercontent.com",
-      "googleWebClientId": "747247644525-q07j97skv56o7b5vp3vt30bbh6ges476.apps.googleusercontent.com"
+      "googleWebClientId": "747247644525-q07j97skv56o7b5vp3vt30bbh6ges476.apps.googleusercontent.com",
+      "eas": {
+        "projectId": "37ec79d5-5825-46cd-96bb-e76c4dd0e233"
+      }
     }
   }
 }

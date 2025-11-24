@@ -29,10 +29,8 @@ functions/.env
 web-build/
 
 # Native Build Outputs
-android/app/build
-android/build
-ios/build
-ios/Pods
+android/
+ios/
 *.apk
 *.aab
 
