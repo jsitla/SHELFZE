@@ -72,7 +72,8 @@
 
 #### Dual Capture Modes
 - **📷 Photo Mode** - Instant single-shot capture with immediate processing
-- **🎥 Video Mode** - 10-second video capture with multi-frame analysis
+- **🎥 Video Mode** - 10-second video capture with native Gemini video analysis (no frame extraction needed)
+- **🔦 Flashlight Support** - Integrated torch toggle for low-light environments
 - ** Web Upload** - Upload photos directly from file system on web platforms
 
 #### Intelligent Detection (Powered by Gemini 2.0 Flash)
@@ -188,11 +189,10 @@ Choose your desired dish type before generating recipes:
   - Salt, black pepper, cooking oil, water, sugar
 - **Optional Ingredients** - "Nice-to-have" items clearly marked:
   - Format: "1 tbsp butter (Optional - if available)"
-- **Smart Quantity Control** - Recipe count adjusts based on available ingredients:
-  - 2 items → No recipes (too limited)
-  - 3 items → Up to 3 simple recipes
-  - 4-5 items → Up to 4 recipes
-  - 6+ items → Up to 5 diverse recipes
+- **Smart Quantity Control** - Recipe count targets a consistent variety:
+  - **Target**: 5-7 recipes per generation
+  - **Variety**: Suggests different cooking styles (e.g., roasted vs. boiled) to meet the target
+  - **Subset Selection**: AI intelligently selects a small subset (3-6 items) of ingredients for each recipe to ensure culinary coherence, avoiding "kitchen sink" dishes
 - **Beverage Filtering** - Automatically excludes non-cooking beverages:
   - Removes: water, juice, soda, cola, beer
   - Keeps: milk, cream, broth, stock (cooking ingredients)
@@ -337,7 +337,8 @@ Located in `components/ui/`:
 
 #### Why Gemini 2.0 Flash?
 - **Latest Stable Model** - Google's newest production-ready model
-- **Multi-Modal** - Processes both images and text simultaneously
+- **Native Video Support** - Processes video files directly without client-side frame extraction
+- **Multi-Modal** - Processes images, video, and text simultaneously
 - **Fast Response** - Optimized for low-latency applications
 - **Context Understanding** - Comprehends food packaging context
 - **Multi-Language** - Native support for 18+ languages
