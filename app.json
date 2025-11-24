@@ -45,6 +45,21 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
+    "plugins": [
+      [
+        "react-native-fbsdk-next",
+        {
+          "appID": "1398993891887692",
+          "clientToken": "b7bdc025148e4ca0ece6ed2c4f0f0dfa",
+          "displayName": "Shelfze",
+          "scheme": "fb1398993891887692",
+          "advertiserIDCollectionEnabled": false,
+          "autoLogAppEventsEnabled": false,
+          "isAutoInitEnabled": true,
+          "iosUserTrackingPermission": "This identifier will be used to deliver personalized ads to you."
+        }
+      ]
+    ],
     "sdkVersion": "54.0.0",
     "extra": {
       "googleIosClientId": "747247644525-bmcc1cc6uq06kdd8aiobr0d2iu0h8s53.apps.googleusercontent.com",
