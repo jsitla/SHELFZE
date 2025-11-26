@@ -1,0 +1,8 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Deep Navy Blue Jar Outline -->
+  <path d="M146 96H366C377.046 96 386 87.0457 386 76C386 64.9543 377.046 56 366 56H146C134.954 56 126 64.9543 126 76C126 87.0457 134.954 96 146 96Z" stroke="#0D1B2A" stroke-width="40" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M156 96V126C156 138.5 163.5 150 175 155L119.5 402.5C112 436 137.5 466 171.5 466H340.5C374.5 466 400 436 392.5 402.5L337 155C348.5 150 356 138.5 356 126V96" stroke="#0D1B2A" stroke-width="40" stroke-linecap="round" stroke-linejoin="round"/>
+  
+  <!-- Vibrant Mint Green Checkmark -->
+  <path d="M186 286L236 336L336 216" stroke="#00E676" stroke-width="50" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

@@ -14,7 +14,8 @@ import {
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import * as WebBrowser from 'expo-web-browser';
-import * as Google from 'expo-auth-session/providers/google';
+// import * as Google from 'expo-auth-session/providers/google'; // Replaced with native lib
+import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
 import Constants from 'expo-constants';
 import { LoginManager, AccessToken } from 'react-native-fbsdk-next';
 import { 
@@ -54,16 +55,16 @@ const AuthScreen = ({ mode, onBack, onSuccess }) => {
   // Determine if running in Expo Go
   const isExpoGo = Constants.appOwnership === 'expo';
 
-  // In Expo Go, we must use the Web Client ID to avoid "audience mismatch" errors with Firebase.
-  // Firebase expects the iOS bundle ID (com.shelfze.app) for native tokens, but Expo Go 
-  // produces tokens for host.exp.Exponent. Using the Web Client ID produces a token 
-  // with the Web Client ID as audience, which Firebase accepts.
-  const [googleRequest, , promptGoogleAsync] = Google.useIdTokenAuthRequest({
-    clientId: googleClients.web,
-    iosClientId: isExpoGo ? undefined : googleClients.ios,
-    androidClientId: isExpoGo ? undefined : googleClients.android,
-    webClientId: googleClients.web,
-  });
+  // Configure Native Google Sign In
+  useEffect(() => {
+    if (hasGoogleConfig) {
+      GoogleSignin.configure({
+        webClientId: googleClients.web, // Required for Firebase
+        iosClientId: googleClients.ios, // Optional, but good for iOS
+      });
+    }
+  }, [hasGoogleConfig, googleClients.web, googleClients.ios]);
+
   const isAppleButtonDisabled = Platform.OS !== 'ios' || !appleAuthAvailable;
 
   useEffect(() => {
@@ -84,32 +85,39 @@ const AuthScreen = ({ mode, onBack, onSuccess }) => {
       return;
     }
 
-    if (!googleRequest) {
-      Alert.alert(
-        t('error', language),
-        'Google Sign-In is still initializing. Please try again in a moment.'
-      );
-      return;
-    }
-
     try {
       setLoading(true);
-      const result = await promptGoogleAsync({
-        useProxy: Constants.appOwnership === 'expo',
-        showInRecents: true,
-      });
+      
+      // Check if your device supports Google Play
+      await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
+      
+      // Get the user's ID token
+      const userInfo = await GoogleSignin.signIn();
+      console.log('Native Google Sign-In Result:', JSON.stringify(userInfo));
 
-      if (result?.type === 'success' && result.params?.id_token) {
-        const credential = GoogleAuthProvider.credential(result.params.id_token);
+      // Extract ID token (structure depends on library version, checking both common paths)
+      const idToken = userInfo.data?.idToken || userInfo.idToken;
+
+      if (idToken) {
+        const credential = GoogleAuthProvider.credential(idToken);
         await signInWithCredential(auth, credential);
         if (onSuccess) onSuccess();
-      } else if (result?.type === 'dismiss') {
-        // user closed sheet silently; no alert
-      } else if (result?.type === 'error') {
-        Alert.alert(t('error', language), result.error?.message || 'Google sign-in failed.');
+      } else {
+        Alert.alert(t('error', language), 'Google Sign-In succeeded but no ID Token was returned.');
       }
     } catch (error) {
-      Alert.alert(t('error', language), error.message || 'Unable to sign in with Google');
+      console.error('Google Sign-In Error:', error);
+      if (error.code === statusCodes.SIGN_IN_CANCELLED) {
+        // user cancelled the login flow
+      } else if (error.code === statusCodes.IN_PROGRESS) {
+        // operation (e.g. sign in) is in progress already
+      } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
+        // play services not available or outdated
+        Alert.alert(t('error', language), 'Google Play Services not available.');
+      } else {
+        // some other error happened
+        Alert.alert(t('error', language), error.message || 'Unable to sign in with Google');
+      }
     } finally {
       setLoading(false);
     }

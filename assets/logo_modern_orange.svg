@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <defs>
+    <!-- Professional Tech Gradient: Deep Navy to Royal Blue -->
+    <linearGradient id="techGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1E293B;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#334155;stop-opacity:1" />
+    </linearGradient>
+
+    <!-- Fresh Accent: Vibrant Emerald -->
+    <linearGradient id="freshGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#34D399;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#059669;stop-opacity:1" />
+    </linearGradient>
+
+    <!-- Action Accent: Bright Orange/Gold -->
+    <linearGradient id="actionGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FBBF24;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#D97706;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background: Clean White -->
+  <rect x="0" y="0" width="1024" height="1024" rx="220" fill="#FFFFFF" />
+
+  <!-- The Concept: "The Digital Apple" -->
+  <mask id="appleMask">
+    <path d="M 512 900 
+             C 400 900 300 850 250 750 
+             C 180 600 220 400 350 300 
+             C 420 250 480 250 512 300 
+             C 544 250 604 250 674 300 
+             C 804 400 844 600 774 750 
+             C 724 850 624 900 512 900 Z" 
+             fill="#FFFFFF" />
+  </mask>
+
+  <!-- The Data Lines -->
+  <g mask="url(#appleMask)">
+    <rect x="100" y="780" width="824" height="60" rx="30" fill="url(#techGrad)" />
+    <rect x="100" y="660" width="824" height="60" rx="30" fill="url(#techGrad)" />
+    <rect x="100" y="540" width="824" height="60" rx="30" fill="url(#techGrad)" />
+    <rect x="100" y="420" width="824" height="60" rx="30" fill="url(#techGrad)" />
+    <rect x="100" y="300" width="824" height="60" rx="30" fill="url(#techGrad)" />
+  </g>
+
+  <!-- The Leaf -->
+  <path d="M 512 300 
+           Q 512 100 700 100 
+           Q 700 300 512 300 Z" 
+           fill="url(#freshGrad)" />
+
+  <!-- The "Checkmark" Highlight - Orange -->
+  <path d="M 650 550 L 720 620 L 850 450" 
+        stroke="url(#actionGrad)" 
+        stroke-width="50" 
+        stroke-linecap="round" 
+        stroke-linejoin="round" 
+        fill="none" />
+
+</svg>

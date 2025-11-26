@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <defs>
+    <!-- The "Desire" Gradient: Fresh, Modern, High-End -->
+    <!-- Moving from a rich Emerald (Nature) to a deep Ocean Blue (Tech/Depth) -->
+    <!-- This combination is psychologically calming yet professional. -->
+    <linearGradient id="mainGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#10B981;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0EA5E9;stop-opacity:1" />
+    </linearGradient>
+    
+    <!-- Subtle shadow for depth (Material Design / Apple style) -->
+    <filter id="dropShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="20" />
+      <feOffset dx="0" dy="20" result="offsetblur" />
+      <feComponentTransfer>
+        <feFuncA type="linear" slope="0.3" />
+      </feComponentTransfer>
+      <feMerge>
+        <feMergeNode />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Background: Pure White -->
+  <!-- A white background signals "Cleanliness" and "Simplicity" (essential for food apps) -->
+  <rect x="0" y="0" width="1024" height="1024" rx="220" fill="#FFFFFF" />
+  
+  <!-- The Icon: "The Infinity Leaf" -->
+  <!-- Two leaves interlocking to form an "S" (for Shelfze) and an Infinity symbol (Sustainability) -->
+  <g filter="url(#dropShadow)">
+    <!-- Top Leaf (The Future/Growth) -->
+    <path d="M 512 512
+             Q 512 250 750 250
+             Q 850 250 850 350
+             Q 850 512 512 512 Z" 
+             fill="url(#mainGrad)" />
+             
+    <!-- Bottom Leaf (The Foundation/Pantry) -->
+    <path d="M 512 512
+             Q 512 774 274 774
+             Q 174 774 174 674
+             Q 174 512 512 512 Z" 
+             fill="url(#mainGrad)" />
+             
+    <!-- The "Smart" Core -->
+    <!-- A subtle negative space cut that implies a "Scan Line" or "Chip" -->
+    <circle cx="512" cy="512" r="60" fill="#FFFFFF" />
+    <circle cx="512" cy="512" r="40" fill="url(#mainGrad)" />
+  </g>
+  
+</svg>
