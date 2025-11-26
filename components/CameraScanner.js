@@ -14,7 +14,8 @@ import {
   Modal,
   ScrollView,
   FlatList,
-  TextInput
+  TextInput,
+  AppState
 } from 'react-native';
 import { CameraView, useCameraPermissions, useMicrophonePermissions } from 'expo-camera';
 import * as FileSystem from 'expo-file-system/legacy';
@@ -60,6 +61,37 @@ export default function CameraScanner({ navigation }) {
   const { language } = useLanguage(); // Get current language
   const isFocused = useIsFocused();
   const db = getFirestore(app);
+  
+  // Battery Optimization: Track AppState to disable camera when in background
+  const appState = useRef(AppState.currentState);
+  const [isAppActive, setIsAppActive] = useState(appState.current === 'active');
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', nextAppState => {
+      if (
+        appState.current.match(/inactive|background/) &&
+        nextAppState === 'active'
+      ) {
+        console.log('App has come to the foreground!');
+        setIsAppActive(true);
+      } else if (nextAppState.match(/inactive|background/)) {
+        console.log('App has gone to the background!');
+        setIsAppActive(false);
+        // Turn off torch to save battery
+        setTorchEnabled(false);
+        // Stop recording if active
+        if (isRecordingRef.current) {
+          stopVideoRecording(true);
+        }
+      }
+
+      appState.current = nextAppState;
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, []);
 
   const CAMERA_READY_BUFFER_MS = Platform.OS === 'android' ? 500 : 0; // More buffer for Android
 
@@ -400,8 +432,9 @@ export default function CameraScanner({ navigation }) {
 
       try {
         console.log('[CAPTURE] Calling takePictureAsync...');
+        // High quality capture (1.0) as requested
         const photo = await cameraRef.current.takePictureAsync({
-          quality: 0.8,
+          quality: 1.0,
           base64: false,
         });
         
@@ -1053,7 +1086,7 @@ export default function CameraScanner({ navigation }) {
             </View>
           )}
           
-          {isFocused && (
+          {isFocused && isAppActive && (
             <CameraView 
               key={`${cameraKey}-${captureMode}`}
               style={styles.camera} 
