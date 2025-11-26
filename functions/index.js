@@ -17,6 +17,10 @@ const generativeModel = vertexAI.getGenerativeModel({
   model: "gemini-2.5-pro-001",
 });
 
+const flashModel = vertexAI.getGenerativeModel({
+  model: "gemini-2.0-flash-001",
+});
+
 /**
  * Helper function to verify Firebase ID token
  * @param {Object} req - The request object
@@ -98,10 +102,10 @@ exports.analyzeImage = onRequest({
 
     // If video, skip Vision API and go straight to Gemini
     if (mimeType.startsWith("video/")) {
-      console.log("Processing video with Gemini...");
+      console.log("Processing video with Gemini (Flash model)...");
       try {
         geminiResult = await analyzeWithGemini(
-            imageData, targetLanguage, mimeType,
+            imageData, targetLanguage, mimeType, true,
         );
         console.log("Gemini video analysis result:", geminiResult);
       } catch (error) {
@@ -268,13 +272,15 @@ exports.analyzeImage = onRequest({
  * @param {string} base64Image - Base64 encoded image
  * @param {string} targetLang - Target language code
  * @param {string} mimeType - Mime type of the media (image/jpeg, video/mp4)
+ * @param {boolean} useFlash - Whether to use the Flash model (better for video)
  * @return {Object} Intelligent analysis with specific product details
  */
 async function analyzeWithGemini(
-    base64Image, targetLang = "en", mimeType = "image/jpeg",
+    base64Image, targetLang = "en", mimeType = "image/jpeg", useFlash = false,
 ) {
   try {
     console.log("=== GEMINI ANALYSIS START ===");
+    console.log("Model:", useFlash ? "Gemini 2.0 Flash" : "Gemini 2.5 Pro");
     console.log("Image data length:", base64Image ? base64Image.length : 0);
     console.log("Target language:", targetLang);
     console.log("Mime Type:", mimeType);
@@ -351,7 +357,9 @@ JSON response:
 Remember: If the media contains NO food items, return {"items": [], ` +
 `"totalItems": 0}`;
 
-    const result = await generativeModel.generateContent({
+    const modelToUse = useFlash ? flashModel : generativeModel;
+
+    const result = await modelToUse.generateContent({
       contents: [{
         role: "user",
         parts: [
