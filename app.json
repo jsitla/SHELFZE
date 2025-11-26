@@ -26,11 +26,6 @@
             "CFBundleURLSchemes": [
               "com.googleusercontent.apps.747247644525-bmcc1cc6uq06kdd8aiobr0d2iu0h8s53"
             ]
-          },
-          {
-            "CFBundleURLSchemes": [
-              "com.googleusercontent.apps.747247644525-bmcc1cc6uq06kdd8aiobr0d2iu0h8s53"
-            ]
           }
         ],
         "NSUserTrackingUsageDescription": "This identifier will be used to deliver personalized ads to you.",
