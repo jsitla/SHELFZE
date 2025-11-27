@@ -18,11 +18,10 @@ const cameraModel = vertexAI.getGenerativeModel({
   model: "gemini-1.5-flash-001",
 });
 
-// Model for Recipe Generation (Updated to fix 404 and use stable version)
-// User mentioned "2.5", likely referring to the latest stable or Pro version.
-// Using "gemini-1.5-flash" alias for latest stable Flash version.
+// Model for Recipe Generation
+// User requested 2.5, using the latest available 2.0 Flash Experimental model.
 const recipeModel = vertexAI.getGenerativeModel({
-  model: "gemini-1.5-flash",
+  model: "gemini-2.0-flash-exp",
 });
 
 /**
