@@ -306,7 +306,7 @@ export default function RecipeGenerator() {
           maxRecipes: 7, // Request up to 7 recipes
           userGuidance: userGuidance.trim() // Include user's custom guidance
         }),
-      }, 45000); // 45 second timeout for recipe generation
+      }, 90000); // 90 second timeout for recipe generation
 
       if (__DEV__) {
         console.log('Response status:', response.status);
@@ -644,7 +644,7 @@ export default function RecipeGenerator() {
           availableIngredients: ingredients,
           language
         }),
-      }, 45000); // 45 second timeout for recipe details
+      }, 90000); // 90 second timeout for recipe details
 
       const result = await response.json();
       

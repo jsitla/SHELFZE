@@ -640,7 +640,10 @@ function formatDate(dateString) {
   }
 }
 
-exports.generateRecipes = onRequest({cors: true}, async (req, res) => {
+exports.generateRecipes = onRequest({
+  cors: true,
+  timeoutSeconds: 300,
+}, async (req, res) => {
   if (req.method !== "POST") {
     res.status(405).json({error: "Method not allowed. Use POST."});
     return;
@@ -930,7 +933,10 @@ exports.generateRecipes = onRequest({cors: true}, async (req, res) => {
   }
 });
 
-exports.getRecipeDetails = onRequest({cors: true}, async (req, res) => {
+exports.getRecipeDetails = onRequest({
+  cors: true,
+  timeoutSeconds: 300,
+}, async (req, res) => {
   if (req.method !== "POST") {
     res.status(405).json({error: "Method not allowed. Use POST."});
     return;
