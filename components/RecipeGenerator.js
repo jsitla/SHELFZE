@@ -763,9 +763,6 @@ ${t('sharedFromShelfze', language)}
         </TouchableOpacity>
 
         <View style={styles.recipeHeader}>
-          <TouchableOpacity style={styles.shareButton} onPress={shareRecipe}>
-            <Text style={styles.shareButtonText}>🔗 {t('share', language)}</Text>
-          </TouchableOpacity>
           <Text style={styles.recipeTitle}>{recipeDetails.name}</Text>
           <Text style={styles.recipeEmoji}>{recipeDetails.emoji || '🍽️'}</Text>
           {recipeDetails.nutrition && (
@@ -964,6 +961,10 @@ ${t('sharedFromShelfze', language)}
             </TouchableOpacity>
           </View>
         </View>
+
+        <TouchableOpacity style={styles.bottomShareButton} onPress={shareRecipe}>
+          <Text style={styles.bottomShareButtonText}>🔗 {t('share', language)}</Text>
+        </TouchableOpacity>
 
         <TouchableOpacity style={styles.newRecipeButton} onPress={resetGenerator}>
           <Text style={styles.newRecipeButtonText}>↺ {t('generateNewRecipes', language)}</Text>
@@ -1995,23 +1996,6 @@ const styles = StyleSheet.create({
     color: '#E11D48',
     fontWeight: '600',
   },
-  shareButton: {
-    position: 'absolute',
-    top: 15,
-    right: 15,
-    backgroundColor: '#F3F4F6',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-    zIndex: 10,
-  },
-  shareButtonText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#374151',
-  },
   recipeHeader: {
     backgroundColor: '#fff',
     padding: 20,
@@ -2321,6 +2305,25 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: '#856404',
+  },
+  bottomShareButton: {
+    marginHorizontal: 20,
+    marginBottom: 15,
+    backgroundColor: '#3B82F6',
+    borderRadius: 12,
+    paddingVertical: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  bottomShareButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });
 
