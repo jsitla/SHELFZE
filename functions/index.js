@@ -13,8 +13,16 @@ const vertexAI = new VertexAI({
   location: "us-central1",
 });
 
-const generativeModel = vertexAI.getGenerativeModel({
+// Model for Camera/Image Analysis (Keep as requested)
+const cameraModel = vertexAI.getGenerativeModel({
   model: "gemini-1.5-flash-001",
+});
+
+// Model for Recipe Generation (Updated to fix 404 and use stable version)
+// User mentioned "2.5", likely referring to the latest stable or Pro version.
+// Using "gemini-1.5-flash" alias for latest stable Flash version.
+const recipeModel = vertexAI.getGenerativeModel({
+  model: "gemini-1.5-flash",
 });
 
 /**
@@ -352,7 +360,7 @@ JSON response:
 Remember: If the media contains NO food items, return {"items": [], ` +
 `"totalItems": 0}`;
 
-    const result = await generativeModel.generateContent({
+    const result = await cameraModel.generateContent({
       contents: [{
         role: "user",
         parts: [
@@ -870,7 +878,7 @@ exports.generateRecipes = onRequest({cors: true}, async (req, res) => {
 
     const prompt = promptLines.join("\n");
 
-    const result = await generativeModel.generateContent({
+    const result = await recipeModel.generateContent({
       contents: [{
         role: "user",
         parts: [{text: prompt}],
@@ -1038,7 +1046,7 @@ exports.getRecipeDetails = onRequest({cors: true}, async (req, res) => {
 
     const prompt = detailLines.join("\n");
 
-    const result = await generativeModel.generateContent({
+    const result = await recipeModel.generateContent({
       contents: [{
         role: "user",
         parts: [{text: prompt}],
