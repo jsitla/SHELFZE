@@ -18,7 +18,7 @@ import { StatusBar } from 'expo-status-bar';
 
 const TERMS_URL = 'https://github.com/jsitla/SHELFZE/blob/main/TERMS-OF-SERVICE.md';
 const PRIVACY_URL = 'https://github.com/jsitla/SHELFZE/blob/main/PRIVACY-POLICY.md';
-const LEGAL_CONSENT_KEY = 'legalConsentAcceptedAt';
+const LEGAL_CONSENT_KEY = 'legalConsent_v5'; // Changed key to force re-consent for testing Login vs Signup
 
 export async function getStoredLegalConsent() {
   try {

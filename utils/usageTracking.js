@@ -1,9 +1,87 @@
 import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { app } from '../firebase.config';
 import { config } from '../config';
 
 const db = getFirestore(app);
+
+/**
+ * Sync legal consent to backend
+ * @param {string} userId - The user's Firebase UID
+ * @param {string|null} dateStr - Optional date string. If null, reads from AsyncStorage.
+ */
+export async function syncLegalConsent(userId, dateStr = null) {
+  try {
+    const auth = getAuth();
+    if (!auth.currentUser) return;
+    
+    const token = await auth.currentUser.getIdToken();
+    const consentDate = dateStr || await AsyncStorage.getItem('legalConsent_v5'); // Updated key
+    
+    if (!consentDate) return; // No consent to sync
+
+    // 1. Write directly to Firestore (Client-side) for immediate consistency
+    // This ensures checkUserLegalConsent returns true immediately after this
+    const userRef = doc(db, `users/${userId}`);
+    await setDoc(userRef, {
+      legalConsent: {
+        consentDate: consentDate,
+        termsVersion: '1.0',
+        privacyVersion: '1.0',
+        updatedAt: serverTimestamp()
+      }
+    }, { merge: true });
+    console.log('✅ Legal consent saved to Firestore directly');
+
+    // 2. Call Cloud Function (Legacy/Backup/Trigger)
+    // We still call this in case there are other side effects (like emails, analytics)
+    const response = await fetch(config.recordLegalConsent, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        consentDate: consentDate,
+        termsVersion: '1.0',
+        privacyVersion: '1.0'
+      })
+    });
+
+    if (response.ok) {
+      console.log('✅ Legal consent synced to cloud function for user:', userId);
+    } else {
+      console.warn('⚠️ Failed to sync legal consent via cloud function');
+    }
+  } catch (error) {
+    console.error('❌ Error syncing legal consent:', error);
+  }
+}
+
+/**
+ * Check if user has agreed to legal consent in Firestore
+ * @param {string} userId - The user's Firebase UID
+ * @returns {Promise<boolean>} True if agreed
+ */
+export async function checkUserLegalConsent(userId) {
+  try {
+    const userRef = doc(db, `users/${userId}`);
+    const userDoc = await getDoc(userRef);
+    
+    if (userDoc.exists()) {
+      const data = userDoc.data();
+      // Check if legalConsent field exists and has a date
+      // The cloud function likely writes 'legalConsent' object or fields
+      // We check for the presence of consent data
+      return !!(data.legalConsent?.consentDate || data.consentDate);
+    }
+    return false;
+  } catch (error) {
+    console.error('❌ Error checking legal consent from DB:', error);
+    return false;
+  }
+}
 
 /**
  * Initialize usage tracking for a new user

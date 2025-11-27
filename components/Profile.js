@@ -165,6 +165,9 @@ export default function Profile({ navigation }) {
     try {
       // Clear first-launch flag so App.js shows welcome flow instead of auto re-authenticating
       await AsyncStorage.removeItem('hasLaunchedBefore');
+      // Clear legal consent flag so next guest session requires agreement
+      await AsyncStorage.removeItem('legalConsent_v5');
+      
       await signOut(auth);
       // Don't show success alert - let App.js handle re-auth
       // Navigate to Pantry tab after sign out

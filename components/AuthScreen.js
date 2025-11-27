@@ -27,6 +27,7 @@ import {
   GoogleAuthProvider,
   FacebookAuthProvider,
   OAuthProvider,
+  getAdditionalUserInfo,
 } from 'firebase/auth';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import { auth } from '../firebase.config';
@@ -100,8 +101,9 @@ const AuthScreen = ({ mode, onBack, onSuccess }) => {
 
       if (idToken) {
         const credential = GoogleAuthProvider.credential(idToken);
-        await signInWithCredential(auth, credential);
-        if (onSuccess) onSuccess();
+        const userCredential = await signInWithCredential(auth, credential);
+        const { isNewUser } = getAdditionalUserInfo(userCredential) || {};
+        if (onSuccess) onSuccess(isNewUser ? 'signup' : 'login');
       } else {
         Alert.alert(t('error', language), 'Google Sign-In succeeded but no ID Token was returned.');
       }
@@ -146,9 +148,10 @@ const AuthScreen = ({ mode, onBack, onSuccess }) => {
       const credential = FacebookAuthProvider.credential(data.accessToken);
 
       // Sign-in the user with the credential
-      await signInWithCredential(auth, credential);
+      const userCredential = await signInWithCredential(auth, credential);
+      const { isNewUser } = getAdditionalUserInfo(userCredential) || {};
       
-      if (onSuccess) onSuccess();
+      if (onSuccess) onSuccess(isNewUser ? 'signup' : 'login');
     } catch (error) {
       Alert.alert(t('error', language), error.message || 'Facebook sign-in failed.');
     } finally {
@@ -193,8 +196,9 @@ const AuthScreen = ({ mode, onBack, onSuccess }) => {
         idToken: credential.identityToken,
       });
 
-      await signInWithCredential(auth, authCredential);
-      if (onSuccess) onSuccess();
+      const userCredential = await signInWithCredential(auth, authCredential);
+      const { isNewUser } = getAdditionalUserInfo(userCredential) || {};
+      if (onSuccess) onSuccess(isNewUser ? 'signup' : 'login');
     } catch (error) {
       if (error.code !== 'ERR_CANCELED') {
         Alert.alert(t('error', language), error.message);
@@ -268,7 +272,7 @@ const AuthScreen = ({ mode, onBack, onSuccess }) => {
     setLoading(true);
     try {
       await signInWithEmailAndPassword(auth, email.trim(), password);
-      if (onSuccess) onSuccess();
+      if (onSuccess) onSuccess('login');
     } catch (error) {
       Alert.alert(t('loginFailed', language), getAuthErrorMessage(error));
     } finally {
@@ -309,7 +313,7 @@ const AuthScreen = ({ mode, onBack, onSuccess }) => {
         });
       }
 
-      if (onSuccess) onSuccess();
+      if (onSuccess) onSuccess('signup');
     } catch (error) {
       Alert.alert(t('signupFailed', language), getAuthErrorMessage(error));
     } finally {

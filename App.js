@@ -3,7 +3,7 @@ import 'react-native-gesture-handler';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 // 1. Import necessary components from React, React Native, and Expo
-import React, { useState, useEffect, Component } from 'react';
+import React, { useState, useEffect, Component, useRef } from 'react';
 import { StyleSheet, View, TouchableOpacity, Text, ActivityIndicator, Alert } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { NavigationContainer } from '@react-navigation/native';
@@ -25,8 +25,8 @@ import { t } from './contexts/translations';
 import { getFirestore, collection, query, onSnapshot } from 'firebase/firestore';
 import { onAuthStateChanged, signInAnonymously } from 'firebase/auth';
 import { app, auth } from './firebase.config';
-import { checkAndApplyMonthlyBonus, initializeUsageTracking } from './utils/usageTracking';
-import LegalConsentScreen, { getStoredLegalConsent } from './components/LegalConsentScreen';
+import { checkAndApplyMonthlyBonus, initializeUsageTracking, syncLegalConsent, checkUserLegalConsent } from './utils/usageTracking';
+import LegalConsentScreen, { storeLegalConsent, getStoredLegalConsent } from './components/LegalConsentScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -296,20 +296,12 @@ export default function App() {
   const [authLoading, setAuthLoading] = useState(true);
   const [showWelcome, setShowWelcome] = useState(false);
   const [showAuth, setShowAuth] = useState(false);
+  const [showLegalConsent, setShowLegalConsent] = useState(false);
+  const [pendingAuthAction, setPendingAuthAction] = useState(null); // 'guest' | 'signup' | 'login'
   const [authMode, setAuthMode] = useState('login'); // 'login' or 'signup'
   const [checkingFirstLaunch, setCheckingFirstLaunch] = useState(true);
   const [hasLegalConsent, setHasLegalConsent] = useState(false);
-  const [checkingLegalConsent, setCheckingLegalConsent] = useState(true);
-
-  // Check stored legal consent (per device / session)
-  useEffect(() => {
-    const checkLegal = async () => {
-      const consentDate = await getStoredLegalConsent();
-      setHasLegalConsent(!!consentDate);
-      setCheckingLegalConsent(false);
-    };
-    checkLegal();
-  }, []);
+  const justAgreedRef = useRef(false);
 
   // Check if this is first launch
   useEffect(() => {
@@ -330,15 +322,27 @@ export default function App() {
     checkFirstLaunch();
   }, []);
 
-  const handleLegalAccepted = () => {
-    setHasLegalConsent(true);
-  };
-
   // Handle welcome screen choices
   const handleContinueAsGuest = async () => {
+    // Guest flow: Welcome -> Terms -> App
+    // We always require terms for a new Guest session (starting from Welcome screen)
+    // regardless of previous device state, to ensure "One agreement per account".
+    // If the user was already logged in, they wouldn't see the Welcome screen.
+    
+    if (!hasLegalConsent) {
+      setPendingAuthAction('guest');
+      setShowWelcome(false);
+      setShowLegalConsent(true);
+    } else {
+      performGuestLogin();
+    }
+  };
+
+  const performGuestLogin = async () => {
     try {
       await AsyncStorage.setItem('hasLaunchedBefore', 'true');
       setShowWelcome(false);
+      setShowLegalConsent(false);
       setAuthLoading(true);
       // Sign in anonymously immediately
       await signInAnonymously(auth);
@@ -350,28 +354,61 @@ export default function App() {
   };
 
   const handleCreateAccount = async () => {
-    try {
-      await AsyncStorage.setItem('hasLaunchedBefore', 'true');
-      setShowWelcome(false);
-      setAuthMode('signup');
-      setShowAuth(true);
-    } catch (error) {
-      console.error('Error with create account flow:', error);
-    }
+    // Create Account flow: Welcome -> Auth (Enter Data) -> Terms -> App
+    // We do NOT check consent here. We let them go to Auth screen first.
+    proceedToAuth('signup');
   };
 
   const handleLogin = async () => {
+    // Login flow: Welcome -> Auth (Enter Data) -> Terms (if needed) -> App
+    proceedToAuth('login');
+  };
+
+  const proceedToAuth = async (mode) => {
     try {
       await AsyncStorage.setItem('hasLaunchedBefore', 'true');
       setShowWelcome(false);
-      setAuthMode('login');
+      setShowLegalConsent(false);
+      setAuthMode(mode);
       setShowAuth(true);
     } catch (error) {
-      console.error('Error with login flow:', error);
+      console.error('Error with auth flow:', error);
     }
   };
 
-  const handleAuthSuccess = () => {
+  const handleLegalAccepted = async () => {
+    justAgreedRef.current = true;
+    if (user) {
+      const now = new Date().toISOString();
+      await syncLegalConsent(user.uid, now);
+      setHasLegalConsent(true);
+    }
+    setShowLegalConsent(false);
+    
+    if (pendingAuthAction === 'guest') {
+      performGuestLogin();
+    } else {
+      // For signup/login, we are already authenticated (or about to be),
+      // so we just need to clear the blocking state.
+      // The useEffect listener will see user + hasLegalConsent and show the app.
+    }
+    setPendingAuthAction(null);
+  };
+
+  const handleAuthSuccess = async (actualMode) => {
+    // If user logged in (not signed up), we skip the terms check
+    // by marking it as accepted locally AND syncing to DB so they aren't asked later.
+    const mode = actualMode || authMode;
+    if (mode === 'login') {
+      setHasLegalConsent(true);
+      storeLegalConsent();
+      
+      // Backfill consent to Firestore so they aren't asked on next launch (different device/session)
+      if (auth.currentUser) {
+        const now = new Date().toISOString();
+        await syncLegalConsent(auth.currentUser.uid, now);
+      }
+    }
     setShowAuth(false);
     // Auth listener will handle the rest
   };
@@ -384,15 +421,34 @@ export default function App() {
   useEffect(() => {
     // Listen for authentication state changes
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      setAuthLoading(true);
       if (currentUser) {
         // User is signed in
         console.log('User signed in:', currentUser.uid);
         setUser(currentUser);
-        setAuthLoading(false);
+        
+        // Check legal consent from DB (Source of Truth)
+        // If user just agreed in this session (e.g. Guest flow), trust that.
+        let agreed = false;
+        if (justAgreedRef.current) {
+          agreed = true;
+          // Ensure it's synced for Guest flow
+          const now = new Date().toISOString();
+          await syncLegalConsent(currentUser.uid, now);
+          justAgreedRef.current = false; // Reset
+        } else {
+          agreed = await checkUserLegalConsent(currentUser.uid);
+        }
+        
+        setHasLegalConsent(agreed);
         
         // Initialize usage tracking if needed and check monthly bonus
         try {
           await initializeUsageTracking(currentUser.uid, currentUser.isAnonymous ? 'anonymous' : 'free');
+          
+          // Removed automatic sync here to avoid overwriting with AsyncStorage data
+          // await syncLegalConsent(currentUser.uid);
+
           const bonusResult = await checkAndApplyMonthlyBonus(currentUser.uid);
           
           // Don't show alert here - Profile screen will handle it
@@ -409,8 +465,11 @@ export default function App() {
         // instead of auto-creating anonymous accounts
         console.log('No user found, showing welcome screen');
         setShowWelcome(true);
-        setAuthLoading(false);
+        // Reset legal consent state so next guest session requires agreement
+        setHasLegalConsent(false);
+        justAgreedRef.current = false; // Ensure ref is reset
       }
+      setAuthLoading(false);
     });
     
     return () => unsubscribe();
@@ -418,17 +477,11 @@ export default function App() {
 
   let content = null;
 
-  if (checkingLegalConsent || checkingFirstLaunch) {
+  if (checkingFirstLaunch) {
     content = (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#E11D48" />
       </View>
-    );
-  } else if (!hasLegalConsent) {
-    content = (
-      <LanguageProvider>
-        <LegalConsentScreen onAccepted={handleLegalAccepted} />
-      </LanguageProvider>
     );
   } else if (showWelcome) {
     content = (
@@ -438,6 +491,12 @@ export default function App() {
           onCreateAccount={handleCreateAccount}
           onLogin={handleLogin}
         />
+      </LanguageProvider>
+    );
+  } else if (showLegalConsent) {
+    content = (
+      <LanguageProvider>
+        <LegalConsentScreen onAccepted={handleLegalAccepted} />
       </LanguageProvider>
     );
   } else if (showAuth) {
@@ -463,6 +522,13 @@ export default function App() {
         <Text style={styles.errorText}>⚠️ Authentication Error</Text>
         <Text style={styles.errorSubtext}>Please restart the app</Text>
       </View>
+    );
+  } else if (!hasLegalConsent) {
+    // Post-Auth Gate: If user is logged in but hasn't agreed, show consent screen
+    content = (
+      <LanguageProvider>
+        <LegalConsentScreen onAccepted={handleLegalAccepted} />
+      </LanguageProvider>
     );
   } else {
     content = (

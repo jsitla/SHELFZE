@@ -14,10 +14,6 @@ const vertexAI = new VertexAI({
 });
 
 const generativeModel = vertexAI.getGenerativeModel({
-  model: "gemini-2.5-pro-001",
-});
-
-const flashModel = vertexAI.getGenerativeModel({
   model: "gemini-2.0-flash-001",
 });
 
@@ -102,10 +98,10 @@ exports.analyzeImage = onRequest({
 
     // If video, skip Vision API and go straight to Gemini
     if (mimeType.startsWith("video/")) {
-      console.log("Processing video with Gemini (Flash model)...");
+      console.log("Processing video with Gemini...");
       try {
         geminiResult = await analyzeWithGemini(
-            imageData, targetLanguage, mimeType, true,
+            imageData, targetLanguage, mimeType,
         );
         console.log("Gemini video analysis result:", geminiResult);
       } catch (error) {
@@ -272,15 +268,14 @@ exports.analyzeImage = onRequest({
  * @param {string} base64Image - Base64 encoded image
  * @param {string} targetLang - Target language code
  * @param {string} mimeType - Mime type of the media (image/jpeg, video/mp4)
- * @param {boolean} useFlash - Whether to use the Flash model (better for video)
  * @return {Object} Intelligent analysis with specific product details
  */
 async function analyzeWithGemini(
-    base64Image, targetLang = "en", mimeType = "image/jpeg", useFlash = false,
+    base64Image, targetLang = "en", mimeType = "image/jpeg",
 ) {
   try {
     console.log("=== GEMINI ANALYSIS START ===");
-    console.log("Model:", useFlash ? "Gemini 2.0 Flash" : "Gemini 2.5 Pro");
+    console.log("Model: Gemini 2.0 Flash");
     console.log("Image data length:", base64Image ? base64Image.length : 0);
     console.log("Target language:", targetLang);
     console.log("Mime Type:", mimeType);
@@ -357,9 +352,7 @@ JSON response:
 Remember: If the media contains NO food items, return {"items": [], ` +
 `"totalItems": 0}`;
 
-    const modelToUse = useFlash ? flashModel : generativeModel;
-
-    const result = await modelToUse.generateContent({
+    const result = await generativeModel.generateContent({
       contents: [{
         role: "user",
         parts: [
@@ -1372,6 +1365,43 @@ exports.initializeUsage = onRequest({cors: true}, async (req, res) => {
     res.status(200).json(initialData);
   } catch (error) {
     console.error("Error initializing usage:", error);
+    res.status(500).json({error: "Internal server error"});
+  }
+});
+
+exports.recordLegalConsent = onRequest({cors: true}, async (req, res) => {
+  if (req.method !== "POST") {
+    res.status(405).json({error: "Method not allowed. Use POST."});
+    return;
+  }
+
+  try {
+    const uid = await verifyAuth(req);
+    if (!uid) {
+      res.status(401).json({error: "Unauthorized"});
+      return;
+    }
+
+    const {consentDate, termsVersion, privacyVersion} = req.body;
+    
+    const db = admin.firestore();
+    const userRef = db.collection("users").doc(uid);
+
+    await userRef.set({
+      legalConsent: {
+        accepted: true,
+        acceptedAt: consentDate ?
+            new Date(consentDate) :
+            admin.firestore.FieldValue.serverTimestamp(),
+        recordedAt: admin.firestore.FieldValue.serverTimestamp(),
+        termsVersion: termsVersion || "1.0",
+        privacyVersion: privacyVersion || "1.0",
+      },
+    }, {merge: true});
+
+    res.status(200).json({success: true});
+  } catch (error) {
+    console.error("Error recording legal consent:", error);
     res.status(500).json({error: "Internal server error"});
   }
 });
