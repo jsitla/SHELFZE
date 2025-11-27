@@ -318,7 +318,10 @@ export default function RecipeGenerator() {
 
       if (!response.ok) {
         if (__DEV__) console.error('Recipe generation failed:', result);
-        throw new Error(result.error || result.message || 'Failed to generate recipes');
+        const errorMessage = result.details 
+          ? `${result.error}: ${result.details}`
+          : (result.error || result.message || 'Failed to generate recipes');
+        throw new Error(errorMessage);
       }
 
       const recipes = Array.isArray(result.recipes) ? result.recipes : [];
@@ -646,7 +649,10 @@ export default function RecipeGenerator() {
       const result = await response.json();
       
       if (!response.ok) {
-        throw new Error(result.error || 'Failed to get recipe details');
+        const errorMessage = result.details 
+          ? `${result.error}: ${result.details}`
+          : (result.error || result.message || 'Failed to get recipe details');
+        throw new Error(errorMessage);
       }
 
       setRecipeDetails(result);

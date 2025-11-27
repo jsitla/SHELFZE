@@ -14,7 +14,7 @@ const vertexAI = new VertexAI({
 });
 
 const generativeModel = vertexAI.getGenerativeModel({
-  model: "gemini-2.0-flash-001",
+  model: "gemini-1.5-flash-001",
 });
 
 /**
@@ -908,7 +908,10 @@ exports.generateRecipes = onRequest({cors: true}, async (req, res) => {
     }
   } catch (error) {
     console.error("Error generating recipes:", error);
-    res.status(500).json({error: "Failed to generate recipes"});
+    res.status(500).json({
+      error: "Failed to generate recipes",
+      details: error.message,
+    });
   }
 });
 
@@ -1057,7 +1060,10 @@ exports.getRecipeDetails = onRequest({cors: true}, async (req, res) => {
     }
   } catch (error) {
     console.error("Error getting recipe details:", error);
-    res.status(500).json({error: "Failed to get recipe details"});
+    res.status(500).json({
+      error: "Failed to get recipe details",
+      details: error.message,
+    });
   }
 });
 
