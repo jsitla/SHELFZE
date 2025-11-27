@@ -805,6 +805,14 @@ exports.generateRecipes = onRequest({cors: true}, async (req, res) => {
     promptLines.push("9. To reach the target of 5-7 recipes, consider " +
         "different cooking styles (e.g., roasted vs. boiled vs. stir-fried).");
     promptLines.push("");
+    promptLines.push("🚨 RECIPE SELECTION GUIDELINES:");
+    promptLines.push("1. **PRIORITIZE POPULAR DISHES**: At least 50% of " +
+        "the recipes MUST be widely recognized, classic dishes.");
+    promptLines.push("2. Avoid obscure or overly experimental combinations " +
+        "for the majority of suggestions.");
+    promptLines.push("3. Ensure the recipe names are recognizable to the " +
+        "average home cook.");
+    promptLines.push("");
     promptLines.push("🚨 FLAVOR VALIDATION:");
     promptLines.push("- Every recipe needs contrast (texture, flavor, temp)");
     promptLines.push("- Consider: Is this genuinely tasty or just edible?");
