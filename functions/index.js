@@ -19,9 +19,9 @@ const cameraModel = vertexAI.getGenerativeModel({
 });
 
 // Model for Recipe Generation
-// User requested 2.5, using the latest available 2.0 Flash Experimental model.
+// User requested Gemini 2.5; use flash variant for richer outputs.
 const recipeModel = vertexAI.getGenerativeModel({
-  model: "gemini-2.0-flash-exp",
+  model: "gemini-2.5-flash",
 });
 
 /**
