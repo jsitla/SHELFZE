@@ -15,13 +15,18 @@ const vertexAI = new VertexAI({
 
 // Model for Camera/Image Analysis (Keep as requested)
 const cameraModel = vertexAI.getGenerativeModel({
-  model: "gemini-1.5-flash-001",
+  model: "gemini-2.0-flash-exp",
 });
 
 // Model for Recipe Generation
 // User requested Gemini 2.5; use flash variant for richer outputs.
 const recipeModel = vertexAI.getGenerativeModel({
   model: "gemini-2.5-flash",
+});
+
+// Model for Fast Filtering (Retrieval)
+const filterModel = vertexAI.getGenerativeModel({
+  model: "gemini-2.0-flash-exp",
 });
 
 /**
@@ -640,6 +645,25 @@ function formatDate(dateString) {
   }
 }
 
+/**
+ * Helper to normalize text for search tags
+ * @param {string} text - Text to normalize
+ * @return {Array<string>} Array of normalized keywords
+ */
+function normalizeForSearch(text) {
+  if (!text) return [];
+  // Exclude staples to prevent search pollution
+  const staples = [
+    "salt", "pepper", "oil", "water", "sugar", "flour", "butter",
+  ];
+  return text.toLowerCase()
+      .replace(/[^a-z0-9\s]/g, "")
+      .split(/\s+/)
+      .filter((w) => w.length > 2 &&
+      !["fresh", "canned", "frozen", "dried", "ground", "whole"].includes(w) &&
+      !staples.includes(w));
+}
+
 exports.generateRecipes = onRequest({
   cors: true,
   timeoutSeconds: 300,
@@ -770,8 +794,19 @@ exports.generateRecipes = onRequest({
       return;
     }
 
-    const prompt = `
-You are an experienced professional chef. Create ${maxRecipeCount} recipes ` +
+    // --- HYBRID RECIPE ENGINE START ---
+
+    // 1. Prepare Search Tags
+    const userSearchTags = [...new Set(
+        filteredIngredients.flatMap((i) => normalizeForSearch(i)),
+    )].slice(0, 10); // Limit to 10 for Firestore query
+
+    // 2. Define Parallel Tasks
+    const generateNewTask = async () => {
+      // Reduce max count for generation if we are also retrieving
+      const genCount = Math.min(maxRecipeCount, 3); // Generate max 3 new ones
+      const prompt = `
+You are an experienced professional chef. Create ${genCount} recipes ` +
 `based on these ingredients: ${filteredIngredients.join(", ")}.
 
 TARGET LANGUAGE: ${targetLanguageName} (ALL output must be in this language).
@@ -813,67 +848,167 @@ ${userGuidance && userGuidance.trim() ?
     `USER REQUEST: ${userGuidance.trim()}` : ""}
 `;
 
-    const result = await recipeModel.generateContent({
-      contents: [{
-        role: "user",
-        parts: [{text: prompt}],
-      }],
-      generationConfig: {
-        responseMimeType: "application/json",
-      },
-    });
-
-    const response = await result.response;
-    let responseText = "";
-    if (
-      response.candidates &&
-      response.candidates[0] &&
-      response.candidates[0].content &&
-      response.candidates[0].content.parts &&
-      response.candidates[0].content.parts[0]
-    ) {
-      responseText = response.candidates[0].content.parts[0].text || "";
-    }
-
-    console.log("Gemini recipe suggestions:", responseText);
-
-    // Parse JSON directly since we requested JSON mode
-    try {
-      const parsed = JSON.parse(responseText);
-      const recipesArray = Array.isArray(parsed.recipes) ? parsed.recipes : [];
-      
-      await usageRef.update({
-        recipesRemaining: admin.firestore.FieldValue.increment(-1),
-        totalRecipesUsed: admin.firestore.FieldValue.increment(1),
+      const result = await recipeModel.generateContent({
+        contents: [{role: "user", parts: [{text: prompt}]}],
+        generationConfig: {responseMimeType: "application/json"},
       });
 
-      const payload = {
-        recipes: recipesArray.slice(0, maxRecipeCount),
-      };
-
-      if (ingredientCount <= 3) {
-        payload.note =
-          "Pantry ingredient count is low, so recipe variety is limited.";
-        payload.noteCode = "limited_pantry_low";
+      const response = await result.response;
+      let text = "";
+      if (response.candidates && response.candidates[0] &&
+          response.candidates[0].content &&
+          response.candidates[0].content.parts &&
+          response.candidates[0].content.parts[0]) {
+        text = response.candidates[0].content.parts[0].text || "";
       }
 
-      res.status(200).json(payload);
-    } catch (e) {
-      console.error("Failed to parse JSON response:", e);
-      // Fallback to regex if JSON mode failed for some reason
-      const jsonMatch = responseText.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        const parsed = JSON.parse(jsonMatch[0]);
-        // ... (rest of logic same as above)
-        await usageRef.update({
-          recipesRemaining: admin.firestore.FieldValue.increment(-1),
-          totalRecipesUsed: admin.firestore.FieldValue.increment(1),
+      try {
+        const parsed = JSON.parse(text);
+        return Array.isArray(parsed.recipes) ? parsed.recipes : [];
+      } catch (e) {
+        console.error("Failed to parse generated recipes:", e);
+        return [];
+      }
+    };
+
+    const retrieveExistingTask = async () => {
+      if (userSearchTags.length === 0) return [];
+
+      try {
+        // Broad search in global repository
+        const snapshot = await db.collection("global_recipes")
+            .where("language", "==", targetLanguage) // Filter by language
+            .where("searchTags", "array-contains-any", userSearchTags)
+            .orderBy("rating", "desc") // Prioritize high rated
+            .limit(20)
+            .get();
+
+        if (snapshot.empty) return [];
+
+        const candidates = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+
+        // Use Gemini Flash to filter candidates
+        const filterPrompt = `
+You are a smart recipe filter.
+User Ingredients: ${filteredIngredients.join(", ")}
+Candidate Recipes:
+${JSON.stringify(candidates.map((c, i) => ({
+    id: i,
+    name: c.name,
+    ingredients: c.ingredients,
+  })))}
+
+Task: Select up to 3 recipes from the candidates that can be made PRIMARILY ` +
+`using the User Ingredients. It is acceptable if 1-2 minor common ` +
+`ingredients (like spices, garlic, onion) are missing.
+Return JSON: {"selectedIds": [0, 2]}
+If none fit well, return {"selectedIds": []}
+`;
+
+        const filterResult = await filterModel.generateContent({
+          contents: [{role: "user", parts: [{text: filterPrompt}]}],
+          generationConfig: {responseMimeType: "application/json"},
         });
-        res.status(200).json({recipes: parsed.recipes || []});
-      } else {
-        res.status(500).json({error: "Failed to parse recipe suggestions"});
+
+        const filterResponse = await filterResult.response;
+        let filterText = "";
+        if (filterResponse.candidates && filterResponse.candidates[0] &&
+            filterResponse.candidates[0].content &&
+            filterResponse.candidates[0].content.parts &&
+            filterResponse.candidates[0].content.parts[0]) {
+          filterText = filterResponse.candidates[0].content.parts[0].text || "";
+        }
+
+        const filterParsed = JSON.parse(filterText);
+        const selectedIndices = filterParsed.selectedIds || [];
+
+        return selectedIndices.map((i) => candidates[i]).filter((r) => r);
+      } catch (error) {
+        console.error("Error retrieving existing recipes:", error);
+        return [];
+      }
+    };
+
+    // Execute tasks in parallel
+    const [newRecipes, existingRecipes] = await Promise.all([
+      generateNewTask(),
+      retrieveExistingTask(),
+    ]);
+
+    console.log(`Generated: ${newRecipes.length}, ` +
+        `Retrieved: ${existingRecipes.length}`);
+
+    // 3. Background Save (Fire and Forget)
+    // Save ONLY the newly generated recipes to the global repo
+    const savePromises = newRecipes.map(async (recipe) => {
+      try {
+        // Strip user specific data
+        const {
+          name, emoji, description, prepTime, cookTime, servings,
+          difficulty, cuisine, skillLevel, nutrition, ingredients,
+          instructions, tips,
+        } = recipe;
+
+        // Generate search tags
+        const searchTags = [...new Set(
+            ingredients.flatMap((i) => normalizeForSearch(i)),
+        )];
+
+        const docRef = await db.collection("global_recipes").add({
+          name, emoji, description, prepTime, cookTime, servings,
+          difficulty, cuisine, skillLevel, nutrition, ingredients,
+          instructions, tips,
+          searchTags,
+          rating: 0,
+          ratingCount: 0,
+          createdAt: admin.firestore.FieldValue.serverTimestamp(),
+          language: targetLanguage, // Save language context
+        });
+        return {...recipe, id: docRef.id};
+      } catch (e) {
+        console.error("Error saving global recipe:", e);
+        return recipe;
+      }
+    });
+
+    // We await savePromises to ensure we get the IDs back
+    const savedNewRecipes = await Promise.all(savePromises);
+
+    // --- HYBRID RECIPE ENGINE END ---
+
+    await usageRef.update({
+      recipesRemaining: admin.firestore.FieldValue.increment(-1),
+      totalRecipesUsed: admin.firestore.FieldValue.increment(1),
+    });
+
+    // Combine and Deduplicate (using savedNewRecipes which have IDs)
+    const allRecipes = [...existingRecipes, ...savedNewRecipes];
+    const uniqueRecipes = [];
+    const seenNames = new Set();
+
+    for (const r of allRecipes) {
+      if (!seenNames.has(r.name)) {
+        seenNames.add(r.name);
+        uniqueRecipes.push(r);
       }
     }
+
+    const finalRecipes = uniqueRecipes.slice(0, maxRecipeCount);
+
+    const payload = {
+      recipes: finalRecipes,
+    };
+
+    if (ingredientCount <= 3) {
+      payload.note =
+        "Pantry ingredient count is low, so recipe variety is limited.";
+      payload.noteCode = "limited_pantry_low";
+    }
+
+    res.status(200).json(payload);
   } catch (error) {
     console.error("Error generating recipes:", error);
     res.status(500).json({
@@ -1383,3 +1518,435 @@ exports.recordLegalConsent = onRequest({cors: true}, async (req, res) => {
     res.status(500).json({error: "Internal server error"});
   }
 });
+
+exports.rateRecipe = onRequest({cors: true}, async (req, res) => {
+  if (req.method !== "POST") {
+    res.status(405).json({error: "Method not allowed. Use POST."});
+    return;
+  }
+
+  try {
+    const uid = await verifyAuth(req);
+    if (!uid) {
+      res.status(401).json({error: "Unauthorized"});
+      return;
+    }
+
+    const {recipeId, rating} = req.body;
+    if (!recipeId || !rating) {
+      res.status(400).json({error: "Missing recipeId or rating"});
+      return;
+    }
+
+    const db = admin.firestore();
+    const recipeRef = db.collection("global_recipes").doc(recipeId);
+
+    await db.runTransaction(async (t) => {
+      const doc = await t.get(recipeRef);
+      if (!doc.exists) {
+        // If it's not a global recipe, we can't rate it globally.
+        return;
+      }
+
+      const data = doc.data();
+      const currentRating = data.rating || 0;
+      const currentCount = data.ratingCount || 0;
+
+      const newCount = currentCount + 1;
+      const newRating = ((currentRating * currentCount) + rating) / newCount;
+
+      t.update(recipeRef, {
+        rating: newRating,
+        ratingCount: newCount,
+      });
+    });
+
+    res.status(200).json({success: true});
+  } catch (error) {
+    console.error("Error rating recipe:", error);
+    res.status(500).json({error: "Internal server error"});
+  }
+});
+
+/**
+ * Firestore Trigger for Job-Based Recipe Generation
+ * Listens for new documents in users/{userId}/recipe_requests
+ */
+exports.onRecipeRequestCreated = functions
+    .runWith({
+      memory: "1GB",
+      timeoutSeconds: 300,
+    })
+    .firestore
+    .document("users/{userId}/recipe_requests/{requestId}")
+    .onCreate(async (snap, context) => {
+      const requestId = context.params.requestId;
+      const userId = context.params.userId;
+      const requestData = snap.data();
+
+      console.log(`Processing recipe request ${requestId} for user ${userId}`);
+
+      try {
+        const db = admin.firestore();
+        const usageRef = db.collection("users").doc(userId)
+            .collection("usage").doc("current");
+        
+        // 1. Check Usage Quota
+        const usageDoc = await usageRef.get();
+        let usageData = usageDoc.exists ? usageDoc.data() : null;
+
+        if (!usageData) {
+          // Initialize if missing (should exist, but safety first)
+          usageData = {
+            tier: "anonymous",
+            scansRemaining: 10,
+            recipesRemaining: 10,
+            totalScansUsed: 0,
+            totalRecipesUsed: 0,
+            lastMonthlyBonusDate: admin.firestore.FieldValue.serverTimestamp(),
+            createdAt: admin.firestore.FieldValue.serverTimestamp(),
+            resetDate: null,
+          };
+          await usageRef.set(usageData);
+        }
+
+        if (usageData.recipesRemaining <= 0) {
+          await snap.ref.update({
+            status: "error",
+            error: "No recipes remaining.",
+            errorCode: "quota_exceeded",
+          });
+          return;
+        }
+
+        // 2. Validate Input
+        const {
+          ingredients,
+          language,
+          dishCategory,
+          maxRecipes,
+          userGuidance,
+        } = requestData;
+
+        if (!ingredients) {
+          await snap.ref.update({
+            status: "error",
+            error: "No ingredients provided",
+          });
+          return;
+        }
+
+        // Update status to processing
+        await snap.ref.update({status: "processing"});
+
+        const targetLanguage = language || "en";
+        const selectedDishType = dishCategory || "mainCourse";
+
+        const langNames = {
+          en: "English", es: "Spanish", fr: "French", de: "German",
+          it: "Italian", pt: "Portuguese", ru: "Russian", zh: "Chinese",
+          ja: "Japanese", ko: "Korean", ar: "Arabic", hi: "Hindi",
+          tr: "Turkish", pl: "Polish", nl: "Dutch",
+          sl: "Slovenian", hr: "Croatian", sr: "Serbian",
+        };
+        const targetLanguageName = langNames[targetLanguage] || "English";
+
+        const dishCategoryMap = {
+          mainCourse: "Main Course / Dinner Entrée",
+          appetizer: "Appetizer / Starter",
+          dessert: "Dessert / Sweet Dish",
+          breakfast: "Breakfast / Brunch",
+          soupSalad: "Soup / Salad",
+          snack: "Snack / Light Bite",
+        };
+        const dishTypeDescription = dishCategoryMap[selectedDishType] ||
+            "Main Course";
+
+        const ingredientsArray = Array.isArray(ingredients) ? ingredients :
+            (typeof ingredients === "string" ?
+                ingredients.split(",").map((i) => i.trim()) : []);
+
+        const filteredIngredients = ingredientsArray.filter((item) => {
+          if (!item || typeof item !== "string") return false;
+          const name = item.toLowerCase();
+          const isBeverage = name.includes("water") || name.includes("juice") ||
+                            name.includes("soda") || name.includes("cola") ||
+                            name.includes("beer") || name.includes("wine") ||
+                            name.includes("coffee") || name.includes("tea");
+          const isCookingIngredient = name.includes("milk") ||
+                                      name.includes("cream") ||
+                                      name.includes("broth") ||
+                                      name.includes("stock");
+          return !isBeverage || isCookingIngredient;
+        });
+
+        const ingredientCount = filteredIngredients.length;
+        let maxRecipeCount = 7;
+        if (typeof maxRecipes === "number" && maxRecipes > 0) {
+          maxRecipeCount = maxRecipes;
+        } else {
+          if (ingredientCount <= 2) maxRecipeCount = 0;
+          else if (ingredientCount === 3) maxRecipeCount = 3;
+          else if (ingredientCount <= 5) maxRecipeCount = 4;
+        }
+
+        if (maxRecipeCount === 0) {
+          await snap.ref.update({
+            status: "completed",
+            recipes: [],
+            note: "Not enough ingredients available to confidently suggest " +
+              "recipes. Add more pantry items and try again.",
+            noteCode: "limited_pantry_none",
+          });
+          return;
+        }
+
+        // --- HYBRID RECIPE ENGINE START ---
+
+        // 1. Prepare Search Tags
+        const userSearchTags = [...new Set(
+            filteredIngredients.flatMap((i) => normalizeForSearch(i)),
+        )].slice(0, 10);
+
+        // 2. Define Parallel Tasks
+        const generateNewTask = async () => {
+          const genCount = Math.min(maxRecipeCount, 3);
+          const prompt = `
+You are an experienced professional chef. Create ${genCount} recipes ` +
+`based on these ingredients: ${filteredIngredients.join(", ")}.
+
+TARGET LANGUAGE: ${targetLanguageName} (ALL output must be in this language).
+DISH TYPE: ${dishTypeDescription}
+
+STRICT GUIDELINES:
+1. USE PROVIDED INGREDIENTS. You may assume basic staples ` +
+`(Salt, Pepper, Oil, Water, Sugar).
+2. If a recipe requires other ingredients not listed, DO NOT suggest it, ` +
+`or adapt it to use what is available.
+3. Recipes must be delicious, tested, and achievable.
+4. Provide accurate nutrition estimates per serving.
+
+RESPONSE FORMAT:
+Return a raw JSON object with a "recipes" array. Each recipe object must ` +
+`match this schema:
+{
+  "name": "Recipe Name",
+  "emoji": "🍲",
+  "description": "Appetizing summary",
+  "prepTime": "15 minutes",
+  "cookTime": "30 minutes",
+  "servings": "4",
+  "difficulty": "Easy/Medium/Hard",
+  "cuisine": "Cuisine Type",
+  "skillLevel": "Beginner/Intermediate/Advanced",
+  "nutrition": {
+    "calories": 450,
+    "protein": "25g",
+    "carbs": "35g",
+    "fat": "18g"
+  },
+  "ingredients": ["List of ingredients with quantities"],
+  "instructions": ["Step 1", "Step 2"],
+  "tips": ["Chef tip 1"]
+}
+
+${userGuidance && userGuidance.trim() ?
+    `USER REQUEST: ${userGuidance.trim()}` : ""}
+`;
+
+          const result = await recipeModel.generateContent({
+            contents: [{role: "user", parts: [{text: prompt}]}],
+            generationConfig: {responseMimeType: "application/json"},
+          });
+
+          const response = await result.response;
+          let text = "";
+          if (response.candidates && response.candidates[0] &&
+              response.candidates[0].content &&
+              response.candidates[0].content.parts &&
+              response.candidates[0].content.parts[0]) {
+            text = response.candidates[0].content.parts[0].text || "";
+          }
+
+          try {
+            // Extract JSON from potential Markdown code blocks
+            const jsonMatch = text.match(/\{[\s\S]*\}/);
+            const jsonString = jsonMatch ? jsonMatch[0] : text;
+            const parsed = JSON.parse(jsonString);
+            return Array.isArray(parsed.recipes) ? parsed.recipes : [];
+          } catch (e) {
+            console.error("Failed to parse generated recipes:", e);
+            console.error("Raw text was:", text);
+            return [];
+          }
+        };
+
+        const retrieveExistingTask = async () => {
+          console.log("Retrieval Task: Starting...");
+          console.log("User Search Tags:", userSearchTags);
+
+          if (userSearchTags.length === 0) {
+            console.log("Retrieval Task: No search tags, skipping.");
+            return [];
+          }
+
+          let snapshot = null;
+          try {
+            snapshot = await db.collection("global_recipes")
+                .where("language", "==", targetLanguage)
+                .where("searchTags", "array-contains-any", userSearchTags)
+                .orderBy("rating", "desc")
+                .limit(20)
+                .get();
+
+            console.log(`Retrieval Task: Found ${snapshot.size} candidates.`);
+
+            if (snapshot.empty) return [];
+
+            const candidates = snapshot.docs.map((doc) => ({
+              id: doc.id,
+              ...doc.data(),
+            }));
+
+            const filterPrompt = `
+You are a smart recipe filter.
+User Ingredients: ${filteredIngredients.join(", ")}
+Candidate Recipes:
+${JSON.stringify(candidates.map((c, i) => ({
+    id: i,
+    name: c.name,
+    ingredients: c.ingredients,
+  })))}
+
+Task: Select up to 3 recipes from the candidates that can be made PRIMARILY ` +
+`using the User Ingredients. It is acceptable if 1-2 minor common ` +
+`ingredients (like spices, garlic, onion) are missing.
+Return JSON: {"selectedIds": [0, 2]}
+If none fit well, return {"selectedIds": []}
+`;
+
+            const filterResult = await filterModel.generateContent({
+              contents: [{role: "user", parts: [{text: filterPrompt}]}],
+              generationConfig: {responseMimeType: "application/json"},
+            });
+
+            const filterResponse = await filterResult.response;
+            let filterText = "";
+            if (filterResponse.candidates && filterResponse.candidates[0] &&
+                filterResponse.candidates[0].content &&
+                filterResponse.candidates[0].content.parts &&
+                filterResponse.candidates[0].content.parts[0]) {
+              filterText =
+                filterResponse.candidates[0].content.parts[0].text || "";
+            }
+
+            console.log("Retrieval Task: Filter response:", filterText);
+
+            // Extract JSON from potential Markdown code blocks
+            const jsonMatch = filterText.match(/\{[\s\S]*\}/);
+            const jsonString = jsonMatch ? jsonMatch[0] : filterText;
+            const filterParsed = JSON.parse(jsonString);
+            const selectedIndices = filterParsed.selectedIds || [];
+
+            const finalSelection = selectedIndices.map((i) => candidates[i])
+                .filter((r) => r);
+            console.log(
+                `Retrieval Task: Selected ${finalSelection.length} recipes.`,
+            );
+            return finalSelection;
+          } catch (error) {
+            console.error("Error retrieving existing recipes:", error);
+            // Fallback: If AI filtering fails, return top 3 rated candidates
+            // This ensures we don't return empty if we found matches in DB
+            if (snapshot && !snapshot.empty) {
+              console.log("Falling back to top 3 rated recipes due to error.");
+              const candidates = snapshot.docs.map((doc) => ({
+                id: doc.id,
+                ...doc.data(),
+              }));
+              return candidates.slice(0, 3);
+            }
+            return [];
+          }
+        };
+
+        // Execute tasks in parallel
+        const [newRecipes, existingRecipes] = await Promise.all([
+          generateNewTask(),
+          retrieveExistingTask(),
+        ]);
+
+        // 3. Background Save (Fire and Forget)
+        const savePromises = newRecipes.map(async (recipe) => {
+          try {
+            const {
+              name, emoji, description, prepTime, cookTime, servings,
+              difficulty, cuisine, skillLevel, nutrition, ingredients,
+              instructions, tips,
+            } = recipe;
+
+            const searchTags = [...new Set(
+                ingredients.flatMap((i) => normalizeForSearch(i)),
+            )];
+
+            const docRef = await db.collection("global_recipes").add({
+              name, emoji, description, prepTime, cookTime, servings,
+              difficulty, cuisine, skillLevel, nutrition, ingredients,
+              instructions, tips,
+              searchTags,
+              rating: 0,
+              ratingCount: 0,
+              createdAt: admin.firestore.FieldValue.serverTimestamp(),
+              language: targetLanguage,
+            });
+            return {...recipe, id: docRef.id};
+          } catch (e) {
+            console.error("Error saving global recipe:", e);
+            return recipe;
+          }
+        });
+
+        const savedNewRecipes = await Promise.all(savePromises);
+
+        // --- HYBRID RECIPE ENGINE END ---
+
+        await usageRef.update({
+          recipesRemaining: admin.firestore.FieldValue.increment(-1),
+          totalRecipesUsed: admin.firestore.FieldValue.increment(1),
+        });
+
+        const allRecipes = [...existingRecipes, ...savedNewRecipes];
+        const uniqueRecipes = [];
+        const seenNames = new Set();
+
+        for (const r of allRecipes) {
+          if (!seenNames.has(r.name)) {
+            seenNames.add(r.name);
+            uniqueRecipes.push(r);
+          }
+        }
+
+        const finalRecipes = uniqueRecipes.slice(0, maxRecipeCount);
+
+        const payload = {
+          status: "completed",
+          recipes: finalRecipes,
+          completedAt: admin.firestore.FieldValue.serverTimestamp(),
+        };
+
+        if (ingredientCount <= 3) {
+          payload.note =
+            "Pantry ingredient count is low, so recipe variety is limited.";
+          payload.noteCode = "limited_pantry_low";
+        }
+
+        await snap.ref.update(payload);
+      } catch (error) {
+        console.error("Error processing recipe request:", error);
+        await snap.ref.update({
+          status: "error",
+          error: "Failed to generate recipes",
+          details: error.message,
+        });
+      }
+    });

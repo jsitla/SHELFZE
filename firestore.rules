@@ -19,9 +19,24 @@ service cloud.firestore {
       allow read, write, delete: if request.auth.uid == userId;
     }
 
-    // Users can only read/write their own saved recipes
+    // Users can only read/write their own saved recipes (Legacy)
     match /users/{userId}/savedRecipes/{recipeId} {
       allow read, write, delete: if request.auth.uid == userId;
+    }
+
+    // Users can read/write their own recipe collections (Favorites, Cooked, Want to Try)
+    match /users/{userId}/recipeCollections/{collectionId} {
+      allow read, write, delete: if request.auth.uid == userId;
+    }
+
+    // Users can read/write their own recipe ratings
+    match /users/{userId}/recipeRatings/{ratingId} {
+      allow read, write: if request.auth.uid == userId;
+    }
+
+    // Allow users to create recipe requests (for job-based generation)
+    match /users/{userId}/recipe_requests/{requestId} {
+      allow read, write: if request.auth.uid == userId;
     }
 
     // Usage data: users can read their own, but only cloud functions can write/update it

@@ -10,4 +10,5 @@ export const config = {
   upgradeTier: 'https://us-central1-pantryai-3d396.cloudfunctions.net/upgradeTier',
   redeemGiftCode: 'https://us-central1-pantryai-3d396.cloudfunctions.net/redeemGiftCode',
   recordLegalConsent: 'https://us-central1-pantryai-3d396.cloudfunctions.net/recordLegalConsent',
+  rateRecipe: 'https://us-central1-pantryai-3d396.cloudfunctions.net/rateRecipe',
 };

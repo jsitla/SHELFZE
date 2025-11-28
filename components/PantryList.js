@@ -569,18 +569,18 @@ export default function PantryList({ navigation }) {
         renderItem={renderItem}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.listContainer}
+        ListFooterComponent={
+          items.length > 0 ? (
+            <TouchableOpacity
+              style={styles.clearAllButton}
+              onPress={clearAllInventory}
+            >
+              <Text style={styles.clearAllButtonText}>🗑️</Text>
+              <Text style={styles.clearAllButtonLabel}>{t('clearAll', language)}</Text>
+            </TouchableOpacity>
+          ) : null
+        }
       />
-
-      {/* Clear All Button - Bottom Right */}
-      {items.length > 0 && (
-        <TouchableOpacity
-          style={styles.clearAllButton}
-          onPress={clearAllInventory}
-        >
-          <Text style={styles.clearAllButtonText}>🗑️</Text>
-          <Text style={styles.clearAllButtonLabel}>{t('clearAll', language)}</Text>
-        </TouchableOpacity>
-      )}
 
       {/* Edit Modal */}
       <Modal
@@ -765,24 +765,25 @@ const styles = StyleSheet.create({
   },
   listContainer: {
     padding: 10,
-    paddingBottom: 80,
+    paddingBottom: 20,
   },
   clearAllButton: {
-    position: 'absolute',
-    bottom: 20,
-    right: 20,
     backgroundColor: '#E07A5F', // Terracotta
     paddingHorizontal: 20,
     paddingVertical: 12,
     borderRadius: 30,
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     gap: 8,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 6,
     elevation: 8,
+    marginTop: 20,
+    marginBottom: 20,
+    alignSelf: 'center',
   },
   clearAllButtonText: {
     fontSize: 20,

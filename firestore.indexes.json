@@ -46,6 +46,25 @@
   //     ]
   //   },
   // ]
-  "indexes": [],
+  "indexes": [
+    {
+      "collectionGroup": "global_recipes",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "searchTags",
+          "arrayConfig": "CONTAINS"
+        },
+        {
+          "fieldPath": "language",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "rating",
+          "order": "DESCENDING"
+        }
+      ]
+    }
+  ],
   "fieldOverrides": []
 }

@@ -288,78 +288,80 @@ export default function RecipeGenerator() {
       
       if (ingredients.length === 0) {
         Alert.alert(t('noCookingIngredients', language), t('addFoodIngredients', language));
+        setGeneratingRecipes(false);
         return;
       }
 
-      const idToken = await auth.currentUser.getIdToken();
+      const userId = auth.currentUser.uid;
 
-      const response = await fetchWithTimeout(config.generateRecipes, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${idToken}`
-        },
-        body: JSON.stringify({ 
-          ingredients, 
-          language,
-          dishCategory: selectedDishCategory,
-          maxRecipes: 7, // Request up to 7 recipes
-          userGuidance: userGuidance.trim() // Include user's custom guidance
-        }),
-      }, 90000); // 90 second timeout for recipe generation
+      // Create a new request document (Job-Based Approach)
+      const requestData = {
+        ingredients,
+        language,
+        dishCategory: selectedDishCategory,
+        maxRecipes: 7,
+        userGuidance: userGuidance.trim(),
+        status: 'pending',
+        createdAt: new Date(),
+      };
 
-      if (__DEV__) {
-        console.log('Response status:', response.status);
-        console.log('Response ok:', response.ok);
-      }
+      const docRef = await addDoc(collection(db, `users/${userId}/recipe_requests`), requestData);
+      
+      // Listen for updates on this specific request
+      const unsubscribe = onSnapshot(doc(db, `users/${userId}/recipe_requests`, docRef.id), (docSnapshot) => {
+        const data = docSnapshot.data();
+        if (!data) return;
 
-      const result = await response.json();
-      if (__DEV__) console.log('Recipe generation response:', result);
+        if (data.status === 'completed') {
+          unsubscribe(); // Stop listening
+          
+          const recipes = Array.isArray(data.recipes) ? data.recipes : [];
+          const noteMessage = data.noteCode ? t(data.noteCode, language) : data.note;
+          
+          const sanitizedRecipes = recipes.map((recipe) => ({
+            ...recipe,
+            prepTime: recipe.prepTime || '',
+            cookTime: recipe.cookTime || '',
+          }));
 
-      if (!response.ok) {
-        if (__DEV__) console.error('Recipe generation failed:', result);
-        const errorMessage = result.details 
-          ? `${result.error}: ${result.details}`
-          : (result.error || result.message || 'Failed to generate recipes');
-        throw new Error(errorMessage);
-      }
+          setAllRecipes(sanitizedRecipes);
+          setSuggestedRecipes(sanitizedRecipes);
+          setSelectedTimeFilter('all');
+          setSelectedDietaryFilter('all');
+          setGeneratingRecipes(false);
 
-      const recipes = Array.isArray(result.recipes) ? result.recipes : [];
-      const noteMessage = result.noteCode ? t(result.noteCode, language) : result.note;
-      const sanitizedRecipes = recipes.map((recipe) => ({
-        ...recipe,
-        prepTime: recipe.prepTime || '',
-        cookTime: recipe.cookTime || '',
-      }));
+          if (sanitizedRecipes.length > 0) {
+            // Refresh usage data
+            if (auth.currentUser) {
+              loadUsageData(auth.currentUser.uid);
+            }
 
-      setAllRecipes(sanitizedRecipes); // Store all recipes
-      setSuggestedRecipes(sanitizedRecipes); // Initially show all
-      setSelectedTimeFilter('all'); // Reset time filter
-      setSelectedDietaryFilter('all'); // Reset dietary filter
+            const successMessage =
+              `${t('found', language)} ${sanitizedRecipes.length} ${t('deliciousRecipes', language)}` +
+              (noteMessage ? `\n\n${noteMessage}` : '');
 
-      if (sanitizedRecipes.length > 0) {
-        // Refresh usage data to show updated count (decremented by server)
-        if (auth.currentUser) {
-          loadUsageData(auth.currentUser.uid);
+            Alert.alert(
+              t('recipesReady', language),
+              successMessage,
+              [{ text: 'OK' }]
+            );
+          } else {
+            const emptyMessage = noteMessage || t('tryAddingMore', language);
+            Alert.alert(t('noRecipesFound', language), emptyMessage);
+          }
+        } else if (data.status === 'error') {
+          unsubscribe();
+          setGeneratingRecipes(false);
+          const errorMessage = data.details 
+            ? `${data.error}: ${data.details}`
+            : (data.error || 'Failed to generate recipes');
+          Alert.alert(t('error', language), errorMessage);
         }
+      });
 
-        const successMessage =
-          `${t('found', language)} ${sanitizedRecipes.length} ${t('deliciousRecipes', language)}` +
-          (noteMessage ? `\n\n${noteMessage}` : '');
-
-        Alert.alert(
-          t('recipesReady', language),
-          successMessage,
-          [{ text: 'OK' }]
-        );
-      } else {
-        const emptyMessage = noteMessage || t('tryAddingMore', language);
-        Alert.alert(t('noRecipesFound', language), emptyMessage);
-      }
     } catch (error) {
-      console.error('Error generating recipes:', error);
+      console.error('Error initiating recipe generation:', error);
       Alert.alert(t('error', language), `${t('failedToGenerate', language)}: ${error.message}`);
-    } finally {
       setGeneratingRecipes(false);
     }
   };
@@ -533,6 +535,27 @@ export default function RecipeGenerator() {
 
       await addDoc(collection(db, `users/${userId}/recipeRatings`), ratingData);
       
+      // Update global rating if recipe has an ID (Hybrid Engine)
+      if (selectedRecipe.id) {
+        try {
+          const idToken = await auth.currentUser.getIdToken();
+          // Fire and forget - don't await the result to block UI
+          fetchWithTimeout(config.rateRecipe, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${idToken}`
+            },
+            body: JSON.stringify({
+              recipeId: selectedRecipe.id,
+              rating: rating
+            })
+          }, 10000).catch(err => console.log("Global rating update failed:", err));
+        } catch (e) {
+          console.log("Error initiating global rating update:", e);
+        }
+      }
+
       Alert.alert(
         t('ratingSaved', language) || 'Rating Saved!',
         t('thankYouFeedback', language) || 'Thank you for your feedback!',
