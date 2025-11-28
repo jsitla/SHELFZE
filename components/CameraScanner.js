@@ -56,6 +56,7 @@ export default function CameraScanner({ navigation }) {
   const latestPhotoUriRef = useRef(null);
   const isCameraReadyRef = useRef(false);
   const cameraReadyTimestampRef = useRef(0);
+  const lastToggleTime = useRef(0);
   const [isCameraReady, setIsCameraReady] = useState(false);
   const cameraReadyResolvers = useRef([]);
   const { language } = useLanguage(); // Get current language
@@ -491,6 +492,13 @@ export default function CameraScanner({ navigation }) {
 
   // Toggle between photo and video mode
   const toggleCaptureMode = () => {
+    const now = Date.now();
+    if (now - lastToggleTime.current < 1500) {
+      console.log('[ACTION] Toggle ignored - throttling active');
+      return;
+    }
+    lastToggleTime.current = now;
+
     console.log(`[ACTION] Toggling capture mode from ${captureMode} to ${captureMode === 'photo' ? 'video' : 'photo'}`);
     if (isRecording) {
       Alert.alert('Recording in Progress', 'Please stop recording first.');
