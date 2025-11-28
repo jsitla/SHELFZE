@@ -741,7 +741,7 @@ exports.generateRecipes = onRequest({
       appetizer: "Appetizer / Starter",
       dessert: "Dessert / Sweet Dish",
       breakfast: "Breakfast / Brunch",
-      soupSalad: "Soup / Salad",
+      soupSalad: "Soup, Stew, or Salad",
       snack: "Snack / Light Bite",
     };
     const dishTypeDescription = dishCategoryMap[selectedDishType] ||
@@ -813,12 +813,20 @@ TARGET LANGUAGE: ${targetLanguageName} (ALL output must be in this language).
 DISH TYPE: ${dishTypeDescription}
 
 STRICT GUIDELINES:
-1. USE PROVIDED INGREDIENTS. You may assume basic staples ` +
+1. USE PROVIDED INGREDIENTS that are appropriate for the requested ` +
+`DISH TYPE. You may assume basic staples ` +
 `(Salt, Pepper, Oil, Water, Sugar).
 2. If a recipe requires other ingredients not listed, DO NOT suggest it, ` +
 `or adapt it to use what is available.
-3. Recipes must be delicious, tested, and achievable.
-4. Provide accurate nutrition estimates per serving.
+3. **NEVER** include meat, fish, or poultry unless it is explicitly ` +
+`listed in the provided ingredients.
+4. **NEVER** include savory ingredients (meat, fish, poultry, garlic, ` +
+`onion) if the requested DISH TYPE is Dessert/Sweet.
+5. If the requested DISH TYPE is Soup/Salad, **DO NOT** generate pasta ` +
+`dishes (unless pasta salad), rice dishes (unless rice soup), or solid ` +
+`main courses.
+6. Recipes must be delicious, tested, and achievable.
+6. Provide accurate nutrition estimates per serving.
 
 RESPONSE FORMAT:
 Return a raw JSON object with a "recipes" array. Each recipe object must ` +
@@ -894,16 +902,29 @@ ${userGuidance && userGuidance.trim() ?
         const filterPrompt = `
 You are a smart recipe filter.
 User Ingredients: ${filteredIngredients.join(", ")}
+Requested Dish Type: ${dishTypeDescription}
+${userGuidance ? `User Guidance: ${userGuidance}` : ""}
 Candidate Recipes:
 ${JSON.stringify(candidates.map((c, i) => ({
     id: i,
     name: c.name,
+    description: c.description,
     ingredients: c.ingredients,
   })))}
 
 Task: Select up to 3 recipes from the candidates that can be made PRIMARILY ` +
-`using the User Ingredients. It is acceptable if 1-2 minor common ` +
-`ingredients (like spices, garlic, onion) are missing.
+`using the User Ingredients AND match the Requested Dish Type AND ` +
+`respect User Guidance.
+RULES:
+1. It is acceptable if 1-2 minor common ingredients (like spices, garlic, ` +
+`onion) are missing.
+2. **REJECT** any recipe that requires a main ingredient (meat, fish, ` +
+`poultry, main vegetable) that is NOT in the User Ingredients.
+3. **REJECT** any recipe that does NOT match the Requested Dish Type ` +
+`(e.g. if Dessert is requested, reject savory dishes; if Soup/Salad is ` +
+`requested, reject solid main courses like spaghetti, steak, or curry).
+4. **REJECT** any recipe that conflicts with User Guidance ` +
+`(e.g. dietary restrictions, unwanted ingredients).
 Return JSON: {"selectedIds": [0, 2]}
 If none fit well, return {"selectedIds": []}
 `;
@@ -1656,7 +1677,7 @@ exports.onRecipeRequestCreated = functions
           appetizer: "Appetizer / Starter",
           dessert: "Dessert / Sweet Dish",
           breakfast: "Breakfast / Brunch",
-          soupSalad: "Soup / Salad",
+          soupSalad: "Soup, Stew, or Salad",
           snack: "Snack / Light Bite",
         };
         const dishTypeDescription = dishCategoryMap[selectedDishType] ||
@@ -1719,12 +1740,20 @@ TARGET LANGUAGE: ${targetLanguageName} (ALL output must be in this language).
 DISH TYPE: ${dishTypeDescription}
 
 STRICT GUIDELINES:
-1. USE PROVIDED INGREDIENTS. You may assume basic staples ` +
+1. USE PROVIDED INGREDIENTS that are appropriate for the requested ` +
+`DISH TYPE. You may assume basic staples ` +
 `(Salt, Pepper, Oil, Water, Sugar).
 2. If a recipe requires other ingredients not listed, DO NOT suggest it, ` +
 `or adapt it to use what is available.
-3. Recipes must be delicious, tested, and achievable.
-4. Provide accurate nutrition estimates per serving.
+3. **NEVER** include meat, fish, or poultry unless it is explicitly ` +
+`listed in the provided ingredients.
+4. **NEVER** include savory ingredients (meat, fish, poultry, garlic, ` +
+`onion) if the requested DISH TYPE is Dessert/Sweet.
+5. If the requested DISH TYPE is Soup/Salad, **DO NOT** generate pasta ` +
+`dishes (unless pasta salad), rice dishes (unless rice soup), or solid ` +
+`main courses.
+6. Recipes must be delicious, tested, and achievable.
+6. Provide accurate nutrition estimates per serving.
 
 RESPONSE FORMAT:
 Return a raw JSON object with a "recipes" array. Each recipe object must ` +
@@ -1811,16 +1840,29 @@ ${userGuidance && userGuidance.trim() ?
             const filterPrompt = `
 You are a smart recipe filter.
 User Ingredients: ${filteredIngredients.join(", ")}
+Requested Dish Type: ${dishTypeDescription}
+${userGuidance ? `User Guidance: ${userGuidance}` : ""}
 Candidate Recipes:
 ${JSON.stringify(candidates.map((c, i) => ({
     id: i,
     name: c.name,
+    description: c.description,
     ingredients: c.ingredients,
   })))}
 
 Task: Select up to 3 recipes from the candidates that can be made PRIMARILY ` +
-`using the User Ingredients. It is acceptable if 1-2 minor common ` +
-`ingredients (like spices, garlic, onion) are missing.
+`using the User Ingredients AND match the Requested Dish Type AND ` +
+`respect User Guidance.
+RULES:
+1. It is acceptable if 1-2 minor common ingredients (like spices, garlic, ` +
+`onion) are missing.
+2. **REJECT** any recipe that requires a main ingredient (meat, fish, ` +
+`poultry, main vegetable) that is NOT in the User Ingredients.
+3. **REJECT** any recipe that does NOT match the Requested Dish Type ` +
+`(e.g. if Dessert is requested, reject savory dishes; if Soup/Salad is ` +
+`requested, reject solid main courses like spaghetti, steak, or curry).
+4. **REJECT** any recipe that conflicts with User Guidance ` +
+`(e.g. dietary restrictions, unwanted ingredients).
 Return JSON: {"selectedIds": [0, 2]}
 If none fit well, return {"selectedIds": []}
 `;
