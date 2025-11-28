@@ -102,7 +102,7 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#333',
+    color: '#3D405B', // Charcoal
     marginBottom: 5,
     textAlign: 'center',
   },
@@ -124,9 +124,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#F5F5F5',
   },
   languageItemSelected: {
-    backgroundColor: '#FEE2E2',
+    backgroundColor: '#E8F5E9', // Light Green
     borderWidth: 2,
-    borderColor: '#E11D48',
+    borderColor: '#4A7C59', // Sage Green
   },
   languageInfo: {
     flex: 1,
@@ -138,7 +138,7 @@ const styles = StyleSheet.create({
   },
   languageNameSelected: {
     fontWeight: 'bold',
-    color: '#E11D48',
+    color: '#4A7C59', // Sage Green
   },
   languageNativeName: {
     fontSize: 13,
@@ -147,7 +147,7 @@ const styles = StyleSheet.create({
   },
   checkmark: {
     fontSize: 20,
-    color: '#E11D48',
+    color: '#4A7C59', // Sage Green
     fontWeight: 'bold',
   },
   languageBadge: {
@@ -160,7 +160,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#E0E0E0',
   },
   languageBadgeSelected: {
-    backgroundColor: '#E11D48',
+    backgroundColor: '#4A7C59', // Sage Green
   },
   languageBadgeText: {
     fontSize: 14,
@@ -171,7 +171,7 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
   closeButton: {
-    backgroundColor: '#DD6B20',
+    backgroundColor: '#E07A5F', // Terracotta
     borderRadius: 10,
     padding: 15,
     marginTop: 15,

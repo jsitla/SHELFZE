@@ -743,7 +743,7 @@ ${t('sharedFromShelfze', language)}
   if (loading) {
     return (
       <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color="#E11D48" />
+        <ActivityIndicator size="large" color="#4A7C59" />
         <Text style={styles.loadingText}>{t('loading', language)}</Text>
       </View>
     );
@@ -978,7 +978,7 @@ ${t('sharedFromShelfze', language)}
   if (selectedRecipe && loadingDetails) {
     return (
       <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color="#E11D48" />
+        <ActivityIndicator size="large" color="#4A7C59" />
         <Text style={styles.loadingText}>{t('preparingRecipe', language)}</Text>
       </View>
     );
@@ -1464,13 +1464,13 @@ ${t('sharedFromShelfze', language)}
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#F4F1DE', // Alabaster
   },
   centerContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#F4F1DE',
   },
   scrollContent: {
     flex: 1,
@@ -1479,7 +1479,7 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
   generateButton: {
-    backgroundColor: '#DD6B20', // Warm orange
+    backgroundColor: '#4A7C59', // Sage Green
     margin: 20,
     marginTop: 10,
     padding: 18,
@@ -1508,7 +1508,7 @@ const styles = StyleSheet.create({
   categorySectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#333',
+    color: '#3D405B', // Charcoal
     marginBottom: 15,
   },
   categoryGrid: {
@@ -1532,8 +1532,8 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   categoryButtonSelected: {
-    borderColor: '#E11D48', // Vibrant red
-    backgroundColor: '#FED7D7', // Light red background
+    borderColor: '#4A7C59', // Sage Green
+    backgroundColor: '#E8F5E9', // Light Green
   },
   categoryEmoji: {
     fontSize: 32,
@@ -1546,13 +1546,13 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   categoryLabelSelected: {
-    color: '#E11D48', // Vibrant red text
+    color: '#4A7C59', // Sage Green
     fontWeight: 'bold',
   },
   loadingText: {
     marginTop: 10,
     fontSize: 16,
-    color: '#666',
+    color: '#3D405B',
   },
   emptyState: {
     padding: 40,
@@ -1561,7 +1561,7 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#666',
+    color: '#3D405B',
     marginBottom: 10,
   },
   emptySubText: {
@@ -1583,8 +1583,8 @@ const styles = StyleSheet.create({
     borderColor: '#E5E7EB',
   },
   timeFilterChipActive: {
-    backgroundColor: '#E11D48',
-    borderColor: '#E11D48',
+    backgroundColor: '#4A7C59', // Sage Green
+    borderColor: '#4A7C59',
   },
   timeFilterText: {
     fontSize: 14,
@@ -1608,8 +1608,8 @@ const styles = StyleSheet.create({
     borderColor: '#F9D7B0',
   },
   dietaryFilterChipActive: {
-    backgroundColor: '#DD6B20',
-    borderColor: '#DD6B20',
+    backgroundColor: '#E07A5F', // Terracotta
+    borderColor: '#E07A5F',
   },
   dietaryFilterText: {
     fontSize: 14,
@@ -1642,7 +1642,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   clearFiltersButton: {
-    backgroundColor: '#E11D48',
+    backgroundColor: '#E07A5F', // Terracotta
     paddingVertical: 12,
     paddingHorizontal: 24,
     borderRadius: 25,
@@ -1684,7 +1684,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   selectAllButton: {
-    backgroundColor: '#E11D48',
+    backgroundColor: '#4A7C59', // Sage Green
     paddingHorizontal: 15,
     paddingVertical: 10,
     borderRadius: 8,
@@ -1761,11 +1761,11 @@ const styles = StyleSheet.create({
   savedRecipesTitle: {
     fontSize: 22,
     fontWeight: 'bold',
-    color: '#333',
+    color: '#3D405B',
   },
   dropdownArrow: {
     fontSize: 18,
-    color: '#E11D48',
+    color: '#4A7C59', // Sage Green
     fontWeight: 'bold',
   },
   collectionFilterContainer: {
@@ -1782,8 +1782,8 @@ const styles = StyleSheet.create({
     borderColor: '#E0E0E0',
   },
   collectionFilterTabActive: {
-    backgroundColor: '#E11D48',
-    borderColor: '#E11D48',
+    backgroundColor: '#4A7C59', // Sage Green
+    borderColor: '#4A7C59',
   },
   collectionFilterText: {
     fontSize: 14,
@@ -1831,7 +1831,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#333',
+    color: '#3D405B',
     marginRight: 8,
   },
   savedRecipeBadge: {
@@ -1862,7 +1862,7 @@ const styles = StyleSheet.create({
   recipesTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#333',
+    color: '#3D405B',
     marginBottom: 15,
   },
   recipeCard: {
@@ -1888,7 +1888,7 @@ const styles = StyleSheet.create({
   recipeCardTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#333',
+    color: '#3D405B',
     marginBottom: 5,
   },
   recipeCardDescription: {
@@ -1898,7 +1898,7 @@ const styles = StyleSheet.create({
   },
   recipeCardSource: {
     fontSize: 12,
-    color: '#E11D48',
+    color: '#4A7C59', // Sage Green
     fontStyle: 'italic',
     marginBottom: 5,
   },
@@ -1910,8 +1910,8 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
   },
   nutritionBadge: {
-    backgroundColor: '#FEE2E2',
-    color: '#E11D48',
+    backgroundColor: '#E8F5E9', // Light Green
+    color: '#4A7C59', // Sage Green
     fontSize: 12,
     fontWeight: 'bold',
     paddingHorizontal: 8,
@@ -1972,11 +1972,11 @@ const styles = StyleSheet.create({
   },
   recipeCardArrow: {
     fontSize: 24,
-    color: '#E11D48',
+    color: '#E07A5F', // Terracotta
   },
   detailSafeArea: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#F4F1DE', // Alabaster
   },
   detailScroll: {
     flex: 1,
@@ -1993,7 +1993,7 @@ const styles = StyleSheet.create({
   },
   backButtonText: {
     fontSize: 16,
-    color: '#E11D48',
+    color: '#4A7C59', // Sage Green
     fontWeight: '600',
   },
   recipeHeader: {

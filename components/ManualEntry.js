@@ -370,7 +370,7 @@ export default function ManualEntry({ navigation, onItemAdded }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: '#F4F1DE', // Alabaster
   },
   contentContainer: {
     padding: 20,
@@ -382,7 +382,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#333',
+    color: '#3D405B', // Charcoal
     marginBottom: 5,
   },
   headerSubtitle: {
@@ -395,7 +395,7 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333',
+    color: '#3D405B', // Charcoal
     marginBottom: 10,
   },
   input: {
@@ -421,8 +421,8 @@ const styles = StyleSheet.create({
     borderColor: '#DDD',
   },
   categoryButtonSelected: {
-    borderColor: '#E11D48', // Rose 600
-    backgroundColor: '#FED7D7', // Light red background
+    borderColor: '#4A7C59', // Sage Green
+    backgroundColor: '#E8F5E9', // Light Green
   },
   categoryEmoji: {
     fontSize: 24,
@@ -433,7 +433,7 @@ const styles = StyleSheet.create({
     color: '#666',
   },
   categoryLabelSelected: {
-    color: '#E11D48', // Rose 600
+    color: '#4A7C59', // Sage Green
     fontWeight: 'bold',
   },
   quantityRow: {
@@ -465,7 +465,7 @@ const styles = StyleSheet.create({
     borderRightColor: '#EEE',
   },
   unitButtonSelected: {
-    backgroundColor: '#E11D48', // Rose 600
+    backgroundColor: '#4A7C59', // Sage Green
   },
   unitText: {
     fontSize: 14,
@@ -496,7 +496,7 @@ const styles = StyleSheet.create({
     borderColor: '#DDD',
   },
   datePickerDone: {
-    backgroundColor: '#E11D48',
+    backgroundColor: '#4A7C59', // Sage Green
     borderRadius: 8,
     padding: 12,
     alignItems: 'center',
@@ -508,7 +508,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   addButton: {
-    backgroundColor: '#DD6B20', // Warm orange
+    backgroundColor: '#E07A5F', // Terracotta
     borderRadius: 15,
     padding: 18,
     alignItems: 'center',
@@ -529,16 +529,16 @@ const styles = StyleSheet.create({
   },
   tipsContainer: {
     marginTop: 30,
-    backgroundColor: '#FFF9E6',
+    backgroundColor: '#E8F5E9', // Light Green
     borderRadius: 10,
     padding: 15,
     borderLeftWidth: 4,
-    borderLeftColor: '#FFC107',
+    borderLeftColor: '#4A7C59', // Sage Green
   },
   tipsTitle: {
     fontSize: 14,
     fontWeight: 'bold',
-    color: '#F57C00',
+    color: '#4A7C59', // Sage Green
     marginBottom: 8,
   },
   tipText: {

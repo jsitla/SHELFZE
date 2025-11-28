@@ -62,7 +62,7 @@ export default function LegalConsentScreen({ onAccepted }) {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar style="light" />
+      <StatusBar style="dark" />
       <View style={styles.backgroundLayer}>
         <View style={[styles.glow, styles.glowTop]} />
         <View style={[styles.glow, styles.glowBottom]} />
@@ -89,7 +89,7 @@ export default function LegalConsentScreen({ onAccepted }) {
             <Checkbox
               value={checked}
               onValueChange={setChecked}
-              color={checked ? '#38BDF8' : undefined}
+              color={checked ? '#4A7C59' : undefined}
               style={styles.checkbox}
             />
             <Text style={styles.checkboxLabel}>
@@ -113,18 +113,18 @@ export default function LegalConsentScreen({ onAccepted }) {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#050B18',
+    backgroundColor: '#F4F1DE', // Alabaster
   },
   backgroundLayer: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: '#050B18',
+    backgroundColor: '#F4F1DE', // Alabaster
   },
   glow: {
     position: 'absolute',
     width: 280,
     height: 280,
     borderRadius: 280,
-    backgroundColor: 'rgba(225, 29, 72, 0.18)',
+    backgroundColor: 'rgba(74, 124, 89, 0.18)', // Sage Green
     opacity: 0.9,
   },
   glowTop: {
@@ -134,7 +134,7 @@ const styles = StyleSheet.create({
   glowBottom: {
     bottom: -80,
     left: -40,
-    backgroundColor: 'rgba(56, 189, 248, 0.25)',
+    backgroundColor: 'rgba(224, 122, 95, 0.25)', // Terracotta
   },
   scrollContent: {
     flexGrow: 1,
@@ -155,12 +155,12 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: '800',
-    color: '#0F172A',
+    color: '#3D405B', // Charcoal
     marginBottom: 12,
   },
   description: {
     fontSize: 16,
-    color: '#475569',
+    color: '#666',
     lineHeight: 22,
     marginBottom: 20,
   },
@@ -172,7 +172,7 @@ const styles = StyleSheet.create({
   linkButton: {
     borderRadius: 16,
     borderWidth: 1.5,
-    borderColor: '#E2E8F0',
+    borderColor: '#E0E0E0',
     paddingVertical: 14,
     paddingHorizontal: 18,
     flexDirection: 'row',
@@ -181,12 +181,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#F8FAFC',
   },
   linkLabel: {
-    color: '#0F172A',
+    color: '#3D405B', // Charcoal
     fontSize: 15,
     fontWeight: '700',
   },
   linkHint: {
-    color: '#64748B',
+    color: '#666',
     fontSize: 13,
   },
   checkboxRow: {
@@ -200,19 +200,19 @@ const styles = StyleSheet.create({
   checkboxLabel: {
     flex: 1,
     marginLeft: 12,
-    color: '#0F172A',
+    color: '#3D405B', // Charcoal
     fontSize: 14,
     lineHeight: 20,
   },
   continueButton: {
     marginTop: 20,
-    backgroundColor: '#0F172A',
+    backgroundColor: '#4A7C59', // Sage Green
     borderRadius: 16,
     paddingVertical: 14,
     alignItems: 'center',
   },
   continueButtonDisabled: {
-    backgroundColor: '#94A3B8',
+    backgroundColor: '#999',
   },
   continueButtonText: {
     color: '#FFFFFF',

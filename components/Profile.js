@@ -385,7 +385,7 @@ export default function Profile({ navigation }) {
   if (loading && !user) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#E11D48" />
+        <ActivityIndicator size="large" color="#4A7C59" />
         <Text style={styles.loadingText}>{t('loading', language)}</Text>
       </View>
     );
@@ -544,7 +544,7 @@ export default function Profile({ navigation }) {
         <View style={styles.tierHeader}>
           <Text style={styles.tierTitle}>{t('tier', language)}</Text>
           {loadingUsage ? (
-            <ActivityIndicator size="small" color="#E11D48" />
+            <ActivityIndicator size="small" color="#4A7C59" />
           ) : (
             <View style={[
               styles.tierBadge,
@@ -866,7 +866,7 @@ export default function Profile({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: '#F4F1DE', // Alabaster
   },
   scrollContent: {
     padding: 20,
@@ -875,12 +875,12 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#F9FAFB',
+    backgroundColor: '#F4F1DE',
   },
   loadingText: {
     marginTop: 10,
     fontSize: 16,
-    color: '#666',
+    color: '#3D405B',
   },
   header: {
     alignItems: 'center',
@@ -893,7 +893,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: '#333',
+    color: '#3D405B', // Charcoal
     marginBottom: 5,
   },
   subtitle: {
@@ -914,7 +914,7 @@ const styles = StyleSheet.create({
   displayName: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#333',
+    color: '#3D405B',
     marginBottom: 5,
   },
   email: {
@@ -925,12 +925,12 @@ const styles = StyleSheet.create({
   accountType: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#E11D48',
+    color: '#4A7C59', // Sage Green
     marginBottom: 10,
   },
   accountWarning: {
     fontSize: 14,
-    color: '#FF6B00',
+    color: '#E07A5F', // Terracotta
     marginBottom: 10,
   },
   userId: {
@@ -943,12 +943,12 @@ const styles = StyleSheet.create({
     padding: 22,
     marginBottom: 20,
     borderWidth: 2,
-    borderColor: '#E11D48',
+    borderColor: '#4A7C59', // Sage Green
   },
   sectionTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#333',
+    color: '#3D405B',
     marginBottom: 5,
   },
   sectionSubtitle: {
@@ -957,7 +957,7 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
   upgradeButton: {
-    backgroundColor: '#E11D48',
+    backgroundColor: '#4A7C59', // Sage Green
     padding: 15,
     borderRadius: 14,
     alignItems: 'center',
@@ -968,7 +968,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   loginExistingButton: {
-    backgroundColor: '#3B82F6',
+    backgroundColor: '#3D405B', // Charcoal
     padding: 15,
     borderRadius: 8,
     alignItems: 'center',
@@ -999,7 +999,7 @@ const styles = StyleSheet.create({
   largeButtonText: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#333',
+    color: '#3D405B',
   },
   formContainer: {
     backgroundColor: '#fff',
@@ -1014,7 +1014,7 @@ const styles = StyleSheet.create({
   formTitle: {
     fontSize: 22,
     fontWeight: 'bold',
-    color: '#333',
+    color: '#3D405B',
     marginBottom: 20,
     textAlign: 'center',
   },
@@ -1033,12 +1033,12 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
   },
   forgotPasswordText: {
-    color: '#3B82F6',
+    color: '#4A7C59', // Sage Green
     fontSize: 14,
     fontWeight: '600',
   },
   primaryButton: {
-    backgroundColor: '#E11D48',
+    backgroundColor: '#4A7C59', // Sage Green
     padding: 15,
     borderRadius: 14,
     alignItems: 'center',
@@ -1061,7 +1061,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   signOutButton: {
-    backgroundColor: '#64748B',
+    backgroundColor: '#E07A5F', // Terracotta
     padding: 15,
     borderRadius: 14,
     alignItems: 'center',
@@ -1092,7 +1092,7 @@ const styles = StyleSheet.create({
   tierTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#333',
+    color: '#3D405B',
   },
   tierBadge: {
     backgroundColor: '#f0f0f0',
@@ -1101,7 +1101,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
   },
   tierBadgeFree: {
-    backgroundColor: '#E3F2FD',
+    backgroundColor: '#E8F5E9', // Light Green
   },
   tierBadgePremium: {
     backgroundColor: '#FFF3E0',
@@ -1111,7 +1111,7 @@ const styles = StyleSheet.create({
   tierBadgeText: {
     fontSize: 14,
     fontWeight: 'bold',
-    color: '#333',
+    color: '#3D405B',
   },
   usageStats: {
     marginBottom: 15,
@@ -1139,10 +1139,10 @@ const styles = StyleSheet.create({
   usageValue: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#E11D48',
+    color: '#4A7C59', // Sage Green
   },
   upgradePremiumButton: {
-    backgroundColor: '#FFB74D',
+    backgroundColor: '#E07A5F', // Terracotta
     padding: 15,
     borderRadius: 8,
     alignItems: 'center',
@@ -1179,7 +1179,7 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   redeemButton: {
-    backgroundColor: '#00b894',
+    backgroundColor: '#4A7C59', // Sage Green
     paddingHorizontal: 20,
     paddingVertical: 15,
     borderRadius: 14,
@@ -1197,12 +1197,12 @@ const styles = StyleSheet.create({
     padding: 15,
     borderRadius: 14,
     borderWidth: 2,
-    borderColor: '#00b894',
+    borderColor: '#4A7C59', // Sage Green
     borderStyle: 'dashed',
     alignItems: 'center',
   },
   showGiftCodeText: {
-    color: '#00b894',
+    color: '#4A7C59', // Sage Green
     fontSize: 16,
     fontWeight: '600',
   },
@@ -1235,7 +1235,7 @@ const styles = StyleSheet.create({
   languageButtonText: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#333',
+    color: '#3D405B',
     marginBottom: 5,
   },
   languageButtonSubtext: {
@@ -1264,7 +1264,7 @@ const styles = StyleSheet.create({
   legalLinkText: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#333',
+    color: '#3D405B',
     marginBottom: 4,
   },
   legalLinkSubtext: {

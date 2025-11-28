@@ -720,7 +720,7 @@ export default function PantryList({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#F4F1DE', // Alabaster
   },
   filterContainer: {
     backgroundColor: '#fff',
@@ -736,14 +736,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#FFFFFF',
     borderWidth: 1,
     borderColor: '#ddd',
     marginHorizontal: 4,
   },
   filterButtonActive: {
-    backgroundColor: '#E11D48',
-    borderColor: '#E11D48',
+    backgroundColor: '#4A7C59', // Sage Green
+    borderColor: '#4A7C59',
   },
   filterButtonText: {
     fontSize: 14,
@@ -756,7 +756,7 @@ const styles = StyleSheet.create({
   countContainer: {
     paddingHorizontal: 15,
     paddingVertical: 10,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#F4F1DE',
   },
   countText: {
     fontSize: 14,
@@ -771,7 +771,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 20,
     right: 20,
-    backgroundColor: '#E11D48',
+    backgroundColor: '#E07A5F', // Terracotta
     paddingHorizontal: 20,
     paddingVertical: 12,
     borderRadius: 30,
@@ -796,9 +796,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     padding: 18,
     marginVertical: 8,
-    borderRadius: 22,
+    borderRadius: 16, // Softer radius
     borderLeftWidth: 5,
-    borderLeftColor: '#E11D48',
+    borderLeftColor: '#4A7C59', // Sage Green
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
@@ -809,9 +809,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     padding: 18,
     marginVertical: 8,
-    borderRadius: 22,
+    borderRadius: 16,
     borderLeftWidth: 5,
-    borderLeftColor: '#FF9800',
+    borderLeftColor: '#E07A5F', // Terracotta
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
@@ -822,9 +822,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#ffebee',
     padding: 18,
     marginVertical: 8,
-    borderRadius: 22,
+    borderRadius: 16,
     borderLeftWidth: 5,
-    borderLeftColor: '#f44336',
+    borderLeftColor: '#D62828', // Strong Red
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
@@ -847,7 +847,7 @@ const styles = StyleSheet.create({
   itemName: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#333',
+    color: '#3D405B', // Charcoal
     marginRight: 8,
   },
   aiTag: {
@@ -862,7 +862,7 @@ const styles = StyleSheet.create({
   manualTag: {
     fontSize: 11,
     color: '#fff',
-    backgroundColor: '#FF9800',
+    backgroundColor: '#E07A5F',
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 8,
@@ -870,7 +870,7 @@ const styles = StyleSheet.create({
   },
   quantityText: {
     fontSize: 14,
-    color: '#E11D48',
+    color: '#E07A5F', // Terracotta
     fontWeight: '600',
     marginBottom: 5,
   },
@@ -881,21 +881,21 @@ const styles = StyleSheet.create({
   },
   daysLeft: {
     fontSize: 13,
-    color: '#E11D48',
+    color: '#E07A5F', // Terracotta
     fontWeight: '600',
   },
   daysLeftSoon: {
-    color: '#FF9800',
+    color: '#E07A5F',
     fontWeight: 'bold',
   },
   daysLeftExpired: {
-    color: '#f44336',
+    color: '#D62828',
     fontWeight: 'bold',
   },
   categoryTag: {
     fontSize: 13,
     color: '#fff',
-    backgroundColor: '#E11D48',
+    backgroundColor: '#4A7C59', // Sage Green
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 12,
@@ -941,14 +941,14 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     fontSize: 18,
-    color: '#666',
+    color: '#3D405B',
     textAlign: 'center',
     marginTop: 50,
   },
   emptyText: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#666',
+    color: '#3D405B',
     textAlign: 'center',
     marginTop: 100,
   },
@@ -980,7 +980,7 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#333',
+    color: '#3D405B',
     marginBottom: 20,
     textAlign: 'center',
   },
@@ -990,7 +990,7 @@ const styles = StyleSheet.create({
   editLabel: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333',
+    color: '#3D405B',
     marginBottom: 8,
   },
   editInput: {
@@ -1015,8 +1015,8 @@ const styles = StyleSheet.create({
     borderColor: '#DDD',
   },
   categoryChipSelected: {
-    backgroundColor: '#E11D48', // Rose 600
-    borderColor: '#E11D48',
+    backgroundColor: '#4A7C59', // Sage Green
+    borderColor: '#4A7C59',
   },
   categoryChipText: {
     fontSize: 14,
@@ -1047,8 +1047,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   unitChipSelected: {
-    backgroundColor: '#E11D48', // Rose 600
-    borderColor: '#E11D48',
+    backgroundColor: '#4A7C59', // Sage Green
+    borderColor: '#4A7C59',
   },
   unitChipText: {
     fontSize: 14,
@@ -1068,7 +1068,7 @@ const styles = StyleSheet.create({
   },
   datePickerText: {
     fontSize: 16,
-    color: '#333',
+    color: '#3D405B',
   },
   modalButtons: {
     flexDirection: 'row',
@@ -1090,7 +1090,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   saveButton: {
-    backgroundColor: '#DD6B20', // Warm orange
+    backgroundColor: '#4A7C59', // Sage Green
   },
   saveButtonText: {
     color: '#fff',

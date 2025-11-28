@@ -866,7 +866,7 @@ export default function CameraScanner({ navigation }) {
         {isLoading && (
           <View style={styles.loadingOverlay}>
             <View style={styles.loadingContent}>
-              <ActivityIndicator size="large" color="#E11D48" />
+              <ActivityIndicator size="large" color="#4A7C59" />
               <Text style={styles.loadingText}>
                 {processingMode === 'video'
                   ? t('processingVideo', language)
@@ -1035,7 +1035,7 @@ export default function CameraScanner({ navigation }) {
           {isLoading ? (
             // Show loading overlay on web
             <View style={styles.webLoadingContainer}>
-              <ActivityIndicator size="large" color="#E11D48" />
+              <ActivityIndicator size="large" color="#4A7C59" />
               <Text style={styles.webLoadingText}>{t('analyzing', language)}</Text>
               <Text style={styles.webLoadingSubtext}>{t('detectingItems', language)}</Text>
             </View>
@@ -1073,7 +1073,7 @@ export default function CameraScanner({ navigation }) {
           {isLoading && !photoUri && (
             <View style={styles.loadingOverlay}>
               <View style={styles.loadingContent}>
-                <ActivityIndicator size="large" color="#E11D48" />
+                <ActivityIndicator size="large" color="#4A7C59" />
                 <Text style={styles.loadingText}>
                   {captureMode === 'video' 
                     ? t('processingVideo', language)
@@ -1357,7 +1357,7 @@ const styles = StyleSheet.create({
   webTitle: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: '#E11D48',
+    color: '#4A7C59', // Sage Green
     marginBottom: 10,
   },
   webSubtitle: {
@@ -1368,12 +1368,12 @@ const styles = StyleSheet.create({
     maxWidth: 400,
   },
   uploadButton: {
-    backgroundColor: '#DD6B20',
+    backgroundColor: '#4A7C59', // Sage Green
     paddingHorizontal: 40,
     paddingVertical: 20,
     borderRadius: 30,
     marginBottom: 20,
-    shadowColor: '#DD6B20',
+    shadowColor: '#4A7C59',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 10,
@@ -1398,7 +1398,7 @@ const styles = StyleSheet.create({
   },
   webLoadingText: {
     fontSize: 20,
-    color: '#E11D48',
+    color: '#4A7C59', // Sage Green
     marginTop: 20,
     fontWeight: 'bold',
   },
@@ -1438,8 +1438,8 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255,255,255,0.3)',
   },
   modeButtonActive: {
-    backgroundColor: '#E11D48',
-    borderColor: '#E11D48',
+    backgroundColor: '#4A7C59', // Sage Green
+    borderColor: '#4A7C59',
   },
   modeButtonContent: {
     flexDirection: 'row',
@@ -1490,7 +1490,7 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: '#E11D48',
+    backgroundColor: '#E07A5F', // Terracotta
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -1574,7 +1574,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 30,
     alignSelf: 'center',
-    backgroundColor: '#DD6B20',
+    backgroundColor: '#E07A5F', // Terracotta
     paddingHorizontal: 30,
     paddingVertical: 15,
     borderRadius: 25,
@@ -1597,7 +1597,7 @@ const styles = StyleSheet.create({
   },
   button: {
     marginTop: 20,
-    backgroundColor: '#DD6B20',
+    backgroundColor: '#E07A5F', // Terracotta
     paddingHorizontal: 30,
     paddingVertical: 15,
     borderRadius: 25,
@@ -1616,11 +1616,11 @@ const styles = StyleSheet.create({
   },
   loadingContent: {
     alignItems: 'center',
-    backgroundColor: 'rgba(225, 29, 72, 0.2)',
+    backgroundColor: 'rgba(74, 124, 89, 0.2)', // Sage Green transparent
     padding: 30,
     borderRadius: 20,
     borderWidth: 2,
-    borderColor: '#E11D48',
+    borderColor: '#4A7C59', // Sage Green
   },
   loadingText: {
     color: '#fff',
@@ -1644,7 +1644,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   resultText: {
-    color: '#E11D48',
+    color: '#4A7C59', // Sage Green
     fontSize: 16,
     fontWeight: 'bold',
     marginBottom: 5,
@@ -1673,7 +1673,7 @@ const styles = StyleSheet.create({
   reviewModalTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#E11D48',
+    color: '#4A7C59', // Sage Green
     marginBottom: 5,
     textAlign: 'center',
   },
@@ -1696,7 +1696,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     marginBottom: 10,
     borderLeftWidth: 4,
-    borderLeftColor: '#E11D48',
+    borderLeftColor: '#4A7C59', // Sage Green
   },
   reviewItemInfo: {
     flex: 1,
@@ -1710,8 +1710,8 @@ const styles = StyleSheet.create({
   },
   reviewItemCategory: {
     fontSize: 13,
-    color: '#E11D48',
-    backgroundColor: '#FEE2E2',
+    color: '#4A7C59', // Sage Green
+    backgroundColor: '#E8F5E9', // Light Green
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 10,
@@ -1784,7 +1784,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   editSaveButton: {
-    backgroundColor: '#DD6B20',
+    backgroundColor: '#4A7C59', // Sage Green
   },
   editSaveButtonText: {
     color: '#fff',
@@ -1812,8 +1812,8 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   reviewConfirmButton: {
-    backgroundColor: '#DD6B20',
-    shadowColor: '#DD6B20',
+    backgroundColor: '#4A7C59', // Sage Green
+    shadowColor: '#4A7C59',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,

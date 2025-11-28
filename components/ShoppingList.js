@@ -104,27 +104,27 @@ const ShoppingList = () => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#F9FAFB',
+        backgroundColor: '#F4F1DE', // Alabaster
     },
     inputContainer: {
         flexDirection: 'row',
         padding: 16,
         backgroundColor: '#fff',
         borderBottomWidth: 1,
-        borderBottomColor: '#E2E8F0',
+        borderBottomColor: '#E0E0E0',
     },
     input: {
         flex: 1,
         borderWidth: 1.5,
-        borderColor: '#E2E8F0',
+        borderColor: '#E0E0E0',
         padding: 14,
         borderRadius: 16,
-        backgroundColor: '#F9FAFB',
+        backgroundColor: '#F8FAFC',
         fontSize: 15,
     },
     addButton: {
         marginLeft: 10,
-        backgroundColor: '#E11D48',
+        backgroundColor: '#4A7C59', // Sage Green
         paddingVertical: 14,
         paddingHorizontal: 20,
         borderRadius: 16,
@@ -143,7 +143,7 @@ const styles = StyleSheet.create({
         marginVertical: 6,
         borderRadius: 22,
         borderWidth: 1,
-        borderColor: '#E2E8F0',
+        borderColor: '#E0E0E0',
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.06,
@@ -152,11 +152,11 @@ const styles = StyleSheet.create({
     },
     itemText: {
         fontSize: 15,
-        color: '#0F172A',
+        color: '#3D405B', // Charcoal
     },
     itemTextChecked: {
         textDecorationLine: 'line-through',
-        color: '#A0AEC0',
+        color: '#999',
     },
     centered: {
         flex: 1,
@@ -165,7 +165,7 @@ const styles = StyleSheet.create({
         marginTop: 50,
     },
     clearButton: {
-        backgroundColor: '#E11D48',
+        backgroundColor: '#E07A5F', // Terracotta
         padding: 16,
         alignItems: 'center',
         margin: 16,

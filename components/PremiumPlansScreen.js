@@ -74,23 +74,23 @@ export default function PremiumPlansScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0B1015',
+    backgroundColor: '#F4F1DE', // Alabaster
     padding: 20,
   },
   title: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: '#3D405B', // Charcoal
     marginBottom: 4,
   },
   subtitle: {
     fontSize: 14,
-    color: '#B0B8C4',
+    color: '#666',
     marginBottom: 12,
   },
   introNote: {
     fontSize: 12,
-    color: '#FBBF24',
+    color: '#E07A5F', // Terracotta
     marginBottom: 16,
   },
   planRow: {
@@ -99,48 +99,53 @@ const styles = StyleSheet.create({
   },
   planCard: {
     flex: 1,
-    backgroundColor: '#151A22',
+    backgroundColor: '#fff',
     borderRadius: 16,
     padding: 16,
     marginHorizontal: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   planName: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: '#3D405B', // Charcoal
     marginBottom: 4,
   },
   planPrice: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#63B3ED',
+    color: '#4A7C59', // Sage Green
     marginBottom: 6,
   },
   planDetail: {
     fontSize: 12,
-    color: '#CBD5F5',
+    color: '#666',
     marginBottom: 12,
   },
   subscribeButton: {
-    backgroundColor: '#4A5568',
+    backgroundColor: '#E0E0E0',
     borderRadius: 12,
     paddingVertical: 10,
     alignItems: 'center',
   },
   subscribeText: {
-    color: '#E2E8F0',
+    color: '#999',
     fontSize: 13,
     fontWeight: '600',
   },
   comingSoon: {
     marginTop: 6,
     fontSize: 11,
-    color: '#A0AEC0',
+    color: '#E07A5F', // Terracotta
     textAlign: 'center',
   },
   footerText: {
     marginTop: 16,
     fontSize: 12,
-    color: '#A0AEC0',
+    color: '#999',
   },
 });

@@ -323,7 +323,7 @@ const AuthScreen = ({ mode, onBack, onSuccess }) => {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar style="light" />
+      <StatusBar style="dark" />
       <KeyboardAvoidingView 
         style={styles.keyboardView}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -503,7 +503,7 @@ const BenefitRow = ({ icon, text }) => (
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#0F172A',
+    backgroundColor: '#F4F1DE', // Alabaster
   },
   keyboardView: {
     flex: 1,
@@ -521,19 +521,19 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 12,
     borderRadius: 999,
-    backgroundColor: 'rgba(248, 250, 252, 0.08)',
+    backgroundColor: 'rgba(74, 124, 89, 0.1)', // Sage Green tint
     borderWidth: 1,
-    borderColor: 'rgba(226, 232, 240, 0.2)',
+    borderColor: '#4A7C59', // Sage Green
     marginBottom: 18,
   },
   backPillText: {
-    color: '#E2E8F0',
+    color: '#4A7C59', // Sage Green
     fontSize: 14,
     fontWeight: '600',
   },
   heroBadge: {
     fontSize: 15,
-    color: '#CBD5F5',
+    color: '#E07A5F', // Terracotta
     marginBottom: 8,
     letterSpacing: 1,
     textTransform: 'uppercase',
@@ -541,12 +541,12 @@ const styles = StyleSheet.create({
   heroTitle: {
     fontSize: 30,
     fontWeight: '800',
-    color: '#F8FAFC',
+    color: '#3D405B', // Charcoal
     marginBottom: 8,
   },
   heroSubtitle: {
     fontSize: 15,
-    color: '#94A3B8',
+    color: '#666',
     lineHeight: 22,
   },
   formCard: {
@@ -554,8 +554,13 @@ const styles = StyleSheet.create({
     borderRadius: 22,
     padding: 22,
     borderWidth: 1.5,
-    borderColor: '#E2E8F0',
+    borderColor: '#E0E0E0',
     marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   socialButtons: {
     marginBottom: 16,
@@ -583,15 +588,15 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   googleButton: {
-    backgroundColor: '#E11D48',
-    borderColor: '#E11D48',
+    backgroundColor: '#DB4437', // Standard Google Red
+    borderColor: '#DB4437',
   },
   googleText: {
     color: '#FFFFFF',
   },
   appleButton: {
-    backgroundColor: '#0F172A',
-    borderColor: '#0F172A',
+    backgroundColor: '#000000',
+    borderColor: '#000000',
   },
   appleIcon: {
     color: '#FFFFFF',
@@ -622,12 +627,12 @@ const styles = StyleSheet.create({
   dividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: '#dfe6e9',
+    backgroundColor: '#E0E0E0',
   },
   dividerText: {
     marginHorizontal: 16,
     fontSize: 13,
-    color: '#636e72',
+    color: '#999',
     fontWeight: '500',
   },
   input: {
@@ -638,16 +643,16 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     borderWidth: 1,
     borderColor: '#E2E8F0',
-    color: '#0F172A',
+    color: '#3D405B', // Charcoal
   },
   hint: {
     fontSize: 13,
-    color: '#64748B',
+    color: '#666',
     marginBottom: 12,
     marginLeft: 4,
   },
   submitButton: {
-    backgroundColor: '#E11D48',
+    backgroundColor: '#4A7C59', // Sage Green
     borderRadius: 16,
     paddingVertical: 15,
     alignItems: 'center',
@@ -667,7 +672,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   toggleButtonText: {
-    color: '#0F172A',
+    color: '#3D405B', // Charcoal
     fontSize: 15,
     fontWeight: '600',
   },
@@ -677,19 +682,24 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   forgotPasswordText: {
-    color: '#0F172A',
+    color: '#4A7C59', // Sage Green
     fontSize: 14,
     fontWeight: '600',
   },
   benefitsCard: {
-    backgroundColor: 'rgba(248, 250, 252, 0.08)',
+    backgroundColor: '#fff',
     borderRadius: 22,
     padding: 20,
     borderWidth: 1,
-    borderColor: 'rgba(226, 232, 240, 0.2)',
+    borderColor: '#E0E0E0',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   benefitsTitle: {
-    color: '#E2E8F0',
+    color: '#3D405B', // Charcoal
     fontSize: 16,
     fontWeight: '700',
     marginBottom: 14,
@@ -705,7 +715,7 @@ const styles = StyleSheet.create({
   },
   benefitText: {
     flex: 1,
-    color: '#CBD5F5',
+    color: '#666',
     fontSize: 15,
   },
 });

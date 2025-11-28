@@ -28,7 +28,7 @@ const WelcomeScreen = ({ onContinueAsGuest, onCreateAccount, onLogin }) => {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar style="light" />
+      <StatusBar style="dark" />
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Choose how to begin</Text>
@@ -104,13 +104,13 @@ const BenefitRow = ({ icon, text }) => (
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#0F172A',
+    backgroundColor: '#F4F1DE', // Alabaster
   },
   scrollContent: {
     padding: 24,
     paddingTop: Platform.OS === 'ios' ? 32 : 48,
     paddingBottom: 48,
-    backgroundColor: '#0F172A',
+    backgroundColor: '#F4F1DE', // Alabaster
   },
   sectionHeader: {
     marginBottom: 16,
@@ -118,12 +118,12 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 24,
     fontWeight: '800',
-    color: '#F8FAFC',
+    color: '#3D405B', // Charcoal
     marginBottom: 6,
   },
   sectionCaption: {
     fontSize: 15,
-    color: '#CBD5F5',
+    color: '#666',
     lineHeight: 20,
   },
   planCard: {
@@ -131,14 +131,19 @@ const styles = StyleSheet.create({
     borderRadius: 22,
     padding: 22,
     marginBottom: 18,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   guestPlan: {
     borderWidth: 1.5,
-    borderColor: '#E2E8F0',
+    borderColor: '#E0E0E0',
   },
   accountPlan: {
     borderWidth: 1.5,
-    borderColor: '#E11D48',
+    borderColor: '#4A7C59', // Sage Green
   },
   planHeader: {
     flexDirection: 'row',
@@ -155,7 +160,7 @@ const styles = StyleSheet.create({
   planTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#0F172A',
+    color: '#3D405B', // Charcoal
     marginBottom: 4,
   },
   planBadge: {
@@ -170,7 +175,7 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
   },
   recommendedBadge: {
-    backgroundColor: '#E11D48',
+    backgroundColor: '#4A7C59', // Sage Green
     color: '#fff',
   },
   planBenefits: {
@@ -188,7 +193,7 @@ const styles = StyleSheet.create({
   benefitText: {
     flex: 1,
     fontSize: 15,
-    color: '#0F172A',
+    color: '#3D405B', // Charcoal
   },
   planCTA: {
     borderRadius: 14,
@@ -200,11 +205,11 @@ const styles = StyleSheet.create({
   planCTAText: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#0F172A',
+    color: '#3D405B',
   },
   primaryCTA: {
-    backgroundColor: '#E11D48',
-    borderColor: '#E11D48',
+    backgroundColor: '#4A7C59', // Sage Green
+    borderColor: '#4A7C59',
   },
   primaryCTAText: {
     color: '#fff',
@@ -216,8 +221,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     borderRadius: 18,
     borderWidth: 1.5,
-    borderColor: '#F8FAFC',
-    backgroundColor: 'rgba(248, 250, 252, 0.08)',
+    borderColor: '#4A7C59', // Sage Green
+    backgroundColor: 'rgba(74, 124, 89, 0.1)', // Sage Green with opacity
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
@@ -225,16 +230,16 @@ const styles = StyleSheet.create({
   },
   loginButtonLabel: {
     fontSize: 15,
-    color: '#E2E8F0',
+    color: '#3D405B', // Charcoal
   },
   loginButtonAction: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#FFFFFF',
+    color: '#4A7C59', // Sage Green
   },
   footerNote: {
     fontSize: 13,
-    color: '#94A3B8',
+    color: '#999',
     textAlign: 'center',
     marginTop: 12,
   },

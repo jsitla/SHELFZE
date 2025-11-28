@@ -127,7 +127,7 @@ function RecipeWrapper() {
 // Unified header style for ALL screens
 const UNIFIED_HEADER = {
   headerStyle: { 
-    backgroundColor: '#E11D48', // Rose 600 - SAME everywhere
+    backgroundColor: '#4A7C59', // Sage Green - SAME everywhere
     height: 100,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -157,24 +157,24 @@ function AppNavigator() {
           tabBarStyle: { 
             backgroundColor: '#FFFFFF',
             borderTopWidth: 0,
-            paddingTop: 12,
-            paddingBottom: 20,
-            height: 75,
+            paddingTop: 8,
+            paddingBottom: 28,
+            height: 88,
             shadowColor: '#000',
             shadowOffset: { width: 0, height: -4 },
             shadowOpacity: 0.08,
             shadowRadius: 12,
             elevation: 20,
           },
-          tabBarActiveTintColor: '#E11D48', // Rose 600
+          tabBarActiveTintColor: '#4A7C59', // Sage Green
           tabBarInactiveTintColor: '#94A3B8',
           tabBarLabelStyle: {
-            fontSize: 13,
+            fontSize: 12,
             fontWeight: '700',
-            marginTop: 4,
+            marginTop: 2,
           },
           tabBarIconStyle: {
-            marginTop: 4,
+            marginTop: 0,
           },
         }}
       >
@@ -184,7 +184,7 @@ function AppNavigator() {
           options={{
             tabBarLabel: t('pantry', language),
             tabBarIcon: ({ color }) => (
-              <Text style={{ fontSize: 24 }}>🥫</Text>
+              <Text style={{ fontSize: 26 }}>🥫</Text>
             ),
             headerShown: false,
           }}
@@ -196,18 +196,7 @@ function AppNavigator() {
             title: t('scanItem', language),
             tabBarLabel: t('scan', language),
             tabBarIcon: ({ color }) => (
-              <Text style={{ fontSize: 24 }}>📸</Text>
-            ),
-          }}
-        />
-        <Tab.Screen 
-          name="ShoppingList" 
-          component={ShoppingList}
-          options={{
-            title: t('shoppingList', language),
-            tabBarLabel: t('shoppingList', language),
-            tabBarIcon: ({ color }) => (
-              <Text style={{ fontSize: 24 }}>🛒</Text>
+              <Text style={{ fontSize: 26 }}>📸</Text>
             ),
           }}
         />
@@ -218,7 +207,18 @@ function AppNavigator() {
             title: t('recipeIdeas', language),
             tabBarLabel: t('recipes', language),
             tabBarIcon: ({ color }) => (
-              <Text style={{ fontSize: 24 }}>🍳</Text>
+              <Text style={{ fontSize: 26 }}>🍳</Text>
+            ),
+          }}
+        />
+        <Tab.Screen 
+          name="ShoppingList" 
+          component={ShoppingList}
+          options={{
+            title: t('shoppingList', language),
+            tabBarLabel: t('shoppingList', language),
+            tabBarIcon: ({ color }) => (
+              <Text style={{ fontSize: 26 }}>🛒</Text>
             ),
           }}
         />
@@ -480,7 +480,7 @@ export default function App() {
   if (checkingFirstLaunch) {
     content = (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#E11D48" />
+        <ActivityIndicator size="large" color="#4A7C59" />
       </View>
     );
   } else if (showWelcome) {
@@ -512,7 +512,7 @@ export default function App() {
   } else if (authLoading) {
     content = (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#E11D48" />
+        <ActivityIndicator size="large" color="#4A7C59" />
         <Text style={styles.loadingText}>Loading Shelfze...</Text>
       </View>
     );
@@ -555,7 +555,7 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#F4F1DE', // Alabaster
   },
   addButton: {
     backgroundColor: 'rgba(255, 255, 255, 0.25)', // Transparent white overlay
@@ -586,7 +586,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   recipeSubheader: {
-    backgroundColor: '#C53030', // Darker red
+    backgroundColor: '#E07A5F', // Terracotta
     paddingVertical: 8,
     paddingHorizontal: 20,
     borderBottomWidth: 1,
@@ -602,18 +602,18 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#F5F5F5',
+    backgroundColor: '#F4F1DE',
   },
   loadingText: {
     marginTop: 16,
     fontSize: 16,
-    color: '#666',
+    color: '#3D405B',
     fontWeight: '600',
   },
   errorText: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#E11D48',
+    color: '#E07A5F',
     marginBottom: 8,
   },
   errorSubtext: {
@@ -624,7 +624,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#F5F5F5',
+    backgroundColor: '#F4F1DE',
     padding: 20,
   },
   errorEmoji: {
@@ -634,7 +634,7 @@ const styles = StyleSheet.create({
   errorTitle: {
     fontSize: 22,
     fontWeight: 'bold',
-    color: '#333',
+    color: '#3D405B',
     marginBottom: 10,
     textAlign: 'center',
   },
@@ -645,7 +645,7 @@ const styles = StyleSheet.create({
     marginBottom: 30,
   },
   restartButton: {
-    backgroundColor: '#E11D48',
+    backgroundColor: '#4A7C59',
     paddingHorizontal: 30,
     paddingVertical: 15,
     borderRadius: 10,
