@@ -770,121 +770,57 @@ exports.generateRecipes = onRequest({
       return;
     }
 
-    const promptLines = [
-      "You are an experienced professional chef with expertise across " +
-        "many cuisines.",
-      "Create PROVEN, TESTED recipes that are guaranteed to be delicious.",
-      "",
-      "**IMPORTANT: Respond entirely in " + targetLanguageName + ".**",
-      "All names, descriptions, and text must use the target language.",
-      "",
-      "**DISH TYPE: " + dishTypeDescription + "**",
-      "",
-      "**AVAILABLE PANTRY INGREDIENTS (THE USER ONLY HAS THESE):**",
-      filteredIngredients.join(", "),
-      "",
-    ];
+    const prompt = `
+You are an experienced professional chef. Create ${maxRecipeCount} recipes ` +
+`based on these ingredients: ${filteredIngredients.join(", ")}.
 
-    if (userGuidance && userGuidance.trim()) {
-      promptLines.push("**USER'S SPECIAL REQUESTS:**");
-      promptLines.push(userGuidance.trim());
-      promptLines.push("");
-    }
+TARGET LANGUAGE: ${targetLanguageName} (ALL output must be in this language).
+DISH TYPE: ${dishTypeDescription}
 
-    promptLines.push("🚨 QUALITY STANDARDS - EVERY RECIPE MUST BE:");
-    promptLines.push("✓ DELICIOUS - Balanced flavors (sweet/salty/umami/acid)");
-    promptLines.push("✓ SIMPLE - Focus on minimal effort for maximum taste");
-    promptLines.push("✓ TESTED - Only suggest combinations you KNOW work well");
-    promptLines.push("✓ ACHIEVABLE - Realistic cooking times and techniques");
-    promptLines.push("✓ SATISFYING - Proper portion sizes and nutritional");
-    promptLines.push("✓ APPEALING - Attractive presentation and appetizing");
-    promptLines.push("");
-    promptLines.push("🚨 STRICT INGREDIENT RULES:");
-    promptLines.push("1. Use ONLY the listed pantry ingredients");
-    promptLines.push("2. You may assume: salt, black pepper, neutral oil, " +
-        "water, sugar");
-    promptLines.push("3. Do NOT assume any other ingredients exist unless " +
-        "listed");
-    promptLines.push("4. **QUANTITY TARGET**: Generate between 5 and " +
-        maxRecipeCount + " recipes.");
-    promptLines.push("5. **CRITICAL: DO NOT USE ALL INGREDIENTS.**");
-    promptLines.push("6. Select a SMALL SUBSET (3-6 items) that create a " +
-        "classic dish.");
-    promptLines.push("7. IGNORE the rest of the pantry list for that recipe.");
-    promptLines.push("8. Do not force incompatible ingredients together.");
-    promptLines.push("9. To reach the target of 5-7 recipes, consider " +
-        "different cooking styles (e.g., roasted vs. boiled vs. stir-fried).");
-    promptLines.push("");
-    promptLines.push("🚨 RECIPE SELECTION GUIDELINES:");
-    promptLines.push("1. **PRIORITIZE POPULAR DISHES**: At least 50% of " +
-        "the recipes MUST be widely recognized, classic dishes.");
-    promptLines.push("2. Avoid obscure or overly experimental combinations " +
-        "for the majority of suggestions.");
-    promptLines.push("3. Ensure the recipe names are recognizable to the " +
-        "average home cook.");
-    promptLines.push("");
-    promptLines.push("🚨 FLAVOR VALIDATION:");
-    promptLines.push("- Every recipe needs contrast (texture, flavor, temp)");
-    promptLines.push("- Consider: Is this genuinely tasty or just edible?");
-    promptLines.push("- Would a professional chef be proud to serve this?");
-    promptLines.push("- Does it have proper seasoning and flavor development?");
-    promptLines.push("- If ingredients are too limited for a good dish, " +
-        "suggest fewer recipes");
-    promptLines.push("");
-    promptLines.push("EXAMPLES OF WHAT NOT TO DO:");
-    promptLines.push("❌ Add flour (unless flour is in pantry)");
-    promptLines.push("❌ Mix in eggs (unless eggs are in pantry)");
-    promptLines.push("❌ Boring single-ingredient dishes " +
-        "(just boiled potatoes)");
-    promptLines.push("❌ Untested weird combinations that might taste bad");
-    promptLines.push("❌ Missing crucial flavor elements (acid, salt, fat)");
-    promptLines.push("");
-    promptLines.push("Respond with JSON format:");
-    promptLines.push("{");
-    promptLines.push("  \"recipes\": [");
-    promptLines.push("    {");
-    promptLines.push("      \"name\": \"Recipe name in " + targetLanguageName +
-        "\",");
-    promptLines.push("      \"emoji\": \"🍝\",");
-    promptLines.push("      \"description\": \"Appetizing 2-3 sentence " +
-        "description highlighting why it tastes great in " +
-        targetLanguageName + "\",");
-    promptLines.push("      \"prepTime\": \"15 minutes\",");
-    promptLines.push("      \"cookTime\": \"30 minutes\",");
-    promptLines.push("      \"servings\": \"4\",");
-    promptLines.push("      \"difficulty\": \"Easy|Medium|Hard (in " +
-      targetLanguageName + ")\",");
-    promptLines.push("      \"cuisine\": \"Cuisine name (in " +
-        targetLanguageName + ")\",");
-    promptLines.push("      \"nutrition\": {");
-    promptLines.push("        \"calories\": 450,");
-    promptLines.push("        \"protein\": \"25g\",");
-    promptLines.push("        \"carbs\": \"35g\",");
-    promptLines.push("        \"fat\": \"18g\"");
-    promptLines.push("      },");
-    promptLines.push("      \"skillLevel\": \"Beginner|Intermediate|" +
-        "Advanced (in " +
-      targetLanguageName + ")\"");
-    promptLines.push("    }");
-    promptLines.push("  ]");
-    promptLines.push("}");
-    promptLines.push("");
-    promptLines.push("**NUTRITION CALCULATION:**");
-    promptLines.push("- Calculate accurate calories and macros PER SERVING");
-    promptLines.push("- Based on actual ingredient quantities");
-    promptLines.push("- Use standard USDA nutritional values");
-    promptLines.push("- Round to nearest 5 calories");
-    promptLines.push("");
-    promptLines.push("Remember: ONLY suggest recipes you're confident will " +
-        "taste delicious. Quality over quantity!");
+STRICT GUIDELINES:
+1. USE PROVIDED INGREDIENTS. You may assume basic staples ` +
+`(Salt, Pepper, Oil, Water, Sugar).
+2. If a recipe requires other ingredients not listed, DO NOT suggest it, ` +
+`or adapt it to use what is available.
+3. Recipes must be delicious, tested, and achievable.
+4. Provide accurate nutrition estimates per serving.
 
-    const prompt = promptLines.join("\n");
+RESPONSE FORMAT:
+Return a raw JSON object with a "recipes" array. Each recipe object must ` +
+`match this schema:
+{
+  "name": "Recipe Name",
+  "emoji": "🍲",
+  "description": "Appetizing summary",
+  "prepTime": "15 minutes",
+  "cookTime": "30 minutes",
+  "servings": "4",
+  "difficulty": "Easy/Medium/Hard",
+  "cuisine": "Cuisine Type",
+  "skillLevel": "Beginner/Intermediate/Advanced",
+  "nutrition": {
+    "calories": 450,
+    "protein": "25g",
+    "carbs": "35g",
+    "fat": "18g"
+  },
+  "ingredients": ["List of ingredients with quantities"],
+  "instructions": ["Step 1", "Step 2"],
+  "tips": ["Chef tip 1"]
+}
+
+${userGuidance && userGuidance.trim() ?
+    `USER REQUEST: ${userGuidance.trim()}` : ""}
+`;
 
     const result = await recipeModel.generateContent({
       contents: [{
         role: "user",
         parts: [{text: prompt}],
       }],
+      generationConfig: {
+        responseMimeType: "application/json",
+      },
     });
 
     const response = await result.response;
@@ -901,15 +837,16 @@ exports.generateRecipes = onRequest({
 
     console.log("Gemini recipe suggestions:", responseText);
 
-    const jsonMatch = responseText.match(/\{[\s\S]*\}/);
-    if (jsonMatch) {
+    // Parse JSON directly since we requested JSON mode
+    try {
+      const parsed = JSON.parse(responseText);
+      const recipesArray = Array.isArray(parsed.recipes) ? parsed.recipes : [];
+      
       await usageRef.update({
         recipesRemaining: admin.firestore.FieldValue.increment(-1),
         totalRecipesUsed: admin.firestore.FieldValue.increment(1),
       });
 
-      const parsed = JSON.parse(jsonMatch[0]);
-      const recipesArray = Array.isArray(parsed.recipes) ? parsed.recipes : [];
       const payload = {
         recipes: recipesArray.slice(0, maxRecipeCount),
       };
@@ -921,8 +858,21 @@ exports.generateRecipes = onRequest({
       }
 
       res.status(200).json(payload);
-    } else {
-      res.status(500).json({error: "Failed to parse recipe suggestions"});
+    } catch (e) {
+      console.error("Failed to parse JSON response:", e);
+      // Fallback to regex if JSON mode failed for some reason
+      const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        const parsed = JSON.parse(jsonMatch[0]);
+        // ... (rest of logic same as above)
+        await usageRef.update({
+          recipesRemaining: admin.firestore.FieldValue.increment(-1),
+          totalRecipesUsed: admin.firestore.FieldValue.increment(1),
+        });
+        res.status(200).json({recipes: parsed.recipes || []});
+      } else {
+        res.status(500).json({error: "Failed to parse recipe suggestions"});
+      }
     }
   } catch (error) {
     console.error("Error generating recipes:", error);
@@ -996,7 +946,8 @@ exports.getRecipeDetails = onRequest({
       "7. **CRITICAL: Use ONLY the ingredients necessary for this dish**",
       "8. IGNORE other available ingredients if they don't belong",
       "9. Include precise measurements, temperatures, and timing",
-      "10. Explain WHY each step matters for the final taste",
+      "10. Explain WHY each step matters for the final taste " +
+        "(include this explanation WITHIN the step string)",
       "11. **ALL text must be in " + targetLanguageName + "**",
       "",
       "EXAMPLE OPTIONAL INGREDIENT:",

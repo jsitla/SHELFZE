@@ -666,12 +666,28 @@ export default function RecipeGenerator() {
 
   const selectRecipe = (recipe) => {
     setSelectedRecipe(recipe);
+    
+    // Check if we have full details (ingredients and instructions)
+    const hasDetails = recipe.ingredients && 
+                       Array.isArray(recipe.ingredients) && 
+                       recipe.ingredients.length > 0 &&
+                       recipe.instructions && 
+                       Array.isArray(recipe.instructions) && 
+                       recipe.instructions.length > 0;
+
+    if (hasDetails) {
+      // Use the full recipe data we already have
+      setRecipeDetails(recipe);
+    } else {
+      // Fetch details if missing
+      getRecipeDetails(recipe.name);
+    }
+    
     setUserRating(0);
     setWouldMakeAgain(false);
     setIsFavorite(false);
     setIsCooked(false);
     setWantToTry(false);
-    getRecipeDetails(recipe.name);
   };
 
   const goBack = () => {
@@ -682,6 +698,29 @@ export default function RecipeGenerator() {
     setIsFavorite(false);
     setIsCooked(false);
     setWantToTry(false);
+  };
+
+  // Helper to safely extract text from instruction step
+  const getStepText = (step) => {
+    if (!step) return '';
+    if (typeof step === 'string') return step;
+    if (typeof step === 'object') {
+      // Handle nested objects or direct properties
+      if (typeof step.description === 'string') return step.description;
+      if (typeof step.step === 'string') return step.step;
+      if (typeof step.text === 'string') return step.text;
+      // Recursive check if description is an object (edge case)
+      if (step.description && typeof step.description === 'object') return getStepText(step.description);
+      return '';
+    }
+    return String(step);
+  };
+
+  // Helper to safely extract 'why' from instruction step
+  const getStepWhy = (step) => {
+    if (!step || typeof step !== 'object') return null;
+    if (typeof step.why === 'string') return step.why;
+    return null;
   };
 
   // Share recipe to social media
@@ -699,7 +738,12 @@ export default function RecipeGenerator() {
 
     try {
       const ingredientsText = recipeDetails.ingredients.map((ing) => `• ${ing}`).join('\n');
-      const instructionsText = recipeDetails.instructions.map((step, i) => `${i + 1}. ${step}`).join('\n');
+      const instructionsText = recipeDetails.instructions.map((step, i) => {
+        const text = getStepText(step);
+        const why = getStepWhy(step);
+        const whyText = why ? `\n   💡 ${why}` : '';
+        return `${i + 1}. ${text}${whyText}`;
+      }).join('\n');
 
       const message = `
 ${t('checkOutThisRecipe', language)}: ${recipeDetails.name} ${recipeDetails.emoji || ''}
@@ -710,7 +754,7 @@ ${ingredientsText}
 👨‍🍳 *${t('instructions', language)}:*
 ${instructionsText}
 
-${recipeDetails.tips && recipeDetails.tips.length > 0 ? `\n💡 *${t('chefsTips', language)}:*\n${recipeDetails.tips.map((tip) => `• ${tip}`).join('\n')}` : ''}
+${recipeDetails.tips && recipeDetails.tips.length > 0 ? `\n💡 *${t('chefsTips', language)}:*\n${recipeDetails.tips.map((tip) => `• ${getStepText(tip)}`).join('\n')}` : ''}
 
 ${t('sharedFromShelfze', language)}
       `.trim();
@@ -830,12 +874,21 @@ ${t('sharedFromShelfze', language)}
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>👨‍🍳 {t('instructions', language)}</Text>
-          {recipeDetails.instructions && recipeDetails.instructions.map((step, index) => (
-            <View key={index} style={styles.stepContainer}>
-              <Text style={styles.stepNumber}>{t('step', language)} {index + 1}</Text>
-              <Text style={styles.stepText}>{step}</Text>
-            </View>
-          ))}
+          {recipeDetails.instructions && recipeDetails.instructions.map((step, index) => {
+            const stepText = getStepText(step);
+            const stepWhy = getStepWhy(step);
+            return (
+              <View key={index} style={styles.stepContainer}>
+                <Text style={styles.stepNumber}>{t('step', language)} {index + 1}</Text>
+                <Text style={styles.stepText}>
+                  {stepText}
+                </Text>
+                {stepWhy && (
+                  <Text style={styles.stepWhy}>💡 {stepWhy}</Text>
+                )}
+              </View>
+            );
+          })}
         </View>
 
         {recipeDetails.tips && recipeDetails.tips.length > 0 && (
@@ -843,7 +896,7 @@ ${t('sharedFromShelfze', language)}
             <Text style={styles.sectionTitle}>💡 {t('chefsTips', language)}</Text>
             {recipeDetails.tips.map((tip, index) => (
               <Text key={index} style={styles.tip}>
-                • {tip}
+                • {getStepText(tip)}
               </Text>
             ))}
           </View>
@@ -1416,7 +1469,7 @@ ${t('sharedFromShelfze', language)}
                             </View>
                             {recipe.recipeData?.description && (
                               <Text style={styles.savedRecipeDescription} numberOfLines={1}>
-                                {recipe.recipeData.description}
+                                {getStepText(recipe.recipeData.description)}
                               </Text>
                             )}
                             <Text style={styles.savedRecipeMeta}>
@@ -2133,6 +2186,15 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: '#555',
     lineHeight: 22,
+  },
+  stepWhy: {
+    fontSize: 14,
+    color: '#666',
+    marginTop: 6,
+    fontStyle: 'italic',
+    backgroundColor: '#F9FAFB',
+    padding: 8,
+    borderRadius: 6,
   },
   tip: {
     fontSize: 14,
