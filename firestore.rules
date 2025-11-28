@@ -14,6 +14,11 @@ service cloud.firestore {
       allow read, write, delete: if request.auth.uid == userId;
     }
 
+    // Users can read/write their own shopping list
+    match /users/{userId}/shoppingList/{itemId} {
+      allow read, write, delete: if request.auth.uid == userId;
+    }
+
     // Legacy path support (if needed)
     match /pantry/{userId}/{pantryId} {
       allow read, write, delete: if request.auth.uid == userId;

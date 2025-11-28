@@ -1218,7 +1218,15 @@ ${t('sharedFromShelfze', language)}
           disabled={!selectedDishCategory || generatingRecipes || pantryItems.length === 0}
         >
           {generatingRecipes ? (
-            <ActivityIndicator color="#fff" />
+            <View style={styles.generatingContainer}>
+              <ActivityIndicator color="#fff" />
+              <Text style={styles.generatingText}>
+                {t('aiBuildingRecipes', language)}
+              </Text>
+              <Text style={styles.generatingSubText}>
+                {t('readySoon', language)}
+              </Text>
+            </View>
           ) : (
             <Text style={styles.generateButtonText}>
               ✨ {t('generateRecipeIdeas', language)}
@@ -1575,6 +1583,23 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 18,
     fontWeight: 'bold',
+  },
+  generatingContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  generatingText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginTop: 8,
+    textAlign: 'center',
+  },
+  generatingSubText: {
+    color: 'rgba(255, 255, 255, 0.9)',
+    fontSize: 14,
+    marginTop: 4,
+    textAlign: 'center',
   },
   categorySection: {
     paddingHorizontal: 20,

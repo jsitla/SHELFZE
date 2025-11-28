@@ -1498,7 +1498,7 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: '#E07A5F', // Terracotta
+    backgroundColor: '#FF3B30', // Red
     justifyContent: 'center',
     alignItems: 'center',
   },

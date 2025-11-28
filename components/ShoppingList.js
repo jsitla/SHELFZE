@@ -22,6 +22,10 @@ const ShoppingList = () => {
                 const items = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 setList(items);
                 setLoading(false);
+            }, (error) => {
+                console.error("Error fetching shopping list:", error);
+                Alert.alert(t('error', language), t('errorLoadingShoppingList', language));
+                setLoading(false);
             });
             return () => unsubscribe();
         }

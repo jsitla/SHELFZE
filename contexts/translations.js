@@ -374,6 +374,9 @@ const baseTranslation = {
 	passwordResetSent: 'A password reset link has been sent to',
 	enterEmailForPasswordReset: 'Please enter your email to receive a password reset link.',
 	forgotPasswordEmailSent: 'If an account with that email exists, a password reset link has been sent.',
+	errorLoadingShoppingList: 'Failed to load shopping list',
+	aiBuildingRecipes: 'AI is building your recipes...',
+	readySoon: 'It will be ready soon!',
 };
 
 const withOverrides = (overrides) => ({
@@ -717,6 +720,9 @@ export const translations = {
 	passwordResetSent: 'Se ha enviado un enlace de restablecimiento de contraseña a',
 	enterEmailForPasswordReset: 'Por favor, introduce tu correo electrónico para recibir un enlace de restablecimiento de contraseña.',
 	forgotPasswordEmailSent: 'Si existe una cuenta con ese correo electrónico, se ha enviado un enlace para restablecer la contraseña.',
+		errorLoadingShoppingList: 'Error al cargar la lista de compras',
+		aiBuildingRecipes: 'La IA está creando tus recetas...',
+		readySoon: '¡Estará listo pronto!',
 	}),
 	fr: withOverrides({
 		scanItem: 'Scanner un article',
@@ -1037,6 +1043,9 @@ export const translations = {
 		passwordResetSent: 'Un lien de réinitialisation de mot de passe a été envoyé à',
 		enterEmailForPasswordReset: 'Veuillez saisir votre adresse e-mail pour recevoir un lien de réinitialisation de mot de passe.',
 		forgotPasswordEmailSent: 'Si un compte avec cet e-mail existe, un lien de réinitialisation de mot de passe a été envoyé.',
+		errorLoadingShoppingList: 'Échec du chargement de la liste de courses',
+		aiBuildingRecipes: 'L\'IA prépare vos recettes...',
+		readySoon: 'Ce sera bientôt prêt !',
 	}),
 	de: withOverrides({
 		optional: 'fakultativ',
@@ -1359,6 +1368,9 @@ export const translations = {
 		passwordResetSent: 'Ein Link zum Zurücksetzen des Passworts wurde an gesendet',
 		enterEmailForPasswordReset: 'Bitte geben Sie Ihre E-Mail-Adresse ein, um einen Link zum Zurücksetzen des Passworts zu erhalten.',
 		forgotPasswordEmailSent: 'Wenn ein Konto mit dieser E-Mail-Adresse existiert, wurde ein Link zum Zurücksetzen des Passworts gesendet.',
+		errorLoadingShoppingList: 'Einkaufsliste konnte nicht geladen werden',
+		aiBuildingRecipes: 'KI erstellt Ihre Rezepte...',
+		readySoon: 'Es wird bald fertig sein!',
 	}),
 	it: withOverrides({
 		scanItem: 'Scansiona articolo',
@@ -1683,6 +1695,9 @@ export const translations = {
 		passwordResetSent: 'Povezava za ponastavitev gesla je bila poslana na',
 		enterEmailForPasswordReset: 'Prosimo, vnesite svoj e-poštni naslov, da prejmete povezavo za ponastavitev gesla.',
 		forgotPasswordEmailSent: 'Če obstaja račun s tem e-poštnim naslovom, je bila poslana povezava za ponastavitev gesla.',
+		errorLoadingShoppingList: 'Impossibile caricare la lista della spesa',
+		aiBuildingRecipes: 'L\'IA sta creando le tue ricette...',
+		readySoon: 'Sarà pronto presto!',
 	}),
 	sl: withOverrides({
 		scanItem: 'Skeniraj izdelek',
@@ -1937,6 +1952,9 @@ export const translations = {
 		existingAccountDesc: 'Prijavite se s svojim obstoječim računom. Opomba: Vaši gostujoči podatki ne bodo preneseni.',
 		loginExisting: 'Prijava z obstoječim računom',
 		switchedToExistingAccount: 'Uspešno preklopljeno na obstoječi račun!',
+		errorLoadingShoppingList: 'Nalaganje nakupovalnega seznama ni uspelo',
+		aiBuildingRecipes: 'UI pripravlja vaše recepte...',
+		readySoon: 'Kmalu bo pripravljeno!',
 	}),
 };
 
