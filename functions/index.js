@@ -921,8 +921,10 @@ Task: Select up to 3 recipes from the candidates that can be made PRIMARILY ` +
 `using the User Ingredients AND match the Requested Dish Type AND ` +
 `respect User Guidance.
 RULES:
-1. It is acceptable if 1-2 minor common ingredients (like spices, garlic, ` +
-`onion) are missing.
+1. You MAY assume the user has basic staples: Salt, Pepper, Oil, Water, ` +
+`Sugar. **REJECT** the recipe if it requires **ANY** other ingredient not ` +
+`listed in User Ingredients. Do not assume they have spices, herbs, ` +
+`sauces, or garnishes unless listed.
 2. **REJECT** any recipe that requires a main ingredient (meat, fish, ` +
 `poultry, main vegetable) that is NOT in the User Ingredients.
 3. **REJECT** any recipe that does NOT match the Requested Dish Type ` +
@@ -1859,8 +1861,10 @@ Task: Select up to 3 recipes from the candidates that can be made PRIMARILY ` +
 `using the User Ingredients AND match the Requested Dish Type AND ` +
 `respect User Guidance.
 RULES:
-1. It is acceptable if 1-2 minor common ingredients (like spices, garlic, ` +
-`onion) are missing.
+1. You MAY assume the user has basic staples: Salt, Pepper, Oil, Water, ` +
+`Sugar. **REJECT** the recipe if it requires **ANY** other ingredient not ` +
+`listed in User Ingredients. Do not assume they have spices, herbs, ` +
+`sauces, or garnishes unless listed.
 2. **REJECT** any recipe that requires a main ingredient (meat, fish, ` +
 `poultry, main vegetable) that is NOT in the User Ingredients.
 3. **REJECT** any recipe that does NOT match the Requested Dish Type ` +

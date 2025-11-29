@@ -21,7 +21,7 @@ import { app, auth } from '../firebase.config';
 import { useLanguage } from '../contexts/LanguageContext';
 import { t } from '../contexts/translations';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { getUserUsage } from '../utils/usageTracking';
 import { config } from '../config';
 import { fetchWithTimeout } from '../utils/fetchWithTimeout';
@@ -57,6 +57,30 @@ export default function RecipeGenerator() {
   const [checkingPantry, setCheckingPantry] = useState(false);
   const [itemsToShop, setItemsToShop] = useState([]);
   const { language } = useLanguage();
+  const navigation = useNavigation();
+
+  // Update header when recipe is selected
+  useEffect(() => {
+    if (selectedRecipe) {
+      navigation.setOptions({
+        headerLeft: () => (
+          <TouchableOpacity 
+            onPress={goBack}
+            style={{ marginLeft: 16, flexDirection: 'row', alignItems: 'center' }}
+          >
+            <Text style={{ color: '#FFFFFF', fontSize: 18, marginRight: 4 }}>←</Text>
+            <Text style={{ color: '#FFFFFF', fontSize: 16, fontWeight: '600' }}>
+              {t('back', language) || 'Back'}
+            </Text>
+          </TouchableOpacity>
+        ),
+      });
+    } else {
+      navigation.setOptions({
+        headerLeft: () => null,
+      });
+    }
+  }, [selectedRecipe, navigation, language]);
 
   const db = getFirestore(app);
 
@@ -906,16 +930,8 @@ ${t('sharedFromShelfze', language)}
   // Show detailed recipe view
   if (selectedRecipe && recipeDetails) {
     return (
-      <SafeAreaView style={styles.detailSafeArea} edges={['top', 'left', 'right']}>
+      <SafeAreaView style={styles.detailSafeArea} edges={['left', 'right']}>
         <ScrollView style={styles.detailScroll} contentContainerStyle={styles.detailScrollContent}>
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={goBack}
-            hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
-          >
-          <Text style={styles.backButtonText}>← {t('backToRecipes', language)}</Text>
-        </TouchableOpacity>
-
         <View style={styles.recipeHeader}>
           <Text style={styles.recipeTitle}>{recipeDetails.name}</Text>
           <Text style={styles.recipeEmoji}>{recipeDetails.emoji || '🍽️'}</Text>
@@ -1144,10 +1160,6 @@ ${t('sharedFromShelfze', language)}
 
         <TouchableOpacity style={styles.bottomShareButton} onPress={shareRecipe}>
           <Text style={styles.bottomShareButtonText}>🔗 {t('share', language)}</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.newRecipeButton} onPress={resetGenerator}>
-          <Text style={styles.newRecipeButtonText}>↺ {t('generateNewRecipes', language)}</Text>
         </TouchableOpacity>
         </ScrollView>
 
@@ -2288,6 +2300,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   detailScrollContent: {
+    paddingTop: 10,
     paddingBottom: 40,
   },
   backButton: {

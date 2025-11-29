@@ -202,7 +202,7 @@ function AppNavigator() {
         />
         <Tab.Screen 
           name="Recipes" 
-          component={RecipeWrapper}
+          component={RecipeGenerator}
           options={{
             title: t('recipeIdeas', language),
             tabBarLabel: t('recipes', language),
