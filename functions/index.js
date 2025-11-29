@@ -743,10 +743,10 @@ exports.generateRecipes = onRequest({
 
     const dishCategoryMap = {
       mainCourse: "Main Course / Dinner Entrée",
-      appetizer: "Appetizer / Starter",
+      salad: "Salad",
       dessert: "Dessert / Sweet Dish",
       breakfast: "Breakfast / Brunch",
-      soupSalad: "Soup, Stew, or Salad",
+      soup: "Soup or Stew",
       snack: "Snack / Light Bite",
     };
     const dishTypeDescription = dishCategoryMap[selectedDishType] ||
@@ -827,11 +827,12 @@ STRICT GUIDELINES:
 `listed in the provided ingredients.
 4. **NEVER** include savory ingredients (meat, fish, poultry, garlic, ` +
 `onion) if the requested DISH TYPE is Dessert/Sweet.
-5. If the requested DISH TYPE is Soup/Salad, **DO NOT** generate pasta ` +
-`dishes (unless pasta salad), rice dishes (unless rice soup), or solid ` +
+5. If the requested DISH TYPE is Soup, **DO NOT** generate salads or solid ` +
 `main courses.
-6. Recipes must be delicious, tested, and achievable.
-6. Provide accurate nutrition estimates per serving.
+6. If the requested DISH TYPE is Salad, **DO NOT** generate soups or ` +
+`cooked main courses (unless warm salad).
+7. Recipes must be delicious, tested, and achievable.
+8. Provide accurate nutrition estimates per serving.
 
 RESPONSE FORMAT:
 Return a raw JSON object with a "recipes" array. Each recipe object must ` +
@@ -928,8 +929,8 @@ RULES:
 2. **REJECT** any recipe that requires a main ingredient (meat, fish, ` +
 `poultry, main vegetable) that is NOT in the User Ingredients.
 3. **REJECT** any recipe that does NOT match the Requested Dish Type ` +
-`(e.g. if Dessert is requested, reject savory dishes; if Soup/Salad is ` +
-`requested, reject solid main courses like spaghetti, steak, or curry).
+`(e.g. if Dessert is requested, reject savory dishes; if Soup is ` +
+`requested, reject salads/solids; if Salad is requested, reject soups).
 4. **REJECT** any recipe that conflicts with User Guidance ` +
 `(e.g. dietary restrictions, unwanted ingredients).
 Return JSON: {"selectedIds": [0, 2]}
@@ -1681,10 +1682,10 @@ exports.onRecipeRequestCreated = functions
 
         const dishCategoryMap = {
           mainCourse: "Main Course / Dinner Entrée",
-          appetizer: "Appetizer / Starter",
+          salad: "Salad",
           dessert: "Dessert / Sweet Dish",
           breakfast: "Breakfast / Brunch",
-          soupSalad: "Soup, Stew, or Salad",
+          soup: "Soup or Stew",
           snack: "Snack / Light Bite",
         };
         const dishTypeDescription = dishCategoryMap[selectedDishType] ||
@@ -1756,11 +1757,12 @@ STRICT GUIDELINES:
 `listed in the provided ingredients.
 4. **NEVER** include savory ingredients (meat, fish, poultry, garlic, ` +
 `onion) if the requested DISH TYPE is Dessert/Sweet.
-5. If the requested DISH TYPE is Soup/Salad, **DO NOT** generate pasta ` +
-`dishes (unless pasta salad), rice dishes (unless rice soup), or solid ` +
+5. If the requested DISH TYPE is Soup, **DO NOT** generate salads or solid ` +
 `main courses.
-6. Recipes must be delicious, tested, and achievable.
-6. Provide accurate nutrition estimates per serving.
+6. If the requested DISH TYPE is Salad, **DO NOT** generate soups or ` +
+`cooked main courses (unless warm salad).
+7. Recipes must be delicious, tested, and achievable.
+8. Provide accurate nutrition estimates per serving.
 
 RESPONSE FORMAT:
 Return a raw JSON object with a "recipes" array. Each recipe object must ` +
@@ -1868,8 +1870,8 @@ RULES:
 2. **REJECT** any recipe that requires a main ingredient (meat, fish, ` +
 `poultry, main vegetable) that is NOT in the User Ingredients.
 3. **REJECT** any recipe that does NOT match the Requested Dish Type ` +
-`(e.g. if Dessert is requested, reject savory dishes; if Soup/Salad is ` +
-`requested, reject solid main courses like spaghetti, steak, or curry).
+`(e.g. if Dessert is requested, reject savory dishes; if Soup is ` +
+`requested, reject salads/solids; if Salad is requested, reject soups).
 4. **REJECT** any recipe that conflicts with User Guidance ` +
 `(e.g. dietary restrictions, unwanted ingredients).
 Return JSON: {"selectedIds": [0, 2]}

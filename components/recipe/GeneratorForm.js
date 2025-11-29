@@ -18,10 +18,10 @@ const GeneratorForm = ({
 
   const dishCategories = [
     { id: 'mainCourse', label: t('mainCourse', language), emoji: '🍽️' },
-    { id: 'appetizer', label: t('appetizer', language), emoji: '🥗' },
+    { id: 'salad', label: t('salad', language), emoji: '🥗' },
     { id: 'dessert', label: t('dessert', language), emoji: '🍰' },
     { id: 'breakfast', label: t('breakfast', language), emoji: '🍳' },
-    { id: 'soupSalad', label: t('soupSalad', language), emoji: '🥣' },
+    { id: 'soup', label: t('soup', language), emoji: '🥣' },
     { id: 'snack', label: t('snack', language), emoji: '🍿' },
   ];
 
