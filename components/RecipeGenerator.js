@@ -49,6 +49,7 @@ export default function RecipeGenerator() {
   const [userGuidance, setUserGuidance] = useState('');
   const [showGuidanceInput, setShowGuidanceInput] = useState(false);
   const [savedRecipes, setSavedRecipes] = useState([]);
+  const [userRatings, setUserRatings] = useState({});
   const [selectedCollectionFilter, setSelectedCollectionFilter] = useState('all');
   const [savedRecipesExpanded, setSavedRecipesExpanded] = useState(false);
   const [usageData, setUsageData] = useState(null);
@@ -225,16 +226,21 @@ export default function RecipeGenerator() {
     }
   };
 
-  // Fetch saved recipes from Firestore
+  // Fetch saved recipes and ratings from Firestore
   useEffect(() => {
     let unsubscribeSnapshot = null;
+    let unsubscribeRatings = null;
     
     // Wait for authentication
     const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
-      // Cleanup previous snapshot listener if it exists
+      // Cleanup previous snapshot listeners if they exist
       if (unsubscribeSnapshot) {
         unsubscribeSnapshot();
         unsubscribeSnapshot = null;
+      }
+      if (unsubscribeRatings) {
+        unsubscribeRatings();
+        unsubscribeRatings = null;
       }
       
       if (!user) {
@@ -249,6 +255,7 @@ export default function RecipeGenerator() {
         console.log('Loading saved recipes for user:', userId);
       }
 
+      // Fetch saved recipes
       const q = query(collection(db, `users/${userId}/recipeCollections`));
       unsubscribeSnapshot = onSnapshot(q, (snapshot) => {
         const recipes = snapshot.docs.map(doc => ({
@@ -267,12 +274,30 @@ export default function RecipeGenerator() {
         }
         console.error('Error fetching saved recipes:', error);
       });
+
+      // Fetch user ratings
+      const ratingsQuery = query(collection(db, `users/${userId}/recipeRatings`));
+      unsubscribeRatings = onSnapshot(ratingsQuery, (snapshot) => {
+        const ratings = {};
+        snapshot.docs.forEach(doc => {
+          const data = doc.data();
+          if (data.recipeName && data.rating) {
+            ratings[data.recipeName] = data.rating;
+          }
+        });
+        setUserRatings(ratings);
+      }, (error) => {
+        console.error('Error fetching user ratings:', error);
+      });
     });
 
     return () => {
       unsubscribeAuth();
       if (unsubscribeSnapshot) {
         unsubscribeSnapshot();
+      }
+      if (unsubscribeRatings) {
+        unsubscribeRatings();
       }
     };
   }, []);
@@ -1777,6 +1802,7 @@ ${t('sharedFromShelfze', language)}
                               </Text>
                             )}
                             <Text style={styles.savedRecipeMeta}>
+                              {userRatings[recipe.recipeName] && `⭐ ${userRatings[recipe.recipeName]} • `}
                               {recipe.recipeData?.prepTime && `🕒 ${recipe.recipeData.prepTime}`}
                               {recipe.recipeData?.prepTime && recipe.recipeData?.cookTime && ' • '}
                               {recipe.recipeData?.cookTime && `⏱️ ${recipe.recipeData.cookTime}`}
