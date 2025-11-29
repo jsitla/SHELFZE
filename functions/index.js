@@ -906,7 +906,7 @@ ${userGuidance && userGuidance.trim() ?
 
         // Use Gemini Flash to filter candidates
         const filterPrompt = `
-You are a smart recipe filter.
+You are a strict recipe filter.
 User Ingredients: ${filteredIngredients.join(", ")}
 Requested Dish Type: ${dishTypeDescription}
 ${userGuidance ? `User Guidance: ${userGuidance}` : ""}
@@ -918,23 +918,26 @@ ${JSON.stringify(candidates.map((c, i) => ({
     ingredients: c.ingredients,
   })))}
 
-Task: Select up to 3 recipes from the candidates that can be made PRIMARILY ` +
-`using the User Ingredients AND match the Requested Dish Type AND ` +
-`respect User Guidance.
-RULES:
-1. You MAY assume the user has basic staples: Salt, Pepper, Oil, Water, ` +
-`Sugar. **REJECT** the recipe if it requires **ANY** other ingredient not ` +
-`listed in User Ingredients. Do not assume they have spices, herbs, ` +
-`sauces, or garnishes unless listed.
-2. **REJECT** any recipe that requires a main ingredient (meat, fish, ` +
-`poultry, main vegetable) that is NOT in the User Ingredients.
-3. **REJECT** any recipe that does NOT match the Requested Dish Type ` +
-`(e.g. if Dessert is requested, reject savory dishes; if Soup is ` +
-`requested, reject salads/solids; if Salad is requested, reject soups).
-4. **REJECT** any recipe that conflicts with User Guidance ` +
-`(e.g. dietary restrictions, unwanted ingredients).
+Task: Select up to 3 recipes from the candidates that can be made using ` +
+`**ONLY** the User Ingredients and allowed staples.
+STRICT FILTERING RULES:
+1. **ALLOWED STAPLES**: Salt, Black Pepper, Oil, Water, Sugar.
+2. **MISSING INGREDIENTS**: If a recipe requires **ANY** ingredient ` +
+`(including spices, herbs, sauces, dairy, grains, or garnishes) that is ` +
+`NOT in the User Ingredients and NOT an Allowed Staple, you **MUST REJECT** it.
+3. **NO SUBSTITUTIONS**: Do not assume the user can substitute or omit ` +
+`main ingredients.
+4. **DISH TYPE**: Reject recipes that do not match the Requested Dish Type ` +
+`(e.g., reject soups if Salad is requested).
+5. **USER GUIDANCE**: Reject recipes that conflict with User Guidance.
+
+Example:
+User has: "Eggs, Cheese". Recipe needs: "Eggs, Cheese, Milk". ` +
+`-> REJECT (Missing Milk).
+User has: "Chicken, Rice". Recipe needs: "Chicken, Rice, Salt". -> ACCEPT.
+
 Return JSON: {"selectedIds": [0, 2]}
-If none fit well, return {"selectedIds": []}
+If none fit perfectly, return {"selectedIds": []}
 `;
 
         const filterResult = await filterModel.generateContent({
@@ -1847,7 +1850,7 @@ ${userGuidance && userGuidance.trim() ?
             }));
 
             const filterPrompt = `
-You are a smart recipe filter.
+You are a strict recipe filter.
 User Ingredients: ${filteredIngredients.join(", ")}
 Requested Dish Type: ${dishTypeDescription}
 ${userGuidance ? `User Guidance: ${userGuidance}` : ""}
@@ -1859,23 +1862,26 @@ ${JSON.stringify(candidates.map((c, i) => ({
     ingredients: c.ingredients,
   })))}
 
-Task: Select up to 3 recipes from the candidates that can be made PRIMARILY ` +
-`using the User Ingredients AND match the Requested Dish Type AND ` +
-`respect User Guidance.
-RULES:
-1. You MAY assume the user has basic staples: Salt, Pepper, Oil, Water, ` +
-`Sugar. **REJECT** the recipe if it requires **ANY** other ingredient not ` +
-`listed in User Ingredients. Do not assume they have spices, herbs, ` +
-`sauces, or garnishes unless listed.
-2. **REJECT** any recipe that requires a main ingredient (meat, fish, ` +
-`poultry, main vegetable) that is NOT in the User Ingredients.
-3. **REJECT** any recipe that does NOT match the Requested Dish Type ` +
-`(e.g. if Dessert is requested, reject savory dishes; if Soup is ` +
-`requested, reject salads/solids; if Salad is requested, reject soups).
-4. **REJECT** any recipe that conflicts with User Guidance ` +
-`(e.g. dietary restrictions, unwanted ingredients).
+Task: Select up to 3 recipes from the candidates that can be made using ` +
+`**ONLY** the User Ingredients and allowed staples.
+STRICT FILTERING RULES:
+1. **ALLOWED STAPLES**: Salt, Black Pepper, Oil, Water, Sugar.
+2. **MISSING INGREDIENTS**: If a recipe requires **ANY** ingredient ` +
+`(including spices, herbs, sauces, dairy, grains, or garnishes) that is ` +
+`NOT in the User Ingredients and NOT an Allowed Staple, you **MUST REJECT** it.
+3. **NO SUBSTITUTIONS**: Do not assume the user can substitute or omit ` +
+`main ingredients.
+4. **DISH TYPE**: Reject recipes that do not match the Requested Dish Type ` +
+`(e.g., reject soups if Salad is requested).
+5. **USER GUIDANCE**: Reject recipes that conflict with User Guidance.
+
+Example:
+User has: "Eggs, Cheese". Recipe needs: "Eggs, Cheese, Milk". ` +
+`-> REJECT (Missing Milk).
+User has: "Chicken, Rice". Recipe needs: "Chicken, Rice, Salt". -> ACCEPT.
+
 Return JSON: {"selectedIds": [0, 2]}
-If none fit well, return {"selectedIds": []}
+If none fit perfectly, return {"selectedIds": []}
 `;
 
             const filterResult = await filterModel.generateContent({
