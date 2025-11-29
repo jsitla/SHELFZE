@@ -783,7 +783,7 @@ export default function Profile({ navigation }) {
         <TouchableOpacity 
           style={styles.legalLink}
           onPress={() => {
-            const url = 'https://github.com/jsitla/SHELFZE/blob/main/PRIVACY-POLICY.md';
+            const url = 'https://m-ai.info/privacy-policy.html';
             if (Platform.OS === 'web') {
               window.open(url, '_blank');
             } else {
@@ -798,7 +798,7 @@ export default function Profile({ navigation }) {
         <TouchableOpacity 
           style={styles.legalLink}
           onPress={() => {
-            const url = 'https://github.com/jsitla/SHELFZE/blob/main/TERMS-OF-SERVICE.md';
+            const url = 'https://m-ai.info/terms-of-service.html';
             if (Platform.OS === 'web') {
               window.open(url, '_blank');
             } else {

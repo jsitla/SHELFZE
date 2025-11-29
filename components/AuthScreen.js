@@ -333,7 +333,6 @@ const AuthScreen = ({ mode, onBack, onSuccess }) => {
             <TouchableOpacity style={styles.backPill} onPress={onBack}>
               <Text style={styles.backPillText}>← {t('back', language)}</Text>
             </TouchableOpacity>
-            <Text style={styles.heroBadge}>🥫 Shelfze</Text>
             <Text style={styles.heroTitle}>
               {isSignup
                 ? 'Create your account'
@@ -479,14 +478,16 @@ const AuthScreen = ({ mode, onBack, onSuccess }) => {
             </TouchableOpacity>
           </View>
 
-          <View style={styles.benefitsCard}>
-            <Text style={styles.benefitsTitle}>Why create an account?</Text>
-            <BenefitRow icon="📸" text="30 scans right away" />
-            <BenefitRow icon="🍳" text="30 chef-crafted recipes" />
-            <BenefitRow icon="🎁" text="Monthly +5 bonus refills" />
-            <BenefitRow icon="☁️" text="Sync pantry across devices" />
-            <BenefitRow icon="🔒" text="Secure cloud backup" />
-          </View>
+          {isSignup && (
+            <View style={styles.benefitsCard}>
+              <Text style={styles.benefitsTitle}>Why create an account?</Text>
+              <BenefitRow icon="📸" text="30 scans right away" />
+              <BenefitRow icon="🍳" text="30 chef-crafted recipes" />
+              <BenefitRow icon="🎁" text="Monthly +5 bonus refills" />
+              <BenefitRow icon="☁️" text="Sync pantry across devices" />
+              <BenefitRow icon="🔒" text="Secure cloud backup" />
+            </View>
+          )}
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>

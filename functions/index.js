@@ -29,6 +29,11 @@ const filterModel = vertexAI.getGenerativeModel({
   model: "gemini-2.0-flash-exp",
 });
 
+// Model specifically for Pantry Check (Using 2.0 as requested)
+const pantryCheckModel = vertexAI.getGenerativeModel({
+  model: "gemini-2.0-flash-exp",
+});
+
 /**
  * Helper function to verify Firebase ID token
  * @param {Object} req - The request object
@@ -1992,3 +1997,112 @@ If none fit well, return {"selectedIds": []}
         });
       }
     });
+
+exports.checkIngredients = onRequest({
+  cors: true,
+  memory: "512MiB",
+  timeoutSeconds: 60,
+}, async (req, res) => {
+  if (req.method !== "POST") {
+    res.status(405).json({error: "Method not allowed. Use POST."});
+    return;
+  }
+
+  try {
+    const uid = await verifyAuth(req);
+    if (!uid) {
+      res.status(401).json({error: "Unauthorized. Invalid or missing token."});
+      return;
+    }
+
+    const {recipeIngredients, pantryItems, language} = req.body;
+    const targetLanguage = language || "en";
+
+    console.log("CheckIngredients Request:", {
+      ingredientsCount: recipeIngredients ? recipeIngredients.length : 0,
+      pantryCount: pantryItems ? pantryItems.length : 0,
+      language: targetLanguage,
+    });
+
+    if (!recipeIngredients || !pantryItems) {
+      console.error("Missing data in request");
+      res.status(400).json({error: "Missing ingredients or pantry items"});
+      return;
+    }
+
+    const prompt = `
+      You are a smart kitchen assistant. Compare the required recipe ingredients
+      against the user's pantry items.
+      
+      Recipe Ingredients:
+      ${JSON.stringify(recipeIngredients)}
+      
+      Pantry Items:
+      ${JSON.stringify(pantryItems)}
+      
+      Target Language: ${targetLanguage}
+      
+      Rules:
+      1. Identify which recipe ingredients are MISSING from the pantry.
+      2. Be smart about synonyms (e.g., "EVOO" matches "Olive Oil").
+      3. Ignore quantities (e.g., "2 onions" vs "Onion" is a MATCH).
+      4. SIMPLIFY INGREDIENT NAMES:
+         - Remove "to taste", quantities, and preparation methods.
+         - Example: "Salt to taste" -> "Salt".
+         - Example: "2 cups of flour" -> "Flour".
+      5. IGNORE BASIC STAPLES:
+         - Do NOT list basic ingredients as "missing".
+         - Exclude: Salt, Sugar, Water, Oil, Pepper.
+         - Assume the user always has these.
+      6. Return a JSON object with two arrays:
+         - "missing": items that need to be bought (excluding staples).
+         - "available": items found in the pantry.
+      7. FORMATTING RULES (CRITICAL):
+         - All output text MUST be in the Target Language (${targetLanguage}).
+         - Clean up all ingredient names to be human-readable and pretty.
+         - Use Title Case for every item (e.g., "Olive Oil").
+         - Fix any spelling errors.
+         - Ensure proper spacing between words.
+         - Remove technical jargon or excessive punctuation.
+      8. Output ONLY valid JSON. No markdown formatting.
+    `;
+
+    let result;
+    try {
+      result = await pantryCheckModel.generateContent(prompt);
+    } catch (modelError) {
+      console.warn("Gemini 2.0 failed, falling back to 1.5-flash", modelError);
+      const fallbackModel = vertexAI.getGenerativeModel({
+        model: "gemini-1.5-flash",
+      });
+      result = await fallbackModel.generateContent(prompt);
+    }
+
+    const response = await result.response;
+    let text = "";
+    if (response.candidates && response.candidates[0] &&
+        response.candidates[0].content &&
+        response.candidates[0].content.parts &&
+        response.candidates[0].content.parts[0]) {
+      text = response.candidates[0].content.parts[0].text || "";
+    }
+
+    console.log("AI Response:", text);
+
+    // Robust JSON extraction
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) {
+      console.error("Invalid JSON response from AI:", text);
+      throw new Error("No JSON found in response");
+    }
+    const analysis = JSON.parse(jsonMatch[0]);
+
+    res.json(analysis);
+  } catch (error) {
+    console.error("Error checking ingredients:", error);
+    res.status(500).json({
+      error: "Failed to check ingredients",
+      details: error.message || "Unknown error",
+    });
+  }
+});

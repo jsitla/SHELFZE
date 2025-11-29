@@ -426,6 +426,9 @@ export default function App() {
         // User is signed in
         console.log('User signed in:', currentUser.uid);
         setUser(currentUser);
+        // Ensure we hide welcome/auth screens when user is detected
+        setShowWelcome(false);
+        setShowAuth(false);
         
         // Check legal consent from DB (Source of Truth)
         // If user just agreed in this session (e.g. Guest flow), trust that.

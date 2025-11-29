@@ -16,8 +16,8 @@ import { StatusBar } from 'expo-status-bar';
 // Simple in-app legal consent screen. It assumes Terms and Privacy are available
 // via external links for now (GitHub markdown). We just enforce confirmation.
 
-const TERMS_URL = 'https://github.com/jsitla/SHELFZE/blob/main/TERMS-OF-SERVICE.md';
-const PRIVACY_URL = 'https://github.com/jsitla/SHELFZE/blob/main/PRIVACY-POLICY.md';
+const TERMS_URL = 'https://m-ai.info/terms-of-service.html';
+const PRIVACY_URL = 'https://m-ai.info/privacy-policy.html';
 const LEGAL_CONSENT_KEY = 'legalConsent_v5'; // Changed key to force re-consent for testing Login vs Signup
 
 export async function getStoredLegalConsent() {

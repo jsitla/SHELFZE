@@ -7,6 +7,7 @@ import {
   ScrollView,
   SafeAreaView,
   Platform,
+  Image,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 
@@ -30,6 +31,18 @@ const WelcomeScreen = ({ onContinueAsGuest, onCreateAccount, onLogin }) => {
     <SafeAreaView style={styles.safeArea}>
       <StatusBar style="dark" />
       <ScrollView contentContainerStyle={styles.scrollContent}>
+        <View style={styles.brandHeader}>
+          <Text style={styles.welcomeText}>Welcome to</Text>
+          <View style={styles.logoContainer}>
+            <Image 
+              source={require('../assets/shelfze_no_bg.png')} 
+              style={styles.logoImage}
+              resizeMode="contain"
+            />
+            <Text style={styles.appName}>Shelfze</Text>
+          </View>
+        </View>
+
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Choose how to begin</Text>
           <Text style={styles.sectionCaption}>Pick a starting mode now—you can switch later without losing tracked items.</Text>
@@ -114,6 +127,34 @@ const styles = StyleSheet.create({
   },
   sectionHeader: {
     marginBottom: 16,
+  },
+  brandHeader: {
+    alignItems: 'center',
+    marginBottom: 32,
+    marginTop: 16,
+  },
+  welcomeText: {
+    fontSize: 20,
+    color: '#3D405B',
+    marginBottom: 8,
+    fontWeight: '500',
+  },
+  logoContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 2,
+  },
+  logoImage: {
+    width: 60,
+    height: 60,
+    borderRadius: 12,
+  },
+  appName: {
+    fontSize: 42,
+    fontWeight: '900',
+    color: '#4A7C59', // Sage Green
+    letterSpacing: -1,
   },
   sectionTitle: {
     fontSize: 24,

@@ -12,7 +12,8 @@ import {
   Alert,
   Platform,
   TextInput,
-  Share
+  Share,
+  Modal
 } from 'react-native';
 import { getFirestore, collection, query, onSnapshot, addDoc, doc, deleteDoc } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
@@ -51,6 +52,10 @@ export default function RecipeGenerator() {
   const [savedRecipesExpanded, setSavedRecipesExpanded] = useState(false);
   const [usageData, setUsageData] = useState(null);
   const [loadingUsage, setLoadingUsage] = useState(false);
+  const [showPantryCheckModal, setShowPantryCheckModal] = useState(false);
+  const [pantryCheckResult, setPantryCheckResult] = useState(null);
+  const [checkingPantry, setCheckingPantry] = useState(false);
+  const [itemsToShop, setItemsToShop] = useState([]);
   const { language } = useLanguage();
 
   const db = getFirestore(app);
@@ -800,6 +805,88 @@ ${t('sharedFromShelfze', language)}
     }
   };
 
+  const checkPantryForIngredients = async () => {
+    if (!recipeDetails || !recipeDetails.ingredients) return;
+
+    setCheckingPantry(true);
+    setPantryCheckResult(null);
+    setShowPantryCheckModal(true);
+
+    try {
+      const pantryNames = pantryItems.map(item => item.itemName || item.name);
+      
+      const idToken = await auth.currentUser.getIdToken();
+      
+      const response = await fetchWithTimeout(config.checkIngredients, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${idToken}`
+        },
+        body: JSON.stringify({
+          recipeIngredients: recipeDetails.ingredients,
+          pantryItems: pantryNames,
+          language
+        })
+      }, 30000);
+
+      const textResponse = await response.text();
+      console.log('Raw Server Response:', textResponse);
+
+      let result;
+      try {
+        result = JSON.parse(textResponse);
+      } catch (e) {
+        throw new Error(`Server returned non-JSON: ${textResponse.substring(0, 100)}...`);
+      }
+      
+      if (!response.ok) {
+        const details = result.details || JSON.stringify(result);
+        throw new Error(`${result.error || 'Server Error'}: ${details}`);
+      }
+
+      setPantryCheckResult(result);
+      setItemsToShop(result.missing || []);
+    } catch (error) {
+      console.error('Error checking pantry:', error);
+      Alert.alert(t('error', language), t('failedToCheckPantry', language) || 'Failed to check pantry');
+      setShowPantryCheckModal(false);
+    } finally {
+      setCheckingPantry(false);
+    }
+  };
+
+  const addToShoppingList = async () => {
+    if (itemsToShop.length === 0) {
+      setShowPantryCheckModal(false);
+      return;
+    }
+
+    try {
+      const userId = auth.currentUser?.uid;
+      if (!userId) return;
+
+      const batchPromises = itemsToShop.map(item => 
+        addDoc(collection(db, `users/${userId}/shoppingList`), {
+          name: item,
+          checked: false,
+          createdAt: new Date()
+        })
+      );
+
+      await Promise.all(batchPromises);
+
+      Alert.alert(
+        t('success', language),
+        `${itemsToShop.length} ${t('itemsAddedToShoppingList', language) || 'items added to shopping list'}`,
+        [{ text: 'OK', onPress: () => setShowPantryCheckModal(false) }]
+      );
+    } catch (error) {
+      console.error('Error adding to shopping list:', error);
+      Alert.alert(t('error', language), t('failedToAddToShoppingList', language) || 'Failed to add items');
+    }
+  };
+
   const resetGenerator = () => {
     setSelectedRecipe(null);
     setRecipeDetails(null);
@@ -887,7 +974,24 @@ ${t('sharedFromShelfze', language)}
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>📝 {t('ingredients', language)}</Text>
+          <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10}}>
+            <Text style={[styles.sectionTitle, {marginBottom: 0}]}>📝 {t('ingredients', language)}</Text>
+            <TouchableOpacity 
+              style={{
+                backgroundColor: '#E8F5E9', 
+                paddingHorizontal: 12, 
+                paddingVertical: 6, 
+                borderRadius: 15,
+                borderWidth: 1,
+                borderColor: '#4A7C59'
+              }}
+              onPress={checkPantryForIngredients}
+            >
+              <Text style={{color: '#4A7C59', fontWeight: '600', fontSize: 12}}>
+                🔍 {t('checkPantry', language) || 'Check Pantry'}
+              </Text>
+            </TouchableOpacity>
+          </View>
           {recipeDetails.ingredients && recipeDetails.ingredients.map((ingredient, index) => (
             <Text key={index} style={styles.ingredient}>
               • {ingredient}
@@ -1046,6 +1150,107 @@ ${t('sharedFromShelfze', language)}
           <Text style={styles.newRecipeButtonText}>↺ {t('generateNewRecipes', language)}</Text>
         </TouchableOpacity>
         </ScrollView>
+
+        <Modal
+          visible={showPantryCheckModal}
+          transparent={true}
+          animationType="slide"
+          onRequestClose={() => setShowPantryCheckModal(false)}
+        >
+          <View style={{flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', padding: 20}}>
+            <View style={{backgroundColor: '#fff', borderRadius: 20, padding: 20, maxHeight: '80%'}}>
+              <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15}}>
+                <Text style={{fontSize: 20, fontWeight: 'bold', color: '#3D405B'}}>
+                  {checkingPantry ? (t('checkingPantry', language) || 'Checking Pantry...') : (t('pantryCheck', language) || 'Pantry Check')}
+                </Text>
+                {!checkingPantry && (
+                  <TouchableOpacity onPress={() => setShowPantryCheckModal(false)}>
+                    <Text style={{fontSize: 24, color: '#999'}}>×</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+
+              {checkingPantry ? (
+                <View style={{padding: 20, alignItems: 'center'}}>
+                  <ActivityIndicator size="large" color="#4A7C59" />
+                  <Text style={{marginTop: 15, color: '#666', textAlign: 'center'}}>
+                    {t('aiComparingIngredients', language) || 'AI is comparing recipe ingredients with your pantry...'}
+                  </Text>
+                </View>
+              ) : (
+                <ScrollView style={{marginBottom: 15}}>
+                  {pantryCheckResult && (
+                    <>
+                      <View style={{marginBottom: 20}}>
+                        <Text style={{fontSize: 16, fontWeight: '600', color: '#4A7C59', marginBottom: 10}}>
+                          ✅ {t('youHave', language) || 'You Have'} ({pantryCheckResult.available?.length || 0})
+                        </Text>
+                        {pantryCheckResult.available?.length > 0 ? (
+                          pantryCheckResult.available.map((item, i) => (
+                            <Text key={i} style={{fontSize: 14, color: '#333', marginLeft: 10, marginBottom: 4}}>• {item}</Text>
+                          ))
+                        ) : (
+                          <Text style={{fontSize: 14, color: '#999', fontStyle: 'italic', marginLeft: 10}}>
+                            {t('noMatchingItems', language) || 'No matching items found'}
+                          </Text>
+                        )}
+                      </View>
+
+                      <View>
+                        <Text style={{fontSize: 16, fontWeight: '600', color: '#E07A5F', marginBottom: 10}}>
+                          ❌ {t('missing', language) || 'Missing'} ({pantryCheckResult.missing?.length || 0})
+                        </Text>
+                        {pantryCheckResult.missing?.length > 0 ? (
+                          pantryCheckResult.missing.map((item, i) => (
+                            <TouchableOpacity 
+                              key={i} 
+                              style={{flexDirection: 'row', alignItems: 'center', marginBottom: 8, marginLeft: 5}}
+                              onPress={() => {
+                                if (itemsToShop.includes(item)) {
+                                  setItemsToShop(itemsToShop.filter(i => i !== item));
+                                } else {
+                                  setItemsToShop([...itemsToShop, item]);
+                                }
+                              }}
+                            >
+                              <Text style={{fontSize: 18, marginRight: 10}}>
+                                {itemsToShop.includes(item) ? '☑️' : '☐'}
+                              </Text>
+                              <Text style={{fontSize: 14, color: '#333'}}>{item}</Text>
+                            </TouchableOpacity>
+                          ))
+                        ) : (
+                          <Text style={{fontSize: 14, color: '#999', fontStyle: 'italic', marginLeft: 10}}>
+                            {t('youHaveEverything', language) || 'You have everything!'}
+                          </Text>
+                        )}
+                      </View>
+                    </>
+                  )}
+                </ScrollView>
+              )}
+
+              {!checkingPantry && pantryCheckResult && (
+                <TouchableOpacity 
+                  style={{
+                    backgroundColor: itemsToShop.length > 0 ? '#4A7C59' : '#ccc',
+                    padding: 15,
+                    borderRadius: 12,
+                    alignItems: 'center'
+                  }}
+                  disabled={itemsToShop.length === 0}
+                  onPress={addToShoppingList}
+                >
+                  <Text style={{color: '#fff', fontWeight: 'bold', fontSize: 16}}>
+                    {itemsToShop.length > 0 
+                      ? `${t('addToShoppingList', language) || 'Add to Shopping List'} (${itemsToShop.length})`
+                      : (t('nothingToAdd', language) || 'Nothing to Add')}
+                  </Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          </View>
+        </Modal>
       </SafeAreaView>
     );
   }
