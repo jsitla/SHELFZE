@@ -38,6 +38,7 @@ export default function PantryList({ navigation }) {
   const [editExpiryDate, setEditExpiryDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [searchText, setSearchText] = useState('');
+  const [showSearch, setShowSearch] = useState(false);
   const { language } = useLanguage();
 
   // Helper for safe date parsing
@@ -534,29 +535,47 @@ export default function PantryList({ navigation }) {
   return (
     <View style={styles.container}>
       {/* Search Bar */}
-      <View style={styles.searchContainer}>
-        <Text style={styles.searchIcon}>🔍</Text>
-        <TextInput
-          style={styles.searchInput}
-          placeholder={t('searchPantry', language) || 'Search pantry...'}
-          value={searchText}
-          onChangeText={setSearchText}
-          placeholderTextColor="#999"
-        />
-        {searchText.length > 0 && (
+      {showSearch && (
+        <View style={styles.searchContainer}>
+          <Text style={styles.searchIcon}>🔍</Text>
+          <TextInput
+            style={styles.searchInput}
+            placeholder={t('searchPantry', language) || 'Search pantry...'}
+            value={searchText}
+            onChangeText={setSearchText}
+            placeholderTextColor="#999"
+            autoFocus={true}
+          />
           <TouchableOpacity onPress={() => setSearchText('')}>
             <Text style={styles.clearSearchIcon}>✕</Text>
           </TouchableOpacity>
-        )}
-      </View>
+        </View>
+      )}
 
       {/* Category Filter */}
       <View style={styles.filterContainer}>
-        <ScrollView 
-          horizontal 
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.filterScrollContent}
-        >
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <TouchableOpacity
+            style={[
+              styles.filterButton,
+              { marginLeft: 10, marginRight: 0, paddingHorizontal: 12 },
+              showSearch && styles.filterButtonActive
+            ]}
+            onPress={() => {
+              if (showSearch) {
+                setSearchText(''); // Clear search when closing
+              }
+              setShowSearch(!showSearch);
+            }}
+          >
+            <Text style={[styles.filterButtonText, showSearch && styles.filterButtonTextActive]}>🔍</Text>
+          </TouchableOpacity>
+          <ScrollView 
+            horizontal 
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.filterScrollContent}
+            style={{ flex: 1 }}
+          >
           {categories.map((category) => (
             <TouchableOpacity
               key={category}
@@ -575,6 +594,7 @@ export default function PantryList({ navigation }) {
             </TouchableOpacity>
           ))}
         </ScrollView>
+        </View>
       </View>
 
       {/* Item Count */}
