@@ -553,14 +553,13 @@ export default function RecipeGenerator() {
   };
 
   // Save recipe rating to Firestore
-  const saveRecipeRating = async (rating, makeAgain) => {
+  const saveRecipeRating = async (rating) => {
     if (!selectedRecipe) return;
 
     try {
       const ratingData = {
         recipeName: selectedRecipe.name,
         rating: rating,
-        wouldMakeAgain: makeAgain,
         timestamp: new Date().toISOString(),
         recipeData: {
           emoji: selectedRecipe.emoji,
@@ -578,29 +577,6 @@ export default function RecipeGenerator() {
       }
 
       await addDoc(collection(db, `users/${userId}/recipeRatings`), ratingData);
-      
-      // If "Would Make Again" is selected, also save to recipeCollections
-      if (makeAgain) {
-        const collectionData = {
-          recipeName: selectedRecipe.name,
-          collectionType: 'wouldMakeAgain',
-          timestamp: new Date().toISOString(),
-          recipeData: {
-            emoji: selectedRecipe.emoji,
-            description: selectedRecipe.description,
-            cuisine: recipeDetails?.cuisine || selectedRecipe.cuisine,
-            difficulty: recipeDetails?.difficulty || selectedRecipe.difficulty,
-            prepTime: recipeDetails?.prepTime || selectedRecipe.prepTime,
-            cookTime: recipeDetails?.cookTime || selectedRecipe.cookTime,
-            servings: recipeDetails?.servings || selectedRecipe.servings,
-            ingredients: recipeDetails?.ingredients || [],
-            instructions: recipeDetails?.instructions || [],
-            tips: recipeDetails?.tips || [],
-            nutrition: recipeDetails?.nutrition || null,
-          }
-        };
-        await addDoc(collection(db, `users/${userId}/recipeCollections`), collectionData);
-      }
       
       // Update global rating if recipe has an ID (Hybrid Engine)
       if (selectedRecipe.id) {
@@ -672,11 +648,13 @@ export default function RecipeGenerator() {
       if (collectionType === 'favorite') setIsFavorite(!isFavorite);
       if (collectionType === 'cooked') setIsCooked(!isCooked);
       if (collectionType === 'wantToTry') setWantToTry(!wantToTry);
+      if (collectionType === 'wouldMakeAgain') setWouldMakeAgain(!wouldMakeAgain);
 
       const messages = {
         favorite: isFavorite ? t('removedFromFavorites', language) : t('addedToFavorites', language),
         cooked: isCooked ? t('removedFromCooked', language) : t('markedAsCooked', language),
         wantToTry: wantToTry ? t('removedFromWantToTry', language) : t('addedToWantToTry', language),
+        wouldMakeAgain: wouldMakeAgain ? (t('removedFromWouldMakeAgain', language) || 'Removed from Would Make Again') : (t('addedToWouldMakeAgain', language) || 'Added to Would Make Again'),
       };
 
       Alert.alert(
@@ -1122,27 +1100,11 @@ ${t('sharedFromShelfze', language)}
             ))}
           </View>
 
-          {/* Would Make Again Button */}
-          <TouchableOpacity
-            style={[
-              styles.makeAgainButton,
-              wouldMakeAgain && styles.makeAgainButtonActive
-            ]}
-            onPress={() => setWouldMakeAgain(!wouldMakeAgain)}
-          >
-            <Text style={[
-              styles.makeAgainButtonText,
-              wouldMakeAgain && styles.makeAgainButtonTextActive
-            ]}>
-              {wouldMakeAgain ? '✓ ' : ''}{t('wouldMakeAgain', language)}
-            </Text>
-          </TouchableOpacity>
-
           {/* Save Rating Button */}
-          {(userRating > 0 || wouldMakeAgain) && (
+          {userRating > 0 && (
             <TouchableOpacity
               style={styles.saveRatingButton}
-              onPress={() => saveRecipeRating(userRating, wouldMakeAgain)}
+              onPress={() => saveRecipeRating(userRating)}
             >
               <Text style={styles.saveRatingButtonText}>{t('saveRating', language)}</Text>
             </TouchableOpacity>
@@ -1211,6 +1173,26 @@ ${t('sharedFromShelfze', language)}
                 wantToTry && styles.collectionButtonTextActive
               ]}>
                 {t('wantToTry', language)}
+              </Text>
+            </TouchableOpacity>
+
+            {/* Would Make Again Button */}
+            <TouchableOpacity
+              style={[
+                styles.collectionButton,
+                styles.wouldMakeAgainButton,
+                wouldMakeAgain && styles.wouldMakeAgainButtonActive
+              ]}
+              onPress={() => toggleCollection('wouldMakeAgain')}
+            >
+              <Text style={styles.collectionButtonEmoji}>
+                {wouldMakeAgain ? '🔁' : '🔄'}
+              </Text>
+              <Text style={[
+                styles.collectionButtonText,
+                wouldMakeAgain && styles.collectionButtonTextActive
+              ]}>
+                {t('wouldMakeAgain', language) || 'Again'}
               </Text>
             </TouchableOpacity>
           </View>
@@ -2689,6 +2671,13 @@ const styles = StyleSheet.create({
   wantToTryButtonActive: {
     backgroundColor: '#FEF9C3',
     borderColor: '#EAB308',
+  },
+  wouldMakeAgainButton: {
+    borderColor: '#A78BFA',
+  },
+  wouldMakeAgainButtonActive: {
+    backgroundColor: '#EDE9FE',
+    borderColor: '#8B5CF6',
   },
   collectionButtonEmoji: {
     fontSize: 28,
