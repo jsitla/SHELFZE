@@ -14,6 +14,7 @@ import {
   TextInput,
   Modal,
   ScrollView,
+  Keyboard,
 } from 'react-native';
 import { getFirestore, collection, query, orderBy, onSnapshot, deleteDoc, doc, updateDoc } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
@@ -546,7 +547,14 @@ export default function PantryList({ navigation }) {
             placeholderTextColor="#999"
             autoFocus={true}
           />
-          <TouchableOpacity onPress={() => setSearchText('')}>
+          <TouchableOpacity onPress={() => {
+            if (searchText.length > 0) {
+              setSearchText('');
+            } else {
+              setShowSearch(false);
+              Keyboard.dismiss();
+            }
+          }}>
             <Text style={styles.clearSearchIcon}>✕</Text>
           </TouchableOpacity>
         </View>
@@ -564,8 +572,11 @@ export default function PantryList({ navigation }) {
             onPress={() => {
               if (showSearch) {
                 setSearchText(''); // Clear search when closing
+                setShowSearch(false);
+                Keyboard.dismiss();
+              } else {
+                setShowSearch(true);
               }
-              setShowSearch(!showSearch);
             }}
           >
             <Text style={[styles.filterButtonText, showSearch && styles.filterButtonTextActive]}>🔍</Text>
