@@ -37,6 +37,7 @@ export default function PantryList({ navigation }) {
   const [editUnit, setEditUnit] = useState('pcs');
   const [editExpiryDate, setEditExpiryDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [searchText, setSearchText] = useState('');
   const { language } = useLanguage();
 
   // Helper for safe date parsing
@@ -202,16 +203,16 @@ export default function PantryList({ navigation }) {
     };
   }, []);
 
-  // Filter items by category
+  // Filter items by category and search text
   useEffect(() => {
-    console.log('🔍 Filtering - Selected Category:', selectedCategory);
+    console.log('🔍 Filtering - Selected Category:', selectedCategory, 'Search:', searchText);
     console.log('🔍 Total items:', items.length);
     
-    if (selectedCategory === 'All') {
-      setFilteredItems(items);
-      console.log('✅ Showing all items:', items.length);
-    } else {
-      const filtered = items.filter(item => {
+    let filtered = items;
+
+    // Filter by Category
+    if (selectedCategory !== 'All') {
+      filtered = filtered.filter(item => {
         const itemCategory = (item.category || '').trim();
         const selectedCat = selectedCategory.trim();
         
@@ -240,19 +241,22 @@ export default function PantryList({ navigation }) {
           return categoryMap[normalized] || normalized;
         };
         
-        // Compare normalized versions
-        const match = normalizeCategory(itemCategory) === normalizeCategory(selectedCat);
-        
-        if (!match) {
-          console.log(`  ❌ Item: "${item.name}" | Category: "${itemCategory}" (${normalizeCategory(itemCategory)}) | Filter: "${selectedCat}" (${normalizeCategory(selectedCat)})`);
-        }
-        
-        return match;
+        return normalizeCategory(itemCategory) === normalizeCategory(selectedCat);
       });
-      setFilteredItems(filtered);
-      console.log('✅ Filtered items:', filtered.length, 'for category:', selectedCategory);
     }
-  }, [selectedCategory, items]);
+
+    // Filter by Search Text
+    if (searchText.trim()) {
+      const searchLower = searchText.toLowerCase().trim();
+      filtered = filtered.filter(item => {
+        const name = (item.name || item.itemName || '').toLowerCase();
+        return name.includes(searchLower);
+      });
+    }
+
+    setFilteredItems(filtered);
+    console.log('✅ Filtered items:', filtered.length);
+  }, [selectedCategory, searchText, items]);
 
   const deleteItem = async (itemId) => {
     try {
@@ -529,6 +533,23 @@ export default function PantryList({ navigation }) {
 
   return (
     <View style={styles.container}>
+      {/* Search Bar */}
+      <View style={styles.searchContainer}>
+        <Text style={styles.searchIcon}>🔍</Text>
+        <TextInput
+          style={styles.searchInput}
+          placeholder={t('searchPantry', language) || 'Search pantry...'}
+          value={searchText}
+          onChangeText={setSearchText}
+          placeholderTextColor="#999"
+        />
+        {searchText.length > 0 && (
+          <TouchableOpacity onPress={() => setSearchText('')}>
+            <Text style={styles.clearSearchIcon}>✕</Text>
+          </TouchableOpacity>
+        )}
+      </View>
+
       {/* Category Filter */}
       <View style={styles.filterContainer}>
         <ScrollView 
@@ -721,6 +742,37 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F4F1DE', // Alabaster
+  },
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    margin: 10,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+    height: 50,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  searchIcon: {
+    fontSize: 16,
+    marginRight: 8,
+  },
+  searchInput: {
+    flex: 1,
+    paddingVertical: 8,
+    fontSize: 16,
+    color: '#333',
+  },
+  clearSearchIcon: {
+    fontSize: 16,
+    color: '#999',
+    padding: 4,
   },
   filterContainer: {
     backgroundColor: '#fff',
