@@ -579,6 +579,29 @@ export default function RecipeGenerator() {
 
       await addDoc(collection(db, `users/${userId}/recipeRatings`), ratingData);
       
+      // If "Would Make Again" is selected, also save to recipeCollections
+      if (makeAgain) {
+        const collectionData = {
+          recipeName: selectedRecipe.name,
+          collectionType: 'wouldMakeAgain',
+          timestamp: new Date().toISOString(),
+          recipeData: {
+            emoji: selectedRecipe.emoji,
+            description: selectedRecipe.description,
+            cuisine: recipeDetails?.cuisine || selectedRecipe.cuisine,
+            difficulty: recipeDetails?.difficulty || selectedRecipe.difficulty,
+            prepTime: recipeDetails?.prepTime || selectedRecipe.prepTime,
+            cookTime: recipeDetails?.cookTime || selectedRecipe.cookTime,
+            servings: recipeDetails?.servings || selectedRecipe.servings,
+            ingredients: recipeDetails?.ingredients || [],
+            instructions: recipeDetails?.instructions || [],
+            tips: recipeDetails?.tips || [],
+            nutrition: recipeDetails?.nutrition || null,
+          }
+        };
+        await addDoc(collection(db, `users/${userId}/recipeCollections`), collectionData);
+      }
+      
       // Update global rating if recipe has an ID (Hybrid Engine)
       if (selectedRecipe.id) {
         try {
@@ -1696,6 +1719,21 @@ ${t('sharedFromShelfze', language)}
                       ⭐ {t('wantToTry', language)}
                     </Text>
                   </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={[
+                      styles.collectionFilterTab,
+                      selectedCollectionFilter === 'wouldMakeAgain' && styles.collectionFilterTabActive
+                    ]}
+                    onPress={() => setSelectedCollectionFilter('wouldMakeAgain')}
+                  >
+                    <Text style={[
+                      styles.collectionFilterText,
+                      selectedCollectionFilter === 'wouldMakeAgain' && styles.collectionFilterTextActive
+                    ]}>
+                      🔁 {t('wouldMakeAgain', language) || 'Would Make Again'}
+                    </Text>
+                  </TouchableOpacity>
                 </ScrollView>
 
                 {/* Saved Recipes List */}
@@ -1748,6 +1786,7 @@ ${t('sharedFromShelfze', language)}
                                 {recipe.collectionType === 'favorite' && '❤️'}
                                 {recipe.collectionType === 'cooked' && '✅'}
                                 {recipe.collectionType === 'wantToTry' && '⭐'}
+                                {recipe.collectionType === 'wouldMakeAgain' && '🔁'}
                               </Text>
                             </View>
                             {recipe.recipeData?.description && (
