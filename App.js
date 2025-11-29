@@ -13,6 +13,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import CameraScanner from './components/CameraScanner';
 import PantryList from './components/PantryList';
 import RecipeGenerator from './components/RecipeGenerator';
+import SavedRecipesScreen from './components/SavedRecipesScreen';
 import ManualEntry from './components/ManualEntry';
 import Profile from './components/Profile';
 import PremiumPlansScreen from './components/PremiumPlansScreen';
@@ -202,13 +203,14 @@ function AppNavigator() {
         />
         <Tab.Screen 
           name="Recipes" 
-          component={RecipeGenerator}
+          component={RecipesStack}
           options={{
             title: t('recipeIdeas', language),
             tabBarLabel: t('recipes', language),
             tabBarIcon: ({ color }) => (
               <Text style={{ fontSize: 26 }}>🍳</Text>
             ),
+            headerShown: false,
           }}
         />
         <Tab.Screen 
@@ -283,6 +285,32 @@ function PantryStack() {
         component={PremiumPlansScreen}
         options={{
           title: t('upgradeToPremium', language),
+          ...UNIFIED_HEADER,
+        }}
+      />
+    </Stack.Navigator>
+  );
+}
+
+// Recipes Stack
+function RecipesStack() {
+  const { language } = useLanguage();
+  
+  return (
+    <Stack.Navigator>
+      <Stack.Screen 
+        name="RecipeGenerator" 
+        component={RecipeGenerator}
+        options={{
+          title: t('recipeIdeas', language),
+          ...UNIFIED_HEADER,
+        }}
+      />
+      <Stack.Screen 
+        name="SavedRecipes" 
+        component={SavedRecipesScreen}
+        options={{
+          title: t('savedRecipes', language),
           ...UNIFIED_HEADER,
         }}
       />

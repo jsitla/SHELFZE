@@ -4,7 +4,6 @@ import React, { useState, useEffect } from 'react';
 import { 
   View, 
   Text, 
-  FlatList, 
   StyleSheet, 
   TouchableOpacity,
   ActivityIndicator,
@@ -15,7 +14,7 @@ import {
   Share,
   Modal
 } from 'react-native';
-import { getFirestore, collection, query, onSnapshot, addDoc, doc, deleteDoc } from 'firebase/firestore';
+import { getFirestore, collection, query, onSnapshot, addDoc, doc } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
 import { app, auth } from '../firebase.config';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -48,10 +47,7 @@ export default function RecipeGenerator() {
   const [showIngredientSelector, setShowIngredientSelector] = useState(false);
   const [userGuidance, setUserGuidance] = useState('');
   const [showGuidanceInput, setShowGuidanceInput] = useState(false);
-  const [savedRecipes, setSavedRecipes] = useState([]);
-  const [userRatings, setUserRatings] = useState({});
-  const [selectedCollectionFilter, setSelectedCollectionFilter] = useState('all');
-  const [savedRecipesExpanded, setSavedRecipesExpanded] = useState(false);
+  
   const [usageData, setUsageData] = useState(null);
   const [loadingUsage, setLoadingUsage] = useState(false);
   const [showPantryCheckModal, setShowPantryCheckModal] = useState(false);
@@ -86,10 +82,19 @@ export default function RecipeGenerator() {
             </Text>
           </TouchableOpacity>
         ),
+        headerRight: () => null,
       });
     } else {
       navigation.setOptions({
         headerLeft: () => null,
+        headerRight: () => (
+          <TouchableOpacity
+            style={styles.languageButton}
+            onPress={() => navigation.navigate('SavedRecipes')}
+          >
+            <Text style={styles.languageButtonText}>📚</Text>
+          </TouchableOpacity>
+        ),
       });
     }
   }, [selectedRecipe, recipeDetails, navigation, language]);
@@ -225,82 +230,6 @@ export default function RecipeGenerator() {
       setLoadingUsage(false);
     }
   };
-
-  // Fetch saved recipes and ratings from Firestore
-  useEffect(() => {
-    let unsubscribeSnapshot = null;
-    let unsubscribeRatings = null;
-    
-    // Wait for authentication
-    const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
-      // Cleanup previous snapshot listeners if they exist
-      if (unsubscribeSnapshot) {
-        unsubscribeSnapshot();
-        unsubscribeSnapshot = null;
-      }
-      if (unsubscribeRatings) {
-        unsubscribeRatings();
-        unsubscribeRatings = null;
-      }
-      
-      if (!user) {
-        if (__DEV__) {
-          console.log('Waiting for user authentication for saved recipes...');
-        }
-        return;
-      }
-      
-      const userId = user.uid;
-      if (__DEV__) {
-        console.log('Loading saved recipes for user:', userId);
-      }
-
-      // Fetch saved recipes
-      const q = query(collection(db, `users/${userId}/recipeCollections`));
-      unsubscribeSnapshot = onSnapshot(q, (snapshot) => {
-        const recipes = snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        }));
-        setSavedRecipes(recipes);
-      }, (error) => {
-        // Silently handle permission errors during auth transitions
-        if (error.code === 'permission-denied') {
-          if (__DEV__) {
-            console.log('Permission denied for saved recipes - user may be signing out');
-          }
-          setSavedRecipes([]);
-          return;
-        }
-        console.error('Error fetching saved recipes:', error);
-      });
-
-      // Fetch user ratings
-      const ratingsQuery = query(collection(db, `users/${userId}/recipeRatings`));
-      unsubscribeRatings = onSnapshot(ratingsQuery, (snapshot) => {
-        const ratings = {};
-        snapshot.docs.forEach(doc => {
-          const data = doc.data();
-          if (data.recipeName && data.rating) {
-            ratings[data.recipeName] = data.rating;
-          }
-        });
-        setUserRatings(ratings);
-      }, (error) => {
-        console.error('Error fetching user ratings:', error);
-      });
-    });
-
-    return () => {
-      unsubscribeAuth();
-      if (unsubscribeSnapshot) {
-        unsubscribeSnapshot();
-      }
-      if (unsubscribeRatings) {
-        unsubscribeRatings();
-      }
-    };
-  }, []);
 
   // Generate recipe suggestions
   const generateRecipeSuggestions = async () => {
@@ -690,28 +619,6 @@ export default function RecipeGenerator() {
     } catch (error) {
       console.error('Error updating collection:', error);
       Alert.alert(t('error', language), t('failedToUpdateCollection', language) || 'Failed to update collection');
-    }
-  };
-
-  // Remove recipe from collection
-  const removeFromCollection = async (recipeId) => {
-    try {
-      const userId = auth.currentUser?.uid;
-      
-      if (!userId) {
-        Alert.alert(t('error', language), t('pleaseRestart', language));
-        return;
-      }
-
-      await deleteDoc(doc(db, `users/${userId}/recipeCollections`, recipeId));
-      Alert.alert(
-        t('removed', language) || 'Removed',
-        t('recipeRemoved', language) || 'Recipe removed from collection',
-        [{ text: 'OK' }]
-      );
-    } catch (error) {
-      console.error('Error removing recipe:', error);
-      Alert.alert(t('error', language), t('failedToRemove', language) || 'Failed to remove recipe');
     }
   };
 
@@ -1478,19 +1385,6 @@ ${t('sharedFromShelfze', language)}
           </View>
         )}
 
-        {/* Recipe usage counter badge */}
-        {!loadingUsage && usageData && (
-          <View style={styles.usageCounterBadge}>
-            <Text style={styles.usageCounterIcon}>🍳</Text>
-            <Text style={styles.usageCounterText}>
-              {usageData.tier === 'premium' 
-                ? `${usageData.recipesRemaining}/1000 ${t('recipesRemaining', language)}`
-                : `${usageData.recipesRemaining} ${t('recipesRemaining', language)}`
-              }
-            </Text>
-          </View>
-        )}
-
         <TouchableOpacity 
           style={[
             styles.generateButton,
@@ -1515,6 +1409,19 @@ ${t('sharedFromShelfze', language)}
             </Text>
           )}
         </TouchableOpacity>
+
+        {/* Recipe usage counter badge */}
+        {!loadingUsage && usageData && (
+          <View style={styles.usageCounterBadge}>
+            <Text style={styles.usageCounterIcon}>🍳</Text>
+            <Text style={styles.usageCounterText}>
+              {usageData.tier === 'premium' 
+                ? `${usageData.recipesRemaining}/1000 ${t('recipesRemaining', language)}`
+                : `${usageData.recipesRemaining} ${t('recipesRemaining', language)}`
+              }
+            </Text>
+          </View>
+        )}
 
         {allRecipes.length > 0 && (
           <View style={styles.recipesContainer}>
@@ -1645,198 +1552,6 @@ ${t('sharedFromShelfze', language)}
                 <Text style={styles.recipeCardArrow}>→</Text>
               </TouchableOpacity>
             ))}
-          </View>
-        )}
-
-        {/* Saved Recipes Section - At Bottom with Dropdown */}
-        {savedRecipes.length > 0 && (
-          <View style={styles.savedRecipesSection}>
-            <TouchableOpacity 
-              style={styles.savedRecipesHeader}
-              onPress={() => setSavedRecipesExpanded(!savedRecipesExpanded)}
-            >
-              <Text style={styles.savedRecipesTitle}>📚 {t('savedRecipes', language)} ({savedRecipes.length})</Text>
-              <Text style={styles.dropdownArrow}>{savedRecipesExpanded ? '▼' : '▶'}</Text>
-            </TouchableOpacity>
-            
-            {savedRecipesExpanded && (
-              <>
-                {/* Collection Filter Tabs */}
-                <ScrollView 
-                  horizontal 
-                  showsHorizontalScrollIndicator={false}
-                  style={styles.collectionFilterContainer}
-                >
-                  <TouchableOpacity
-                    style={[
-                      styles.collectionFilterTab,
-                      selectedCollectionFilter === 'all' && styles.collectionFilterTabActive
-                    ]}
-                    onPress={() => setSelectedCollectionFilter('all')}
-                  >
-                    <Text style={[
-                      styles.collectionFilterText,
-                      selectedCollectionFilter === 'all' && styles.collectionFilterTextActive
-                    ]}>
-                      🍽️ {t('all', language)}
-                    </Text>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    style={[
-                      styles.collectionFilterTab,
-                      selectedCollectionFilter === 'favorite' && styles.collectionFilterTabActive
-                    ]}
-                    onPress={() => setSelectedCollectionFilter('favorite')}
-                  >
-                    <Text style={[
-                      styles.collectionFilterText,
-                      selectedCollectionFilter === 'favorite' && styles.collectionFilterTextActive
-                    ]}>
-                      ❤️ {t('favorites', language)}
-                    </Text>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    style={[
-                      styles.collectionFilterTab,
-                      selectedCollectionFilter === 'cooked' && styles.collectionFilterTabActive
-                    ]}
-                    onPress={() => setSelectedCollectionFilter('cooked')}
-                  >
-                    <Text style={[
-                      styles.collectionFilterText,
-                      selectedCollectionFilter === 'cooked' && styles.collectionFilterTextActive
-                    ]}>
-                      ✅ {t('cooked', language)}
-                    </Text>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    style={[
-                      styles.collectionFilterTab,
-                      selectedCollectionFilter === 'wantToTry' && styles.collectionFilterTabActive
-                    ]}
-                    onPress={() => setSelectedCollectionFilter('wantToTry')}
-                  >
-                    <Text style={[
-                      styles.collectionFilterText,
-                      selectedCollectionFilter === 'wantToTry' && styles.collectionFilterTextActive
-                    ]}>
-                      ⭐ {t('wantToTry', language)}
-                    </Text>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    style={[
-                      styles.collectionFilterTab,
-                      selectedCollectionFilter === 'wouldMakeAgain' && styles.collectionFilterTabActive
-                    ]}
-                    onPress={() => setSelectedCollectionFilter('wouldMakeAgain')}
-                  >
-                    <Text style={[
-                      styles.collectionFilterText,
-                      selectedCollectionFilter === 'wouldMakeAgain' && styles.collectionFilterTextActive
-                    ]}>
-                      🔁 {t('wouldMakeAgain', language) || 'Would Make Again'}
-                    </Text>
-                  </TouchableOpacity>
-                </ScrollView>
-
-                {/* Saved Recipes List */}
-                <View style={styles.savedRecipesList}>
-                  {savedRecipes
-                    .filter(recipe => 
-                      selectedCollectionFilter === 'all' || 
-                      recipe.collectionType === selectedCollectionFilter
-                    )
-                    .map((recipe) => (
-                      <TouchableOpacity
-                        key={recipe.id}
-                        style={styles.savedRecipeCard}
-                        onPress={() => {
-                          // Load recipe from saved data (no AI generation needed)
-                          setSelectedRecipe({
-                            name: recipe.recipeName,
-                            emoji: recipe.recipeData?.emoji,
-                            description: recipe.recipeData?.description,
-                            cuisine: recipe.recipeData?.cuisine,
-                            difficulty: recipe.recipeData?.difficulty,
-                            prepTime: recipe.recipeData?.prepTime,
-                            cookTime: recipe.recipeData?.cookTime,
-                            servings: recipe.recipeData?.servings,
-                          });
-                          // Load full recipe details from saved data
-                          setRecipeDetails({
-                            ingredients: recipe.recipeData?.ingredients || [],
-                            instructions: recipe.recipeData?.instructions || [],
-                            tips: recipe.recipeData?.tips || [],
-                            nutrition: recipe.recipeData?.nutrition || null,
-                            cuisine: recipe.recipeData?.cuisine,
-                            difficulty: recipe.recipeData?.difficulty,
-                            prepTime: recipe.recipeData?.prepTime,
-                            cookTime: recipe.recipeData?.cookTime,
-                            servings: recipe.recipeData?.servings,
-                          });
-                        }}
-                      >
-                        <View style={styles.savedRecipeCardContent}>
-                          <Text style={styles.savedRecipeEmoji}>
-                            {recipe.recipeData?.emoji || '🍽️'}
-                          </Text>
-                          <View style={styles.savedRecipeInfo}>
-                            <View style={styles.savedRecipeNameRow}>
-                              <Text style={styles.savedRecipeName} numberOfLines={1}>
-                                {recipe.recipeName}
-                              </Text>
-                              <Text style={styles.savedRecipeBadge}>
-                                {recipe.collectionType === 'favorite' && '❤️'}
-                                {recipe.collectionType === 'cooked' && '✅'}
-                                {recipe.collectionType === 'wantToTry' && '⭐'}
-                                {recipe.collectionType === 'wouldMakeAgain' && '🔁'}
-                              </Text>
-                            </View>
-                            {recipe.recipeData?.description && (
-                              <Text style={styles.savedRecipeDescription} numberOfLines={1}>
-                                {getStepText(recipe.recipeData.description)}
-                              </Text>
-                            )}
-                            <Text style={styles.savedRecipeMeta}>
-                              {userRatings[recipe.recipeName] && `⭐ ${userRatings[recipe.recipeName]} • `}
-                              {recipe.recipeData?.prepTime && `🕒 ${recipe.recipeData.prepTime}`}
-                              {recipe.recipeData?.prepTime && recipe.recipeData?.cookTime && ' • '}
-                              {recipe.recipeData?.cookTime && `⏱️ ${recipe.recipeData.cookTime}`}
-                            </Text>
-                          </View>
-                          <View style={styles.savedRecipeActions}>
-                            <TouchableOpacity
-                              style={styles.savedRecipeRemoveButton}
-                              onPress={(e) => {
-                                e.stopPropagation();
-                                Alert.alert(
-                                  t('confirmRemove', language) || 'Remove Recipe?',
-                                  t('confirmRemoveMessage', language) || 'Are you sure you want to remove this recipe from your collection?',
-                                  [
-                                    { text: t('cancel', language) || 'Cancel', style: 'cancel' },
-                                    { 
-                                      text: t('remove', language) || 'Remove', 
-                                      style: 'destructive',
-                                      onPress: () => removeFromCollection(recipe.id)
-                                    }
-                                  ]
-                                );
-                              }}
-                            >
-                              <Text style={styles.savedRecipeRemoveButtonText}>🗑️</Text>
-                            </TouchableOpacity>
-                          </View>
-                        </View>
-                        <Text style={styles.recipeCardArrow}>→</Text>
-                      </TouchableOpacity>
-                    ))}
-                </View>
-              </>
-            )}
           </View>
         )}
       </ScrollView>
@@ -2182,238 +1897,47 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
   },
-  savedRecipesSection: {
-    paddingHorizontal: 20,
-    paddingVertical: 20,
-    backgroundColor: '#FFF9F5',
-    borderTopWidth: 1,
-    borderTopColor: '#FFE5D9',
-    marginTop: 20,
-  },
-  savedRecipesHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  savedRecipesTitle: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: '#3D405B',
-  },
-  dropdownArrow: {
-    fontSize: 18,
-    color: '#4A7C59', // Sage Green
-    fontWeight: 'bold',
-  },
-  collectionFilterContainer: {
-    marginTop: 15,
+  bottomShareButton: {
+    marginHorizontal: 20,
     marginBottom: 15,
+    backgroundColor: '#3B82F6',
+    borderRadius: 12,
+    paddingVertical: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
   },
-  collectionFilterTab: {
-    backgroundColor: '#FFF',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    marginRight: 8,
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
+  bottomShareButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
-  collectionFilterTabActive: {
-    backgroundColor: '#4A7C59', // Sage Green
-    borderColor: '#4A7C59',
-  },
-  collectionFilterText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#666',
-  },
-  collectionFilterTextActive: {
-    color: '#FFF',
-  },
-  savedRecipesList: {
+  usageCounterBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginHorizontal: 20,
+    marginBottom: 20,
     marginTop: 5,
   },
-  savedRecipeCard: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 15,
-    marginBottom: 15,
-    flexDirection: 'row',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  savedRecipeCardContent: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  savedRecipeEmoji: {
-    fontSize: 40,
-    marginRight: 15,
-  },
-  savedRecipeInfo: {
-    flex: 1,
-  },
-  savedRecipeNameRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 4,
-  },
-  savedRecipeName: {
-    flex: 1,
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#3D405B',
+  usageCounterIcon: {
+    fontSize: 16,
     marginRight: 8,
   },
-  savedRecipeBadge: {
-    fontSize: 20,
-  },
-  savedRecipeDescription: {
+  usageCounterText: {
     fontSize: 14,
     color: '#666',
-    marginBottom: 6,
-  },
-  savedRecipeMeta: {
-    fontSize: 13,
-    color: '#999',
-  },
-  savedRecipeActions: {
-    marginLeft: 10,
-  },
-  savedRecipeRemoveButton: {
-    padding: 8,
-  },
-  savedRecipeRemoveButtonText: {
-    fontSize: 22,
-  },
-  recipesContainer: {
-    paddingHorizontal: 20,
-    marginTop: 10,
-  },
-  recipesTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#3D405B',
-    marginBottom: 15,
-  },
-  recipeCard: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 15,
-    marginBottom: 15,
-    flexDirection: 'row',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  recipeCardEmoji: {
-    fontSize: 40,
-    marginRight: 15,
-  },
-  recipeCardContent: {
-    flex: 1,
-  },
-  recipeCardTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#3D405B',
-    marginBottom: 5,
-  },
-  recipeCardDescription: {
-    fontSize: 14,
-    color: '#666',
-    marginBottom: 5,
-  },
-  recipeCardSource: {
-    fontSize: 12,
-    color: '#4A7C59', // Sage Green
-    fontStyle: 'italic',
-    marginBottom: 5,
-  },
-  nutritionRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 8,
-    flexWrap: 'wrap',
-  },
-  nutritionBadge: {
-    backgroundColor: '#E8F5E9', // Light Green
-    color: '#4A7C59', // Sage Green
-    fontSize: 12,
-    fontWeight: 'bold',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  nutritionDetail: {
-    fontSize: 11,
-    color: '#666',
-    backgroundColor: '#F3F4F6',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 10,
     fontWeight: '600',
   },
-  metaBadgesRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 6,
-    marginBottom: 8,
-  },
-  cuisineBadge: {
-    fontSize: 11,
-    color: '#DD6B20',
-    backgroundColor: '#FFF7ED',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
-    fontWeight: '600',
-    borderWidth: 1,
-    borderColor: '#FDBA74',
-  },
-  skillBadge: {
-    fontSize: 11,
-    color: '#7C3AED',
-    backgroundColor: '#F3E8FF',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
-    fontWeight: '600',
-    borderWidth: 1,
-    borderColor: '#C4B5FD',
-  },
-  difficultyBadge: {
-    fontSize: 11,
-    color: '#059669',
-    backgroundColor: '#D1FAE5',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
-    fontWeight: '600',
-    borderWidth: 1,
-    borderColor: '#6EE7B7',
-  },
-  recipeCardMeta: {
-    fontSize: 12,
-    color: '#999',
-  },
-  recipeCardArrow: {
-    fontSize: 24,
-    color: '#E07A5F', // Terracotta
-  },
+
+  // Detail View Styles
   detailSafeArea: {
     flex: 1,
-    backgroundColor: '#F4F1DE', // Alabaster
+    backgroundColor: '#F4F1DE',
   },
   detailScroll: {
     flex: 1,
@@ -2422,25 +1946,12 @@ const styles = StyleSheet.create({
     paddingTop: 10,
     paddingBottom: 40,
   },
-  backButton: {
-    paddingHorizontal: 20,
-    paddingVertical: 14,
-    backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-  },
-  backButtonText: {
-    fontSize: 16,
-    color: '#4A7C59', // Sage Green
-    fontWeight: '600',
-  },
   recipeHeader: {
     backgroundColor: '#fff',
     padding: 20,
     alignItems: 'center',
     borderBottomWidth: 1,
     borderBottomColor: '#eee',
-    position: 'relative',
   },
   recipeTitle: {
     fontSize: 28,
@@ -2452,12 +1963,6 @@ const styles = StyleSheet.create({
   recipeEmoji: {
     fontSize: 60,
     marginBottom: 15,
-  },
-  recipeSource: {
-    fontSize: 14,
-    color: '#E11D48',
-    fontStyle: 'italic',
-    marginBottom: 10,
   },
   nutritionCard: {
     backgroundColor: '#FEF2F2',
@@ -2521,19 +2026,10 @@ const styles = StyleSheet.create({
     color: '#374151',
     fontWeight: '600',
   },
-  recipeDifficulty: {
-    fontSize: 14,
-    color: '#666',
-    marginBottom: 5,
-  },
   recipeTime: {
     fontSize: 14,
     color: '#666',
     marginBottom: 5,
-  },
-  recipeServings: {
-    fontSize: 14,
-    color: '#666',
   },
   section: {
     backgroundColor: '#fff',
@@ -2610,27 +2106,6 @@ const styles = StyleSheet.create({
   },
   star: {
     fontSize: 40,
-  },
-  makeAgainButton: {
-    backgroundColor: '#fff',
-    borderWidth: 2,
-    borderColor: '#D1D5DB',
-    borderRadius: 25,
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    marginBottom: 15,
-  },
-  makeAgainButtonActive: {
-    backgroundColor: '#10B981',
-    borderColor: '#10B981',
-  },
-  makeAgainButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#6B7280',
-  },
-  makeAgainButtonTextActive: {
-    color: '#fff',
   },
   saveRatingButton: {
     backgroundColor: '#E11D48',
@@ -2719,65 +2194,133 @@ const styles = StyleSheet.create({
     color: '#1F2937',
     fontWeight: 'bold',
   },
-  newRecipeButton: {
-    marginHorizontal: 20,
-    marginBottom: 40,
-    backgroundColor: '#FF9800',
-    borderRadius: 12,
-    paddingVertical: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 3,
+
+  // List View Styles
+  recipesContainer: {
+    paddingHorizontal: 20,
+    paddingBottom: 20,
   },
-  newRecipeButtonText: {
-    color: '#fff',
-    fontSize: 16,
+  recipesTitle: {
+    fontSize: 20,
     fontWeight: 'bold',
+    color: '#3D405B',
+    marginBottom: 15,
   },
-  usageCounterBadge: {
-    marginHorizontal: 20,
-    marginBottom: 12,
-    backgroundColor: '#FFF3CD',
+  recipeCard: {
+    backgroundColor: '#fff',
     borderRadius: 12,
-    paddingVertical: 10,
-    paddingHorizontal: 16,
+    padding: 15,
+    marginBottom: 15,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    borderWidth: 1,
-    borderColor: '#FFD54F',
-  },
-  usageCounterIcon: {
-    fontSize: 18,
-  },
-  usageCounterText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#856404',
-  },
-  bottomShareButton: {
-    marginHorizontal: 20,
-    marginBottom: 15,
-    backgroundColor: '#3B82F6',
-    borderRadius: 12,
-    paddingVertical: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
+    shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
   },
-  bottomShareButtonText: {
-    color: '#fff',
-    fontSize: 16,
+  recipeCardEmoji: {
+    fontSize: 40,
+    marginRight: 15,
+  },
+  recipeCardContent: {
+    flex: 1,
+  },
+  recipeCardTitle: {
+    fontSize: 18,
     fontWeight: 'bold',
+    color: '#3D405B',
+    marginBottom: 4,
+  },
+  recipeCardDescription: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 8,
+    lineHeight: 20,
+  },
+  nutritionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+    flexWrap: 'wrap',
+  },
+  nutritionBadge: {
+    backgroundColor: '#FEE2E2',
+    color: '#E11D48',
+    fontSize: 12,
+    fontWeight: 'bold',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 10,
+    marginRight: 8,
+    overflow: 'hidden',
+  },
+  nutritionDetail: {
+    fontSize: 12,
+    color: '#666',
+    marginRight: 8,
+  },
+  metaBadgesRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+    flexWrap: 'wrap',
+  },
+  cuisineBadge: {
+    backgroundColor: '#E0F2FE',
+    color: '#0284C7',
+    fontSize: 12,
+    fontWeight: '600',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 10,
+    marginRight: 6,
+    overflow: 'hidden',
+  },
+  skillBadge: {
+    backgroundColor: '#F3F4F6',
+    color: '#4B5563',
+    fontSize: 12,
+    fontWeight: '600',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 10,
+    marginRight: 6,
+    overflow: 'hidden',
+  },
+  difficultyBadge: {
+    backgroundColor: '#FEF3C7',
+    color: '#D97706',
+    fontSize: 12,
+    fontWeight: '600',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 10,
+    overflow: 'hidden',
+  },
+  recipeCardMeta: {
+    fontSize: 12,
+    color: '#999',
+    marginTop: 4,
+  },
+  recipeCardArrow: {
+    fontSize: 24,
+    color: '#E07A5F',
+    marginLeft: 10,
+  },
+  languageButton: {
+    backgroundColor: 'rgba(255, 255, 255, 0.25)', // Transparent white overlay
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 20,
+    marginRight: 16,
+    borderWidth: 1.5,
+    borderColor: 'rgba(255, 255, 255, 0.4)',
+  },
+  languageButtonText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '700',
   },
 });
 

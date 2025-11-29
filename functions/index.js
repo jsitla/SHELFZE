@@ -2114,3 +2114,101 @@ exports.checkIngredients = onRequest({
     });
   }
 });
+
+exports.matchPantryToRecipes = onRequest({
+  cors: true,
+  memory: "1GiB",
+  timeoutSeconds: 120,
+}, async (req, res) => {
+  if (req.method !== "POST") {
+    res.status(405).json({error: "Method not allowed. Use POST."});
+    return;
+  }
+
+  try {
+    const uid = await verifyAuth(req);
+    if (!uid) {
+      res.status(401).json({error: "Unauthorized. Invalid or missing token."});
+      return;
+    }
+
+    const {recipes, pantryItems, language} = req.body;
+    const targetLanguage = language || "en";
+
+    if (!recipes || !Array.isArray(recipes) || recipes.length === 0) {
+      res.status(400).json({error: "No recipes provided"});
+      return;
+    }
+
+    if (!pantryItems || !Array.isArray(pantryItems)) {
+      res.status(400).json({error: "No pantry items provided"});
+      return;
+    }
+
+    // Limit batch size to prevent context window overflow
+    // If user has 100 recipes, we might need to batch this on the client side
+    // or handle it here. For now, let's assume a reasonable number (e.g. < 50).
+    // If more, we process the first 50.
+    const recipesToProcess = recipes.slice(0, 50);
+
+    const prompt = `
+      You are a smart kitchen assistant. I have a list of pantry items and a
+      list of recipes. Determine which recipes I can cook RIGHT NOW with what
+      I have.
+
+      My Pantry Items:
+      ${JSON.stringify(pantryItems)}
+
+      My Recipes:
+      ${JSON.stringify(recipesToProcess.map((r) => ({
+    id: r.id,
+    name: r.name,
+    ingredients: r.ingredients,
+  })))}
+
+      Target Language: ${targetLanguage}
+
+      Rules:
+      1. **Flexible Matching**: "Diced tomatoes" matches "Tomato".
+         "Low fat milk" matches "Milk".
+      2. **Staples**: Assume I HAVE Salt, Pepper, Water, Oil, Sugar.
+         Do not count these as missing.
+      3. **Status**:
+         - "COOK_NOW": All ingredients are present (or staples).
+         - "ALMOST": Missing 1-2 minor ingredients.
+         - "SHOPPING": Missing major ingredients or >2 items.
+      4. **Output**: Return a JSON object where keys are Recipe IDs and values
+         are objects containing:
+         - "status": "COOK_NOW" | "ALMOST" | "SHOPPING"
+         - "missingIngredients": [List of missing items in ${targetLanguage}]
+           (Empty if COOK_NOW)
+         - "matchPercentage": 0-100 (Estimate of how many ingredients I have)
+
+      Output JSON ONLY. No markdown.
+    `;
+
+    const result = await pantryCheckModel.generateContent(prompt);
+    const response = await result.response;
+    let text = "";
+    if (response.candidates && response.candidates[0] &&
+        response.candidates[0].content &&
+        response.candidates[0].content.parts &&
+        response.candidates[0].content.parts[0]) {
+      text = response.candidates[0].content.parts[0].text || "";
+    }
+
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) {
+      throw new Error("No JSON found in AI response");
+    }
+
+    const analysis = JSON.parse(jsonMatch[0]);
+    res.json(analysis);
+  } catch (error) {
+    console.error("Error matching pantry to recipes:", error);
+    res.status(500).json({
+      error: "Failed to match recipes",
+      details: error.message,
+    });
+  }
+});
