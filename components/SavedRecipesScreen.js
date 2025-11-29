@@ -154,7 +154,7 @@ export default function SavedRecipesScreen() {
             </Text>
           </TouchableOpacity>
         ),
-        title: selectedRecipe.name || t('recipeDetails', language),
+        title: '',
       });
     } else {
       navigation.setOptions({
@@ -455,8 +455,7 @@ ${t('sharedFromShelfze', language)}
       <SafeAreaView style={styles.detailSafeArea} edges={['left', 'right']}>
         <ScrollView style={styles.detailScroll} contentContainerStyle={styles.detailScrollContent}>
           <View style={styles.recipeHeader}>
-            <Text style={styles.recipeTitle}>{recipeDetails.name}</Text>
-            <Text style={styles.recipeEmoji}>{recipeDetails.emoji || '🍽️'}</Text>
+            <Text style={styles.recipeTitle}>{selectedRecipe.name}</Text>
             {recipeDetails.nutrition && (
               <View style={styles.nutritionCard}>
                 <Text style={styles.nutritionTitle}>🔥 {t('nutrition', language)}</Text>
