@@ -918,8 +918,9 @@ ${JSON.stringify(candidates.map((c, i) => ({
     ingredients: c.ingredients,
   })))}
 
-Task: Select up to 3 recipes from the candidates that can be made using ` +
+Task: Analyze each candidate to check if it can be made using ` +
 `**ONLY** the User Ingredients and allowed staples.
+
 STRICT FILTERING RULES:
 1. **ALLOWED STAPLES**: Salt, Black Pepper, Oil, Water, Sugar.
 2. **MISSING INGREDIENTS**: If a recipe requires **ANY** ingredient ` +
@@ -927,17 +928,19 @@ STRICT FILTERING RULES:
 `NOT in the User Ingredients and NOT an Allowed Staple, you **MUST REJECT** it.
 3. **NO SUBSTITUTIONS**: Do not assume the user can substitute or omit ` +
 `main ingredients.
-4. **DISH TYPE**: Reject recipes that do not match the Requested Dish Type ` +
-`(e.g., reject soups if Salad is requested).
+4. **DISH TYPE**: Reject recipes that do not match the Requested Dish Type.
 5. **USER GUIDANCE**: Reject recipes that conflict with User Guidance.
 
+Response Format:
+Return a JSON object with an "analysis" array and "selectedIds".
 Example:
-User has: "Eggs, Cheese". Recipe needs: "Eggs, Cheese, Milk". ` +
-`-> REJECT (Missing Milk).
-User has: "Chicken, Rice". Recipe needs: "Chicken, Rice, Salt". -> ACCEPT.
-
-Return JSON: {"selectedIds": [0, 2]}
-If none fit perfectly, return {"selectedIds": []}
+{
+  "analysis": [
+    { "id": 0, "missing": ["Milk"], "status": "REJECT" },
+    { "id": 1, "missing": [], "status": "ACCEPT" }
+  ],
+  "selectedIds": [1]
+}
 `;
 
         const filterResult = await filterModel.generateContent({
@@ -1862,8 +1865,9 @@ ${JSON.stringify(candidates.map((c, i) => ({
     ingredients: c.ingredients,
   })))}
 
-Task: Select up to 3 recipes from the candidates that can be made using ` +
+Task: Analyze each candidate to check if it can be made using ` +
 `**ONLY** the User Ingredients and allowed staples.
+
 STRICT FILTERING RULES:
 1. **ALLOWED STAPLES**: Salt, Black Pepper, Oil, Water, Sugar.
 2. **MISSING INGREDIENTS**: If a recipe requires **ANY** ingredient ` +
@@ -1871,17 +1875,19 @@ STRICT FILTERING RULES:
 `NOT in the User Ingredients and NOT an Allowed Staple, you **MUST REJECT** it.
 3. **NO SUBSTITUTIONS**: Do not assume the user can substitute or omit ` +
 `main ingredients.
-4. **DISH TYPE**: Reject recipes that do not match the Requested Dish Type ` +
-`(e.g., reject soups if Salad is requested).
+4. **DISH TYPE**: Reject recipes that do not match the Requested Dish Type.
 5. **USER GUIDANCE**: Reject recipes that conflict with User Guidance.
 
+Response Format:
+Return a JSON object with an "analysis" array and "selectedIds".
 Example:
-User has: "Eggs, Cheese". Recipe needs: "Eggs, Cheese, Milk". ` +
-`-> REJECT (Missing Milk).
-User has: "Chicken, Rice". Recipe needs: "Chicken, Rice, Salt". -> ACCEPT.
-
-Return JSON: {"selectedIds": [0, 2]}
-If none fit perfectly, return {"selectedIds": []}
+{
+  "analysis": [
+    { "id": 0, "missing": ["Milk"], "status": "REJECT" },
+    { "id": 1, "missing": [], "status": "ACCEPT" }
+  ],
+  "selectedIds": [1]
+}
 `;
 
             const filterResult = await filterModel.generateContent({
@@ -1915,16 +1921,6 @@ If none fit perfectly, return {"selectedIds": []}
             return finalSelection;
           } catch (error) {
             console.error("Error retrieving existing recipes:", error);
-            // Fallback: If AI filtering fails, return top 3 rated candidates
-            // This ensures we don't return empty if we found matches in DB
-            if (snapshot && !snapshot.empty) {
-              console.log("Falling back to top 3 rated recipes due to error.");
-              const candidates = snapshot.docs.map((doc) => ({
-                id: doc.id,
-                ...doc.data(),
-              }));
-              return candidates.slice(0, 3);
-            }
             return [];
           }
         };

@@ -25,6 +25,7 @@ import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { getUserUsage } from '../utils/usageTracking';
 import { config } from '../config';
 import { fetchWithTimeout } from '../utils/fetchWithTimeout';
+import { scaleIngredient } from '../utils/ingredientScaler';
 
 export default function RecipeGenerator() {
   const [pantryItems, setPantryItems] = useState([]);
@@ -56,12 +57,22 @@ export default function RecipeGenerator() {
   const [pantryCheckResult, setPantryCheckResult] = useState(null);
   const [checkingPantry, setCheckingPantry] = useState(false);
   const [itemsToShop, setItemsToShop] = useState([]);
+  const [servings, setServings] = useState(4);
   const { language } = useLanguage();
   const navigation = useNavigation();
 
   // Update header when recipe is selected
   useEffect(() => {
     if (selectedRecipe) {
+      if (recipeDetails?.servings) {
+        // Handle range like "4-6" or text like "Makes 4" by extracting first number
+        const match = recipeDetails.servings.toString().match(/(\d+)/);
+        const parsed = match ? parseInt(match[1]) : 4;
+        setServings(parsed);
+      } else {
+        setServings(4);
+      }
+
       navigation.setOptions({
         headerLeft: () => (
           <TouchableOpacity 
@@ -80,7 +91,11 @@ export default function RecipeGenerator() {
         headerLeft: () => null,
       });
     }
-  }, [selectedRecipe, navigation, language]);
+  }, [selectedRecipe, recipeDetails, navigation, language]);
+
+  const adjustServings = (delta) => {
+    setServings(prev => Math.max(1, prev + delta));
+  };
 
   const db = getFirestore(app);
 
@@ -957,7 +972,7 @@ ${t('sharedFromShelfze', language)}
                 </View>
               </View>
               <Text style={styles.perServingText}>
-                {t('perServing', language)} ({recipeDetails.servings || '4'} {t('servings', language)})
+                {t('perServing', language)} ({servings} {t('servings', language)})
               </Text>
             </View>
           )}
@@ -984,9 +999,29 @@ ${t('sharedFromShelfze', language)}
           <Text style={styles.recipeTime}>
             ⏱️ {t('cookTime', language)}: {recipeDetails.cookTime || '30 minutes'}
           </Text>
-          <Text style={styles.recipeServings}>
-            👥 {t('servings', language)}: {recipeDetails.servings || '4'}
-          </Text>
+          
+          <View style={styles.servingsControl}>
+            <Text style={styles.recipeServings}>
+              👥 {t('servings', language)}:
+            </Text>
+            <View style={styles.servingsAdjuster}>
+              <TouchableOpacity 
+                style={styles.servingsButton} 
+                onPress={() => adjustServings(-1)}
+                hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}
+              >
+                <Text style={styles.servingsButtonText}>-</Text>
+              </TouchableOpacity>
+              <Text style={styles.servingsValue}>{servings}</Text>
+              <TouchableOpacity 
+                style={styles.servingsButton} 
+                onPress={() => adjustServings(1)}
+                hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}
+              >
+                <Text style={styles.servingsButtonText}>+</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
         </View>
 
         <View style={styles.section}>
@@ -1010,7 +1045,7 @@ ${t('sharedFromShelfze', language)}
           </View>
           {recipeDetails.ingredients && recipeDetails.ingredients.map((ingredient, index) => (
             <Text key={index} style={styles.ingredient}>
-              • {ingredient}
+              • {scaleIngredient(ingredient, parseInt(recipeDetails.servings) || 4, servings)}
             </Text>
           ))}
         </View>
@@ -1546,13 +1581,13 @@ ${t('sharedFromShelfze', language)}
                         🔥 {item.nutrition.calories} cal
                       </Text>
                       <Text style={styles.nutritionDetail}>
-                        P: {item.nutrition.protein}
+                        {t('protein', language)}: {item.nutrition.protein}
                       </Text>
                       <Text style={styles.nutritionDetail}>
-                        C: {item.nutrition.carbs}
+                        {t('carbs', language)}: {item.nutrition.carbs}
                       </Text>
                       <Text style={styles.nutritionDetail}>
-                        F: {item.nutrition.fat}
+                        {t('fat', language)}: {item.nutrition.fat}
                       </Text>
                     </View>
                   )}
@@ -1997,6 +2032,43 @@ const styles = StyleSheet.create({
   ingredientSelectorIcon: {
     fontSize: 14,
     color: '#666',
+  },
+  servingsControl: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 5,
+  },
+  servingsAdjuster: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F3F4F6',
+    borderRadius: 20,
+    paddingHorizontal: 5,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  servingsButton: {
+    width: 30,
+    height: 30,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  servingsButtonText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#4A7C59',
+  },
+  servingsValue: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#374151',
+    minWidth: 24,
+    textAlign: 'center',
+  },
+  recipeServings: {
+    fontSize: 14,
+    color: '#666',
+    marginRight: 10,
   },
   ingredientSelectorContent: {
     marginTop: 10,

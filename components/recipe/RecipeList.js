@@ -35,13 +35,13 @@ const RecipeList = ({ recipes, onSelectRecipe }) => {
                   🔥 {item.nutrition.calories} cal
                 </Text>
                 <Text style={styles.nutritionDetail}>
-                  P: {item.nutrition.protein}
+                  {t('protein', language)}: {item.nutrition.protein}
                 </Text>
                 <Text style={styles.nutritionDetail}>
-                  C: {item.nutrition.carbs}
+                  {t('carbs', language)}: {item.nutrition.carbs}
                 </Text>
                 <Text style={styles.nutritionDetail}>
-                  F: {item.nutrition.fat}
+                  {t('fat', language)}: {item.nutrition.fat}
                 </Text>
               </View>
             )}

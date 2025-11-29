@@ -1,9 +1,10 @@
 // components/recipe/RecipeDetailView.js
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Share, Alert } from 'react-native';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { t } from '../../contexts/translations';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { scaleIngredient } from '../../utils/ingredientScaler';
 
 const RecipeDetailView = ({
   recipeDetails,
@@ -18,6 +19,20 @@ const RecipeDetailView = ({
   const [isFavorite, setIsFavorite] = useState(false); // These should be managed from parent
   const [isCooked, setIsCooked] = useState(false);
   const [wantToTry, setWantToTry] = useState(false);
+  const [servings, setServings] = useState(4);
+
+  useEffect(() => {
+    if (recipeDetails?.servings) {
+      // Handle range like "4-6" or text like "Makes 4" by extracting first number
+      const match = recipeDetails.servings.toString().match(/(\d+)/);
+      const parsed = match ? parseInt(match[1]) : 4;
+      setServings(parsed);
+    }
+  }, [recipeDetails]);
+
+  const adjustServings = (delta) => {
+    setServings(prev => Math.max(1, prev + delta));
+  };
 
   const shareRecipe = async () => {
     if (!recipeDetails) return;
@@ -92,7 +107,7 @@ ${t('sharedFromShelfze', language)}
                 </View>
               </View>
               <Text style={styles.perServingText}>
-                {t('perServing', language)} ({recipeDetails.servings || '4'} {t('servings', language)})
+                {t('perServing', language)} ({servings} {t('servings', language)})
               </Text>
             </View>
           )}
@@ -119,16 +134,36 @@ ${t('sharedFromShelfze', language)}
           <Text style={styles.recipeTime}>
             ⏱️ {t('cookTime', language)}: {recipeDetails.cookTime || '30 minutes'}
           </Text>
-          <Text style={styles.recipeServings}>
-            👥 {t('servings', language)}: {recipeDetails.servings || '4'}
-          </Text>
+          
+          <View style={styles.servingsControl}>
+            <Text style={styles.recipeServings}>
+              👥 {t('servings', language)}:
+            </Text>
+            <View style={styles.servingsAdjuster}>
+              <TouchableOpacity 
+                style={styles.servingsButton} 
+                onPress={() => adjustServings(-1)}
+                hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}
+              >
+                <Text style={styles.servingsButtonText}>-</Text>
+              </TouchableOpacity>
+              <Text style={styles.servingsValue}>{servings}</Text>
+              <TouchableOpacity 
+                style={styles.servingsButton} 
+                onPress={() => adjustServings(1)}
+                hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}
+              >
+                <Text style={styles.servingsButtonText}>+</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
         </View>
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>📝 {t('ingredients', language)}</Text>
           {recipeDetails.ingredients && recipeDetails.ingredients.map((ingredient, index) => (
             <Text key={index} style={styles.ingredient}>
-              • {ingredient}
+              • {scaleIngredient(ingredient, parseInt(recipeDetails.servings) || 4, servings)}
             </Text>
           ))}
         </View>
@@ -407,7 +442,39 @@ const styles = StyleSheet.create({
       recipeServings: {
         fontSize: 14,
         color: '#666',
-        marginBottom: 5,
+        marginRight: 10,
+      },
+      servingsControl: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginTop: 5,
+      },
+      servingsAdjuster: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#F3F4F6',
+        borderRadius: 20,
+        paddingHorizontal: 5,
+        borderWidth: 1,
+        borderColor: '#E5E7EB',
+      },
+      servingsButton: {
+        width: 30,
+        height: 30,
+        alignItems: 'center',
+        justifyContent: 'center',
+      },
+      servingsButtonText: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: '#E11D48',
+      },
+      servingsValue: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: '#374151',
+        minWidth: 24,
+        textAlign: 'center',
       },
       section: {
         padding: 20,
