@@ -10,11 +10,12 @@ if (admin.apps.length === 0) {
 const db = admin.firestore();
 
 async function run() {
-  const userId = process.argv[2];
+  let userId = process.argv[2];
+  const daysAgoInput = process.argv[3];
+  const daysAgo = daysAgoInput ? parseInt(daysAgoInput) : 35;
 
   if (!userId) {
     console.log('🔍 No userId provided. Listing recent users with usage data...');
-    // We can't easily list users by auth, but we can list users collection
     const snapshot = await db.collection('users').limit(10).get();
     
     if (snapshot.empty) {
@@ -29,8 +30,21 @@ async function run() {
       const tier = usageSnap.exists ? usageSnap.data().tier : 'No Usage Data';
       console.log(`- ID: ${doc.id} | Email: ${email} | Tier: ${tier}`);
     }
-    console.log('\nUsage: node test-bonus.js <USER_ID>');
+    console.log('\nUsage: node test-bonus.js <USER_ID_OR_EMAIL> [DAYS_AGO]');
     return;
+  }
+
+  // Check if input is an email
+  if (userId.includes('@')) {
+    console.log(`📧 Input looks like an email. Resolving UID for ${userId}...`);
+    try {
+      const userRecord = await admin.auth().getUserByEmail(userId);
+      userId = userRecord.uid;
+      console.log(`✅ Found UID: ${userId}`);
+    } catch (error) {
+      console.error(`❌ Could not find user by email: ${error.message}`);
+      return;
+    }
   }
 
   console.log(`\n⚙️  Setting up test for user: ${userId}...`);
@@ -60,9 +74,9 @@ async function run() {
       lastBonus: lastBonusDate
     });
 
-    // Set date to 35 days ago
+    // Set date to daysAgo
     const pastDate = new Date();
-    pastDate.setDate(pastDate.getDate() - 35);
+    pastDate.setDate(pastDate.getDate() - daysAgo);
 
     await usageRef.update({
       tier: 'free',
@@ -71,7 +85,7 @@ async function run() {
 
     console.log('\n✅ SUCCESS! Test environment ready.');
     console.log(`- Tier forced to: FREE`);
-    console.log(`- Last bonus date set to: ${pastDate.toISOString()} (35 days ago)`);
+    console.log(`- Last bonus date set to: ${pastDate.toISOString()} (${daysAgo} days ago)`);
     console.log(`- Current Scans: ${currentData.scansRemaining}`);
     console.log(`- Current Recipes: ${currentData.recipesRemaining}`);
     console.log('\n👉 ACTION REQUIRED:');
