@@ -4,7 +4,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 // 1. Import necessary components from React, React Native, and Expo
 import React, { useState, useEffect, Component, useRef } from 'react';
-import { StyleSheet, View, TouchableOpacity, Text, ActivityIndicator, Alert, AppState } from 'react-native';
+import { StyleSheet, View, TouchableOpacity, Text, ActivityIndicator, Alert } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -331,51 +331,6 @@ export default function App() {
   const [hasLegalConsent, setHasLegalConsent] = useState(false);
   const justAgreedRef = useRef(false);
 
-  // Inactivity Timer Logic
-  const appState = useRef(AppState.currentState);
-  const lastInteraction = useRef(new Date());
-  const INACTIVITY_TIMEOUT = 5 * 60 * 1000; // 5 minutes
-
-  const handleActivity = () => {
-    lastInteraction.current = new Date();
-  };
-
-  useEffect(() => {
-    if (!user) return;
-
-    const subscription = AppState.addEventListener('change', nextAppState => {
-      if (
-        appState.current.match(/inactive|background/) &&
-        nextAppState === 'active'
-      ) {
-        // App has come to the foreground
-        const now = new Date();
-        const timeDiff = now - lastInteraction.current;
-        if (timeDiff > INACTIVITY_TIMEOUT) {
-           console.log('App resumed after timeout, signing out...');
-           auth.signOut();
-           Alert.alert('Session Expired', 'You have been signed out due to inactivity.');
-        }
-      }
-      appState.current = nextAppState;
-    });
-
-    // Check while app is open
-    const interval = setInterval(() => {
-        const now = new Date();
-        if (now - lastInteraction.current > INACTIVITY_TIMEOUT) {
-            console.log('User inactive while app open, signing out...');
-            auth.signOut();
-            Alert.alert('Session Expired', 'You have been signed out due to inactivity.');
-        }
-    }, 10000); // Check every 10 seconds
-
-    return () => {
-      subscription.remove();
-      clearInterval(interval);
-    };
-  }, [user]);
-
   // Check if this is first launch
   useEffect(() => {
     const checkFirstLaunch = async () => {
@@ -611,7 +566,7 @@ export default function App() {
       <ErrorBoundary>
         <LanguageProvider>
           <NavigationContainer>
-            <View style={styles.container} onTouchStart={handleActivity}>
+            <View style={styles.container}>
               <StatusBar style="auto" />
               <AppNavigator />
             </View>
