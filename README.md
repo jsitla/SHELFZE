@@ -715,6 +715,7 @@ All 126+ interface strings translated in these languages:
 | 🇪🇸 **Spanish** | `es` | ✅ Complete | 126+ |
 | 🇫🇷 **French** | `fr` | ✅ Complete | 126+ |
 | 🇩🇪 **German** | `de` | ✅ Complete | 126+ |
+| 🇮🇹 **Italian** | `it` | ✅ Complete | 126+ |
 | 🇸🇮 **Slovenian** | `sl` | ✅ Complete | 126+ |
 
 ### Recipe Generation Languages
@@ -1741,8 +1742,8 @@ Thank you to all contributors who have helped make Shelfze better!
 
 ### 📋 Quick Pre-Launch Checklist
 - [ ] Run `TESTING-GUIDE.md` full test suite
-- [ ] Host Privacy Policy at public URL
-- [ ] Host Terms of Service at public URL
+- [x] Host Privacy Policy at public URL
+- [x] Host Terms of Service at public URL
 - [ ] Create App Store screenshots (use device frames)
 - [ ] Write store description (include 18 languages feature!)
 - [ ] Set up support email
@@ -1755,8 +1756,8 @@ Thank you to all contributors who have helped make Shelfze better!
 
 ---
 
-*Last Updated: November 22, 2025*  
-*Version: 1.0.1*  
+*Last Updated: November 30, 2025*  
+*Version: 1.0.2*  
 *Expo SDK: 54*
 
 </div>

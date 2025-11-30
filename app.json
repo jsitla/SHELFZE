@@ -3,6 +3,7 @@
     "name": "Shelfze",
     "slug": "shelfze",
     "version": "1.0.0",
+    "privacy": "https://m-ai.info/privacy-policy.html",
     "orientation": "portrait",
     "icon": "assets/icon.png",
     "scheme": "shelfze",

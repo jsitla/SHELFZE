@@ -1,25 +1,63 @@
-const { translations } = require('./contexts/translations.js');
+const fs = require('fs');
+const path = require('path');
 
-const baseKeys = Object.keys(translations.en);
-const languages = ['es', 'fr', 'de', 'it', 'sl'];
+const filePath = path.join(__dirname, 'contexts', 'translations.js');
+let content = fs.readFileSync(filePath, 'utf8');
 
-console.log(`\n📊 Translation Completeness Report\n${'='.repeat(50)}\n`);
-console.log(`Base English keys: ${baseKeys.length}\n`);
+// Remove imports
+content = content.replace(/import .*?;/g, '');
 
-languages.forEach(lang => {
-  const langKeys = Object.keys(translations[lang]);
-  const missing = baseKeys.filter(key => !langKeys.includes(key));
-  const extra = langKeys.filter(key => !baseKeys.includes(key));
-  
-  console.log(`\n${lang.toUpperCase()}:`);
-  console.log(`  Total keys: ${langKeys.length}`);
-  console.log(`  Missing: ${missing.length}`);
-  
-  if (missing.length > 0) {
-    console.log(`  Missing keys: ${missing.join(', ')}`);
-  }
-  
-  if (extra.length > 0) {
-    console.log(`  Extra keys: ${extra.join(', ')}`);
-  }
-});
+// Remove export keywords
+content = content.replace(/export const/g, 'const');
+
+// Mock useMemo
+const useMemo = (fn) => fn();
+
+// Execute content
+// We wrap it in a function that returns translations
+const evalCode = `
+    ${content}
+    return translations;
+`;
+
+try {
+    const getTranslations = new Function('useMemo', evalCode);
+    const translations = getTranslations(useMemo);
+    
+    const languages = ['es', 'fr', 'de', 'it', 'sl'];
+    const base = translations.en;
+    
+    let missingCount = 0;
+    let untranslatedCount = 0;
+    
+    // Known identical words to ignore
+    const ignoreList = ['ID', 'Email', 'SMS', 'QR', 'OK', 'Chef', 'PantryAI', '100%', '50%', '30%', 'App', 'Version', 'Warning'];
+
+    languages.forEach(lang => {
+        console.log(`\n--- Checking ${lang} ---`);
+        const target = translations[lang];
+        
+        Object.keys(base).forEach(key => {
+            const baseValue = base[key];
+            const targetValue = target[key];
+            
+            if (targetValue === undefined) {
+                console.log(`[MISSING] ${lang}.${key}`);
+                missingCount++;
+            } else if (targetValue === baseValue) {
+                if (!ignoreList.includes(baseValue) && baseValue.length > 1 && isNaN(baseValue)) {
+                     console.log(`[SAME AS ENGLISH] ${lang}.${key}: "${targetValue}"`);
+                     untranslatedCount++;
+                }
+            }
+        });
+    });
+    
+    console.log(`\nSummary:`);
+    console.log(`Missing keys: ${missingCount}`);
+    console.log(`Potentially untranslated: ${untranslatedCount}`);
+
+} catch (e) {
+    console.error("Error parsing translations:", e);
+}
+
