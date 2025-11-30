@@ -24,7 +24,7 @@ export default function PremiumPlansScreen() {
     <View style={styles.container}>
       <Text style={styles.title}>{t('premiumTitle') || 'Upgrade to Premium'}</Text>
       <Text style={styles.subtitle}>
-        {t('premiumDescription') || 'Get 1000 scans and 1000 recipes every month.'}
+        {t('premiumDescription') || 'Get 500 scans and 500 recipes every month.'}
       </Text>
 
       <Text style={styles.introNote}>{introNote}</Text>
@@ -34,7 +34,7 @@ export default function PremiumPlansScreen() {
           <Text style={styles.planName}>{t('premiumMonthly') || 'Monthly'}</Text>
           <Text style={styles.planPrice}>{monthlyLabel}</Text>
           <Text style={styles.planDetail}>
-            {t('premiumPlanDetail') || '1000 scans · 1000 recipes/month'}
+            {t('premiumPlanDetail') || '500 scans · 500 recipes/month'}
           </Text>
           <TouchableOpacity style={styles.subscribeButton} disabled>
             <Text style={styles.subscribeText}>
@@ -50,7 +50,7 @@ export default function PremiumPlansScreen() {
           <Text style={styles.planName}>{t('premiumAnnual') || 'Annual'}</Text>
           <Text style={styles.planPrice}>{annualLabel}</Text>
           <Text style={styles.planDetail}>
-            {t('premiumPlanDetail') || '1000 scans · 1000 recipes/month'}
+            {t('premiumPlanDetail') || '500 scans · 500 recipes/month'}
           </Text>
           <TouchableOpacity style={styles.subscribeButton} disabled>
             <Text style={styles.subscribeText}>

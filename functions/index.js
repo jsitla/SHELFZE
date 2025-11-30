@@ -1263,9 +1263,9 @@ exports.upgradeTier = onRequest({cors: true}, async (req, res) => {
       usage = {
         tier: newTier,
         scansRemaining: newTier === "anonymous" ? 10 :
-            newTier === "free" ? 30 : 1000,
+            newTier === "free" ? 30 : 500,
         recipesRemaining: newTier === "anonymous" ? 10 :
-            newTier === "free" ? 30 : 1000,
+            newTier === "free" ? 30 : 500,
         totalScansUsed: 0,
         totalRecipesUsed: 0,
         lastMonthlyBonusDate: admin.firestore.FieldValue.serverTimestamp(),
@@ -1286,8 +1286,8 @@ exports.upgradeTier = onRequest({cors: true}, async (req, res) => {
       updates.lastMonthlyBonusDate =
           admin.firestore.FieldValue.serverTimestamp();
     } else if (newTier === "premium") {
-      updates.scansRemaining = 1000;
-      updates.recipesRemaining = 1000;
+      updates.scansRemaining = 500;
+      updates.recipesRemaining = 500;
       updates.resetDate = admin.firestore.FieldValue.serverTimestamp();
     }
 
@@ -1362,8 +1362,8 @@ exports.redeemGiftCode = onRequest({cors: true}, async (req, res) => {
 
     if (codeData.type === "premium") {
       updates.tier = "premium";
-      updates.scansRemaining = 1000;
-      updates.recipesRemaining = 1000;
+      updates.scansRemaining = 500;
+      updates.recipesRemaining = 500;
       updates.resetDate = admin.firestore.FieldValue.serverTimestamp();
       updates.subscription = {
         tier: "premium",
@@ -1429,10 +1429,46 @@ exports.checkMonthlyBonus = onRequest({cors: true}, async (req, res) => {
 
     const usage = usageDoc.data();
 
+    // Handle Premium Tier Reset
+    if (usage.tier === "premium") {
+      const now = new Date();
+      const lastReset = usage.resetDate ?
+          usage.resetDate.toDate() :
+          (usage.createdAt ? usage.createdAt.toDate() : new Date(0));
+
+      const monthsDiff = Math.floor(
+          (now - lastReset) / (30 * 24 * 60 * 60 * 1000),
+      );
+
+      if (monthsDiff >= 1) {
+        await usageRef.update({
+          scansRemaining: 500,
+          recipesRemaining: 500,
+          resetDate: admin.firestore.FieldValue.serverTimestamp(),
+        });
+
+        res.status(200).json({
+          bonusApplied: true,
+          message: "Premium monthly limit reset to 500",
+          newScansRemaining: 500,
+          newRecipesRemaining: 500,
+        });
+      } else {
+        res.status(200).json({
+          bonusApplied: false,
+          message: "Premium reset not yet due",
+          nextResetInDays: 30 - Math.floor(
+              (now - lastReset) / (24 * 60 * 60 * 1000),
+          ),
+        });
+      }
+      return;
+    }
+
     if (usage.tier !== "free") {
       res.status(200).json({
         bonusApplied: false,
-        message: "Not a free tier user",
+        message: "Not a free or premium tier user",
       });
       return;
     }
