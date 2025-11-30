@@ -53,10 +53,10 @@ We have successfully completed the full UI translation for the core European lan
 - **App Icon:** Ensure 1024x1024px icon is ready for the store listing (separate from the app binary).
 
 #### 2. 📧 Support Channel
-**Issue:** A support URL and email are required fields.
+**Status:** ✅ Ready
+**Details:** Support email (`denis.mlakar@m-ai.info`) is already defined in `TERMS-OF-SERVICE.md` (Section 18).
 **Action:**
-- Set up a dedicated email alias (e.g., `support@shelfze.app` or `shelfze-support@gmail.com`).
-- Ensure the "Support URL" in App Store Connect points to a valid page (e.g., GitHub Issues or a contact form).
+- Ensure this email is entered in the "Support URL" or "Contact" fields in App Store Connect and Google Play Console during submission.
 
 ### 🟡 Recommended Polish (High Priority)
 
