@@ -815,40 +815,7 @@ export default function Profile({ navigation }) {
           <Text style={styles.supportText}>support@shelfze.app</Text>
         </View>
 
-        {__DEV__ && (
-          <TouchableOpacity 
-            style={styles.devResetButton}
-            onPress={async () => {
-              Alert.alert(
-                '🔧 Reset Welcome Screen',
-                'This will:\n• Clear first launch flag\n• Sign you out\n• Show welcome screen on next start\n\nContinue?',
-                [
-                  { text: 'Cancel', style: 'cancel' },
-                  { 
-                    text: 'Reset & Sign Out',
-                    style: 'destructive',
-                    onPress: async () => {
-                      try {
-                        await AsyncStorage.removeItem('hasLaunchedBefore');
-                        await signOut(auth);
-                        Alert.alert(
-                          '✅ Success',
-                          'Welcome screen reset! Close and reopen the app to see it.',
-                          [{ text: 'OK' }]
-                        );
-                      } catch (error) {
-                        Alert.alert('Error', error.message);
-                      }
-                    }
-                  }
-                ]
-              );
-            }}
-          >
-            <Text style={styles.devResetButtonText}>🔧 Reset Welcome Screen</Text>
-            <Text style={styles.devResetSubtext}>(Development Only)</Text>
-          </TouchableOpacity>
-        )}
+
       </View>
 
       <TouchableOpacity style={styles.signOutButton} onPress={handleSignOut}>

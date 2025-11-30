@@ -45,3 +45,5 @@ Thumbs.db
 
 # Security
 functions/service-account.json
+
+user_exports/

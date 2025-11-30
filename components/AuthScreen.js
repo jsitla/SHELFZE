@@ -359,6 +359,7 @@ const AuthScreen = ({ mode, onBack, onSuccess }) => {
                 </Text>
               </TouchableOpacity>
 
+              {/* Facebook Login Hidden
               <TouchableOpacity 
                 style={[styles.socialButton, styles.facebookButton]}
                 onPress={handleFacebookSignIn}
@@ -369,6 +370,7 @@ const AuthScreen = ({ mode, onBack, onSuccess }) => {
                   {t('continueWithFacebook', language) || 'Continue with Facebook'}
                 </Text>
               </TouchableOpacity>
+              */}
 
               <TouchableOpacity 
                 style={[styles.socialButton, styles.appleButton, isAppleButtonDisabled && styles.socialButtonDisabled]}

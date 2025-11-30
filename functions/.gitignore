@@ -1,2 +1,4 @@
 node_modules/
 *.local
+# Data Exports
+user_exports/
