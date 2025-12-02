@@ -22,6 +22,7 @@ import AuthScreen from './components/AuthScreen';
 import LanguageSelector from './components/LanguageSelector';
 import ShoppingList from './components/ShoppingList';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
+import { PurchaseProvider } from './contexts/PurchaseContext';
 import { t } from './contexts/translations';
 import { getFirestore, collection, query, onSnapshot } from 'firebase/firestore';
 import { onAuthStateChanged, signInAnonymously } from 'firebase/auth';
@@ -517,27 +518,33 @@ export default function App() {
   } else if (showWelcome) {
     content = (
       <LanguageProvider>
-        <WelcomeScreen
-          onContinueAsGuest={handleContinueAsGuest}
-          onCreateAccount={handleCreateAccount}
-          onLogin={handleLogin}
-        />
+        <PurchaseProvider>
+          <WelcomeScreen
+            onContinueAsGuest={handleContinueAsGuest}
+            onCreateAccount={handleCreateAccount}
+            onLogin={handleLogin}
+          />
+        </PurchaseProvider>
       </LanguageProvider>
     );
   } else if (showLegalConsent) {
     content = (
       <LanguageProvider>
-        <LegalConsentScreen onAccepted={handleLegalAccepted} />
+        <PurchaseProvider>
+          <LegalConsentScreen onAccepted={handleLegalAccepted} />
+        </PurchaseProvider>
       </LanguageProvider>
     );
   } else if (showAuth) {
     content = (
       <LanguageProvider>
-        <AuthScreen
-          mode={authMode}
-          onBack={handleAuthBack}
-          onSuccess={handleAuthSuccess}
-        />
+        <PurchaseProvider>
+          <AuthScreen
+            mode={authMode}
+            onBack={handleAuthBack}
+            onSuccess={handleAuthSuccess}
+          />
+        </PurchaseProvider>
       </LanguageProvider>
     );
   } else if (authLoading) {
@@ -558,19 +565,23 @@ export default function App() {
     // Post-Auth Gate: If user is logged in but hasn't agreed, show consent screen
     content = (
       <LanguageProvider>
-        <LegalConsentScreen onAccepted={handleLegalAccepted} />
+        <PurchaseProvider>
+          <LegalConsentScreen onAccepted={handleLegalAccepted} />
+        </PurchaseProvider>
       </LanguageProvider>
     );
   } else {
     content = (
       <ErrorBoundary>
         <LanguageProvider>
-          <NavigationContainer>
-            <View style={styles.container}>
-              <StatusBar style="auto" />
-              <AppNavigator />
-            </View>
-          </NavigationContainer>
+          <PurchaseProvider>
+            <NavigationContainer>
+              <View style={styles.container}>
+                <StatusBar style="auto" />
+                <AppNavigator />
+              </View>
+            </NavigationContainer>
+          </PurchaseProvider>
         </LanguageProvider>
       </ErrorBoundary>
     );

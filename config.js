@@ -13,4 +13,11 @@ export const config = {
   rateRecipe: 'https://us-central1-pantryai-3d396.cloudfunctions.net/rateRecipe',
   checkIngredients: 'https://checkingredients-awiyk42b4q-uc.a.run.app',
   matchPantryToRecipes: 'https://matchpantrytorecipes-awiyk42b4q-uc.a.run.app',
+  
+  // RevenueCat API Keys
+  revenueCat: {
+    ios: 'test_rIscwxJLcuOEnIjGJpIRMaVOfAe',
+    android: 'goog_REPLACE_WITH_YOUR_ANDROID_KEY',
+    entitlementId: 'Shelfze / M-AI d.o.o. Pro', // Matches your RevenueCat Entitlement Identifier
+  },
 };

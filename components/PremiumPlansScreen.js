@@ -1,24 +1,45 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Platform, ActivityIndicator, Alert } from 'react-native';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTranslation } from '../contexts/translations';
-import { getPremiumPricing, formatPrice, isIntroPeriod, INTRO_PRICING_END } from '../utils/premiumPricing';
+import { usePurchase } from '../contexts/PurchaseContext';
 
 export default function PremiumPlansScreen() {
   const { language } = useLanguage();
   const t = useTranslation(language);
+  const { offerings, purchasePackage, restorePurchases, isPremium } = usePurchase();
+  const [loading, setLoading] = useState(false);
 
-  const currency = Platform.OS === 'ios' ? 'EUR' : 'EUR'; // Adjust later if needed
-  const pricing = getPremiumPricing(currency);
-  const intro = isIntroPeriod();
+  const handlePurchase = async (pkg) => {
+    if (!pkg) return;
+    setLoading(true);
+    const { success, error } = await purchasePackage(pkg);
+    setLoading(false);
+    if (success) {
+      Alert.alert(t('success') || 'Success', t('purchaseSuccess') || 'Thank you for subscribing!');
+    }
+  };
 
-  const introNote = intro
-    ? t('premiumIntroNote') ||
-      `Intro pricing until ${INTRO_PRICING_END.toLocaleDateString()}`
-    : t('premiumStandardNote') || 'Standard pricing in effect';
+  const handleRestore = async () => {
+    setLoading(true);
+    await restorePurchases();
+    setLoading(false);
+  };
 
-  const monthlyLabel = `${formatPrice(pricing.monthly, pricing.currency)}/${t('perMonth') || 'month'}`;
-  const annualLabel = `${formatPrice(pricing.annual, pricing.currency)}/${t('perYear') || 'year'}`;
+  // Get packages from RevenueCat offerings
+  // Assumes you have an offering named 'default' with 'monthly' and 'annual' packages
+  const currentOffering = offerings;
+  const monthlyPackage = currentOffering?.monthly;
+  const annualPackage = currentOffering?.annual;
+
+  if (!currentOffering) {
+    return (
+      <View style={styles.container}>
+        <ActivityIndicator size="large" color="#4A7C59" />
+        <Text style={styles.loadingText}>{t('loadingProducts') || 'Loading products...'}</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -27,46 +48,76 @@ export default function PremiumPlansScreen() {
         {t('premiumDescription') || 'Get 500 scans and 500 recipes every month.'}
       </Text>
 
-      <Text style={styles.introNote}>{introNote}</Text>
+      {isPremium && (
+        <View style={styles.activeBadge}>
+          <Text style={styles.activeText}>{t('premiumActive') || 'PREMIUM ACTIVE'}</Text>
+        </View>
+      )}
 
       <View style={styles.planRow}>
-        <View style={styles.planCard}>
+        {/* Monthly Plan */}
+        <View style={[styles.planCard, isPremium && styles.disabledCard]}>
           <Text style={styles.planName}>{t('premiumMonthly') || 'Monthly'}</Text>
-          <Text style={styles.planPrice}>{monthlyLabel}</Text>
+          <Text style={styles.planPrice}>
+            {monthlyPackage?.product?.priceString || '...'}
+          </Text>
           <Text style={styles.planDetail}>
             {t('premiumPlanDetail') || '500 scans · 500 recipes/month'}
           </Text>
-          <TouchableOpacity style={styles.subscribeButton} disabled>
+          <TouchableOpacity 
+            style={[styles.subscribeButton, (loading || isPremium) && styles.disabledButton]}
+            onPress={() => handlePurchase(monthlyPackage)}
+            disabled={loading || isPremium || !monthlyPackage}
+          >
             <Text style={styles.subscribeText}>
-              {Platform.OS === 'ios'
-                ? t('subscribeWithApple') || 'Subscribe with Apple'
-                : t('subscribeWithGoogle') || 'Subscribe with Google Play'}
+              {isPremium 
+                ? (t('active') || 'Active')
+                : (t('subscribe') || 'Subscribe')}
             </Text>
           </TouchableOpacity>
-          <Text style={styles.comingSoon}>{t('comingSoon') || 'Coming soon'}</Text>
         </View>
 
-        <View style={styles.planCard}>
+        {/* Annual Plan */}
+        <View style={[styles.planCard, isPremium && styles.disabledCard]}>
           <Text style={styles.planName}>{t('premiumAnnual') || 'Annual'}</Text>
-          <Text style={styles.planPrice}>{annualLabel}</Text>
+          <Text style={styles.planPrice}>
+            {annualPackage?.product?.priceString || '...'}
+          </Text>
           <Text style={styles.planDetail}>
             {t('premiumPlanDetail') || '500 scans · 500 recipes/month'}
           </Text>
-          <TouchableOpacity style={styles.subscribeButton} disabled>
+          <TouchableOpacity 
+            style={[styles.subscribeButton, (loading || isPremium) && styles.disabledButton]}
+            onPress={() => handlePurchase(annualPackage)}
+            disabled={loading || isPremium || !annualPackage}
+          >
             <Text style={styles.subscribeText}>
-              {Platform.OS === 'ios'
-                ? t('subscribeWithApple') || 'Subscribe with Apple'
-                : t('subscribeWithGoogle') || 'Subscribe with Google Play'}
+              {isPremium 
+                ? (t('active') || 'Active')
+                : (t('subscribe') || 'Subscribe')}
             </Text>
           </TouchableOpacity>
-          <Text style={styles.comingSoon}>{t('comingSoon') || 'Coming soon'}</Text>
         </View>
       </View>
 
+      <TouchableOpacity 
+        style={styles.restoreButton} 
+        onPress={handleRestore}
+        disabled={loading}
+      >
+        <Text style={styles.restoreText}>{t('restorePurchases') || 'Restore Purchases'}</Text>
+      </TouchableOpacity>
+
       <Text style={styles.footerText}>
         {t('premiumFooter') ||
-          'Payments will be processed via the Apple App Store or Google Play Store once enabled.'}
+          'Payments will be processed via the Apple App Store or Google Play Store.'}
       </Text>
+      
+      {loading && (
+        <View style={styles.overlay}>
+          <ActivityIndicator size="large" color="#FFFFFF" />
+        </View>
+      )}
     </View>
   );
 }
@@ -76,6 +127,11 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F4F1DE', // Alabaster
     padding: 20,
+  },
+  loadingText: {
+    marginTop: 10,
+    color: '#666',
+    textAlign: 'center',
   },
   title: {
     fontSize: 24,
@@ -88,10 +144,18 @@ const styles = StyleSheet.create({
     color: '#666',
     marginBottom: 12,
   },
-  introNote: {
-    fontSize: 12,
-    color: '#E07A5F', // Terracotta
+  activeBadge: {
+    backgroundColor: '#4A7C59',
+    paddingVertical: 4,
+    paddingHorizontal: 12,
+    borderRadius: 4,
+    alignSelf: 'flex-start',
     marginBottom: 16,
+  },
+  activeText: {
+    color: '#FFF',
+    fontWeight: 'bold',
+    fontSize: 12,
   },
   planRow: {
     flexDirection: 'row',
@@ -108,6 +172,9 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
+  },
+  disabledCard: {
+    opacity: 0.7,
   },
   planName: {
     fontSize: 16,
@@ -127,25 +194,42 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   subscribeButton: {
-    backgroundColor: '#E0E0E0',
+    backgroundColor: '#E07A5F', // Terracotta
     borderRadius: 12,
     paddingVertical: 10,
     alignItems: 'center',
   },
+  disabledButton: {
+    backgroundColor: '#ccc',
+  },
   subscribeText: {
-    color: '#999',
+    color: '#FFF',
     fontSize: 13,
     fontWeight: '600',
   },
-  comingSoon: {
-    marginTop: 6,
-    fontSize: 11,
-    color: '#E07A5F', // Terracotta
-    textAlign: 'center',
+  restoreButton: {
+    marginTop: 20,
+    alignSelf: 'center',
+    padding: 10,
+  },
+  restoreText: {
+    color: '#4A7C59',
+    fontSize: 14,
+    fontWeight: '600',
+    textDecorationLine: 'underline',
   },
   footerText: {
     marginTop: 16,
     fontSize: 12,
     color: '#999',
+    textAlign: 'center',
+  },
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 16,
   },
 });
+
