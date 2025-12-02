@@ -56,9 +56,12 @@ export const PurchaseProvider = ({ children }) => {
         await Purchases.logIn(user.uid);
       } else {
         try {
-          await Purchases.logOut();
+          const isAnonymous = await Purchases.isAnonymous();
+          if (!isAnonymous) {
+            await Purchases.logOut();
+          }
         } catch (e) {
-          // Ignore error if already anonymous
+          // Ignore error if already anonymous or check fails
           console.log('RevenueCat logout info:', e.message);
         }
       }
@@ -76,16 +79,24 @@ export const PurchaseProvider = ({ children }) => {
 
     return () => {
       unsubscribeAuth();
-      unsubscribePurchases.remove();
+      if (unsubscribePurchases && typeof unsubscribePurchases.remove === 'function') {
+        unsubscribePurchases.remove();
+      }
     };
   }, []);
 
   const checkEntitlements = (info) => {
     if (!info) return;
     
-    // Use the entitlement ID from config
     const entitlementId = config.revenueCat.entitlementId || 'premium';
-    const hasPremium = typeof info.entitlements.active[entitlementId] !== 'undefined';
+    
+    // Check if the specific entitlement is active, OR if any entitlement is active (fallback)
+    const activeEntitlements = Object.keys(info.entitlements.active);
+    const hasPremium = activeEntitlements.length > 0;
+    
+    if (activeEntitlements.length > 0 && !info.entitlements.active[entitlementId]) {
+      console.warn('Entitlement ID mismatch. Configured:', entitlementId, 'Found:', activeEntitlements);
+    }
     
     setIsPremium(hasPremium);
     
@@ -129,9 +140,9 @@ export const PurchaseProvider = ({ children }) => {
       const info = await Purchases.restorePurchases();
       checkEntitlements(info);
       
-      const entitlementId = config.revenueCat.entitlementId || 'premium';
+      const hasActiveEntitlements = Object.keys(info.entitlements.active).length > 0;
       
-      if (info.entitlements.active[entitlementId]) {
+      if (hasActiveEntitlements) {
         Alert.alert('Success', 'Purchases restored successfully!');
       } else {
         Alert.alert('No Purchases', 'No active subscriptions found to restore.');

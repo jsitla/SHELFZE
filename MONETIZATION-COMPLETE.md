@@ -46,7 +46,7 @@ users/{userId}/usage/current {
 #### Tier Quotas:
 - **Anonymous**: 10 scans, 10 recipes (lifetime, no refills)
 - **Free**: 30 scans, 30 recipes (bank model, +5 monthly bonus, accumulates)
-- **Premium**: 1000 scans, 1000 recipes (monthly quota, resets to 1000)
+- **Premium**: 500 scans, 500 recipes (monthly quota, resets to 500)
 
 ### 3. Profile Screen Integration
 **File**: `components/Profile.js`
@@ -61,7 +61,7 @@ users/{userId}/usage/current {
 - Usage stats:
   - 📸 Scans remaining: X
   - 🍳 Recipes remaining: X
-- Premium shows "X/1000" format
+- Premium shows "X/500" format
 - Upgrade button for non-premium users
 
 **Gift Code Redemption:**
@@ -152,7 +152,7 @@ onAuthStateChanged(auth, async (currentUser) => {
 - Limit-reached alerts with upgrade prompts
 
 **UI:**
-- Badge shows: "X" (free/anonymous) or "X/1000" (premium)
+- Badge shows: "X" (free/anonymous) or "X/500" (premium)
 - Badge style: Semi-transparent black with camera icon
 
 **Flow:**
@@ -176,7 +176,7 @@ onAuthStateChanged(auth, async (currentUser) => {
 - Limit-reached alerts with upgrade prompts
 
 **UI:**
-- Badge shows: "X recipes remaining" or "X/1000 recipes remaining"
+- Badge shows: "X recipes remaining" or "X/500 recipes remaining"
 - Badge style: Yellow/gold card with recipe icon (🍳)
 
 **Flow:**
@@ -237,11 +237,11 @@ All keys available in English, Spanish, Czech, Polish, and Ukrainian.
 ### Journey 4: Premium User
 1. User redeems premium gift code: `PREMIUM1MONTH`
 2. Tier upgraded to Premium
-3. Gets 1000 scans + 1000 recipes
+3. Gets 500 scans + 500 recipes
 4. Uses 250 scans over the month
 5. Month passes
 6. Opens app
-7. Quota resets to 1000/1000
+7. Quota resets to 500/500
 8. Continues using with full quota
 
 ## 📊 Monetization Strategy
@@ -249,8 +249,8 @@ All keys available in English, Spanish, Czech, Polish, and Ukrainian.
 ### Tier Comparison
 | Feature | Anonymous | Free | Premium |
 |---------|-----------|------|---------|
-| Scans | 10 (lifetime) | 30 + 5/month (bank) | 1000/month (quota) |
-| Recipes | 10 (lifetime) | 30 + 5/month (bank) | 1000/month (quota) |
+| Scans | 10 (lifetime) | 30 + 5/month (bank) | 500/month (quota) |
+| Recipes | 10 (lifetime) | 30 + 5/month (bank) | 500/month (quota) |
 | Cloud Sync | ❌ | ✅ | ✅ |
 | Backup | ❌ | ✅ | ✅ |
 | Monthly Bonus | ❌ | ✅ (+5 scans, +5 recipes) | ❌ |
@@ -370,7 +370,7 @@ match /giftCodes/{code} {
 ### For Users
 - Gift codes can be redeemed in: Account (⚙️) → "🎁 Have a gift code?"
 - Free users get +5 scans and +5 recipes every month
-- Premium users get 1000 scans and 1000 recipes monthly (resets)
+- Premium users get 500 scans and 500 recipes monthly (resets)
 - Unused scans/recipes accumulate for free users (bank model)
 
 ### For Developers

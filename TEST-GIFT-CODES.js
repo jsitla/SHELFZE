@@ -127,7 +127,7 @@ QUICK TIP: After creating the first code, you can duplicate it:
 /*
 Test Case 1: Valid Premium Code
 - Code: PREMIUM1MONTH
-- Expected: User upgraded to premium, 1000/1000 scans/recipes
+- Expected: User upgraded to premium, 500/500 scans/recipes
 - Verify: Tier badge shows "👑 Premium"
 
 Test Case 2: Valid Scans Code

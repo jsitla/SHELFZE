@@ -257,12 +257,12 @@ createdAt: [current timestamp]
 11. ✅ Redeem code: `PREMIUM1MONTH`
 12. ✅ Verify success alert
 13. ✅ Check tier badge changed to "👑 Premium"
-14. ✅ Verify usage stats show "X/1000" format
+14. ✅ Verify usage stats show "X/500" format
 15. ✅ Firestore check:
     ```
     tier: "premium"
-    scansRemaining: 1000
-    recipesRemaining: 1000
+    scansRemaining: 500
+    recipesRemaining: 500
     resetDate: [timestamp 1 month in future]
     ```
 
@@ -319,10 +319,10 @@ createdAt: [current timestamp]
 3. ✅ Manually update Firestore:
    - `resetDate` to 35 days ago
 4. ✅ Reopen app
-5. ✅ Verify quota resets to 1000/1000
+5. ✅ Verify quota resets to 500/500
 
 **Expected Results:**
-- ✅ Monthly reset to full quota (1000)
+- ✅ Monthly reset to full quota (500)
 - ✅ Previous usage cleared
 
 ---
@@ -415,7 +415,7 @@ createdAt: [current timestamp]
 - [ ] Welcome screen shows on first launch
 - [ ] Anonymous user gets 10/10 limits
 - [ ] Free user gets 30/30 limits
-- [ ] Premium user gets 1000/1000 limits
+- [ ] Premium user gets 500/500 limits
 - [ ] Scan counter decrements correctly
 - [ ] Recipe counter decrements correctly
 - [ ] Limits enforced (can't scan/generate at 0)
@@ -433,7 +433,7 @@ createdAt: [current timestamp]
 
 ### Monthly Features
 - [ ] Free user monthly bonus (+5) works
-- [ ] Premium monthly reset (1000) works
+- [ ] Premium monthly reset (500) works
 - [ ] Bonuses don't apply too frequently
 
 ### UI/UX

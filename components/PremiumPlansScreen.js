@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Platform, ActivityIndicator, Alert } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTranslation } from '../contexts/translations';
 import { usePurchase } from '../contexts/PurchaseContext';
 
 export default function PremiumPlansScreen() {
+  const navigation = useNavigation();
   const { language } = useLanguage();
   const t = useTranslation(language);
   const { offerings, purchasePackage, restorePurchases, isPremium } = usePurchase();
@@ -16,7 +18,16 @@ export default function PremiumPlansScreen() {
     const { success, error } = await purchasePackage(pkg);
     setLoading(false);
     if (success) {
-      Alert.alert(t('success') || 'Success', t('purchaseSuccess') || 'Thank you for subscribing!');
+      Alert.alert(
+        t('success') || 'Success',
+        t('purchaseSuccess') || 'Thank you for subscribing!',
+        [
+          {
+            text: 'OK',
+            onPress: () => navigation.navigate('PantryList')
+          }
+        ]
+      );
     }
   };
 
@@ -61,7 +72,7 @@ export default function PremiumPlansScreen() {
             {monthlyPackage?.product?.priceString || '...'}
           </Text>
           <Text style={styles.planDetail}>
-            {t('premiumPlanDetail') || '500 scans + 500 recipes/month'}
+            {t('premiumPlanDetail') || '500 scans · 500 recipes/month'}
           </Text>
           <TouchableOpacity 
             style={[styles.subscribeButton, (loading || isPremium) && styles.disabledButton]}
@@ -86,7 +97,7 @@ export default function PremiumPlansScreen() {
             {annualPackage?.product?.priceString || '...'}
           </Text>
           <Text style={styles.planDetail}>
-            {t('premiumPlanDetail') || '500 scans + 500 recipes/month'}
+            {t('premiumPlanDetail') || '500 scans · 500 recipes/month'}
           </Text>
           <TouchableOpacity 
             style={[styles.subscribeButton, (loading || isPremium) && styles.disabledButton]}

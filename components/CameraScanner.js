@@ -1114,7 +1114,7 @@ export default function CameraScanner({ navigation }) {
                 <Ionicons name="camera-outline" size={14} color="#fff" />
                 <Text style={styles.usageCounterText}>
                   {usageData.tier === 'premium' 
-                    ? `${usageData.scansRemaining}/1000`
+                    ? `${usageData.scansRemaining}/500`
                     : usageData.scansRemaining
                   }
                 </Text>

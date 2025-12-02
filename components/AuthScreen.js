@@ -479,17 +479,6 @@ const AuthScreen = ({ mode, onBack, onSuccess }) => {
               </Text>
             </TouchableOpacity>
           </View>
-
-          {isSignup && (
-            <View style={styles.benefitsCard}>
-              <Text style={styles.benefitsTitle}>Why create an account?</Text>
-              <BenefitRow icon="📸" text="30 scans right away" />
-              <BenefitRow icon="🍳" text="30 chef-crafted recipes" />
-              <BenefitRow icon="🎁" text="Monthly +5 bonus refills" />
-              <BenefitRow icon="☁️" text="Sync pantry across devices" />
-              <BenefitRow icon="🔒" text="Secure cloud backup" />
-            </View>
-          )}
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>

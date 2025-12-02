@@ -568,7 +568,7 @@ export default function Profile({ navigation }) {
                 <Text style={styles.usageLabel}>{t('scansRemaining', language)}</Text>
                 <Text style={styles.usageValue}>
                   {usageData.tier === 'premium' ? 
-                    `${usageData.scansRemaining}/1000` : 
+                    `${usageData.scansRemaining}/500` : 
                     usageData.scansRemaining}
                 </Text>
               </View>
@@ -580,7 +580,7 @@ export default function Profile({ navigation }) {
                 <Text style={styles.usageLabel}>{t('recipesRemaining', language)}</Text>
                 <Text style={styles.usageValue}>
                   {usageData.tier === 'premium' ? 
-                    `${usageData.recipesRemaining}/1000` : 
+                    `${usageData.recipesRemaining}/500` : 
                     usageData.recipesRemaining}
                 </Text>
               </View>

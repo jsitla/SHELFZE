@@ -1416,7 +1416,7 @@ ${t('sharedFromShelfze', language)}
             <Text style={styles.usageCounterIcon}>🍳</Text>
             <Text style={styles.usageCounterText}>
               {usageData.tier === 'premium' 
-                ? `${usageData.recipesRemaining}/1000 ${t('recipesRemaining', language)}`
+                ? `${usageData.recipesRemaining}/500 ${t('recipesRemaining', language)}`
                 : `${usageData.recipesRemaining} ${t('recipesRemaining', language)}`
               }
             </Text>

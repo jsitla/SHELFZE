@@ -6,7 +6,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import React, { useState, useEffect, Component, useRef } from 'react';
 import { StyleSheet, View, TouchableOpacity, Text, ActivityIndicator, Alert } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, createNavigationContainerRef } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -32,6 +32,7 @@ import LegalConsentScreen, { storeLegalConsent, getStoredLegalConsent } from './
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
+export const navigationRef = createNavigationContainerRef();
 
 // Error Boundary Component - Catches React errors and prevents blank screen
 class ErrorBoundary extends Component {
@@ -327,6 +328,7 @@ export default function App() {
   const [showAuth, setShowAuth] = useState(false);
   const [showLegalConsent, setShowLegalConsent] = useState(false);
   const [pendingAuthAction, setPendingAuthAction] = useState(null); // 'guest' | 'signup' | 'login'
+  const [pendingPremiumRedirect, setPendingPremiumRedirect] = useState(false);
   const [authMode, setAuthMode] = useState('login'); // 'login' or 'signup'
   const [checkingFirstLaunch, setCheckingFirstLaunch] = useState(true);
   const [hasLegalConsent, setHasLegalConsent] = useState(false);
@@ -382,9 +384,13 @@ export default function App() {
     }
   };
 
-  const handleCreateAccount = async () => {
+  const handleCreateAccount = async (isPremium = false) => {
     // Create Account flow: Welcome -> Auth (Enter Data) -> Terms -> App
     // We do NOT check consent here. We let them go to Auth screen first.
+    if (isPremium) {
+      console.log('Setting pendingPremiumRedirect to true');
+      setPendingPremiumRedirect(true);
+    }
     proceedToAuth('signup');
   };
 
@@ -507,6 +513,23 @@ export default function App() {
     return () => unsubscribe();
   }, []);
 
+  // Handle Premium Redirect after Signup
+  useEffect(() => {
+    if (user && pendingPremiumRedirect && !showAuth && !showWelcome && !showLegalConsent && hasLegalConsent) {
+      // Wait for navigation to be ready
+      const timer = setTimeout(() => {
+        if (navigationRef.isReady()) {
+          console.log('Redirecting to PremiumPlans...');
+          navigationRef.navigate('Pantry', { screen: 'PremiumPlans' });
+          setPendingPremiumRedirect(false);
+        } else {
+          console.log('Navigation not ready yet...');
+        }
+      }, 1000); // Small delay to ensure navigation is mounted
+      return () => clearTimeout(timer);
+    }
+  }, [user, pendingPremiumRedirect, showAuth, showWelcome, showLegalConsent, hasLegalConsent]);
+
   let content = null;
 
   if (checkingFirstLaunch) {
@@ -517,35 +540,23 @@ export default function App() {
     );
   } else if (showWelcome) {
     content = (
-      <LanguageProvider>
-        <PurchaseProvider>
-          <WelcomeScreen
-            onContinueAsGuest={handleContinueAsGuest}
-            onCreateAccount={handleCreateAccount}
-            onLogin={handleLogin}
-          />
-        </PurchaseProvider>
-      </LanguageProvider>
+      <WelcomeScreen
+        onContinueAsGuest={handleContinueAsGuest}
+        onCreateAccount={handleCreateAccount}
+        onLogin={handleLogin}
+      />
     );
   } else if (showLegalConsent) {
     content = (
-      <LanguageProvider>
-        <PurchaseProvider>
-          <LegalConsentScreen onAccepted={handleLegalAccepted} />
-        </PurchaseProvider>
-      </LanguageProvider>
+      <LegalConsentScreen onAccepted={handleLegalAccepted} />
     );
   } else if (showAuth) {
     content = (
-      <LanguageProvider>
-        <PurchaseProvider>
-          <AuthScreen
-            mode={authMode}
-            onBack={handleAuthBack}
-            onSuccess={handleAuthSuccess}
-          />
-        </PurchaseProvider>
-      </LanguageProvider>
+      <AuthScreen
+        mode={authMode}
+        onBack={handleAuthBack}
+        onSuccess={handleAuthSuccess}
+      />
     );
   } else if (authLoading) {
     content = (
@@ -564,32 +575,28 @@ export default function App() {
   } else if (!hasLegalConsent) {
     // Post-Auth Gate: If user is logged in but hasn't agreed, show consent screen
     content = (
-      <LanguageProvider>
-        <PurchaseProvider>
-          <LegalConsentScreen onAccepted={handleLegalAccepted} />
-        </PurchaseProvider>
-      </LanguageProvider>
+      <LegalConsentScreen onAccepted={handleLegalAccepted} />
     );
   } else {
     content = (
       <ErrorBoundary>
-        <LanguageProvider>
-          <PurchaseProvider>
-            <NavigationContainer>
-              <View style={styles.container}>
-                <StatusBar style="auto" />
-                <AppNavigator />
-              </View>
-            </NavigationContainer>
-          </PurchaseProvider>
-        </LanguageProvider>
+        <NavigationContainer ref={navigationRef}>
+          <View style={styles.container}>
+            <StatusBar style="auto" />
+            <AppNavigator />
+          </View>
+        </NavigationContainer>
       </ErrorBoundary>
     );
   }
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      {content}
+      <LanguageProvider>
+        <PurchaseProvider>
+          {content}
+        </PurchaseProvider>
+      </LanguageProvider>
     </GestureHandlerRootView>
   );
 }

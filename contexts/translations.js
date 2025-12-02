@@ -360,7 +360,7 @@ const baseTranslation = {
 	premiumDescription: 'Get 500 scans and 500 recipes every month.',
 	premiumMonthly: 'Monthly',
 	premiumAnnual: 'Annual',
-	premiumPlanDetail: '500 scans + 500 recipes/month',
+	premiumPlanDetail: '500 scans · 500 recipes/month',
 	premiumFooter: 'Payments will be processed via your app store account. Subscription automatically renews unless canceled at least 24 hours before the end of the current period.',
 	premiumActive: 'PREMIUM ACTIVE',
 	loadingProducts: 'Loading products...',

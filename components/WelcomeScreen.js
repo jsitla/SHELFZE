@@ -27,6 +27,13 @@ const WelcomeScreen = ({ onContinueAsGuest, onCreateAccount, onLogin }) => {
     { icon: '🔒', text: 'Secure cloud backup' },
   ];
 
+  const premiumBenefits = [
+    { icon: '👑', text: '500 scans per month' },
+    { icon: '👨‍🍳', text: '500 recipes per month' },
+    { icon: '☁️', text: 'Sync across devices' },
+    { icon: '🔒', text: 'Secure cloud backup' },
+  ];
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar style="dark" />
@@ -75,13 +82,13 @@ const WelcomeScreen = ({ onContinueAsGuest, onCreateAccount, onLogin }) => {
         <TouchableOpacity
           style={[styles.planCard, styles.accountPlan]}
           activeOpacity={0.9}
-          onPress={onCreateAccount}
+          onPress={() => onCreateAccount(false)}
         >
           <View style={styles.planHeader}>
             <Text style={styles.planIcon}>✨</Text>
             <View style={styles.planTitleWrap}>
               <Text style={styles.planTitle}>Create a free account</Text>
-              <Text style={[styles.planBadge, styles.recommendedBadge]}>Recommended</Text>
+              <Text style={[styles.planBadge, styles.recommendedBadge]}>Most Popular</Text>
             </View>
           </View>
 
@@ -93,6 +100,30 @@ const WelcomeScreen = ({ onContinueAsGuest, onCreateAccount, onLogin }) => {
 
           <View style={[styles.planCTA, styles.primaryCTA]}>
             <Text style={[styles.planCTAText, styles.primaryCTAText]}>Get started</Text>
+          </View>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.planCard, styles.premiumPlan]}
+          activeOpacity={0.9}
+          onPress={() => onCreateAccount(true)}
+        >
+          <View style={styles.planHeader}>
+            <Text style={styles.planIcon}>👑</Text>
+            <View style={styles.planTitleWrap}>
+              <Text style={styles.planTitle}>Premium</Text>
+              <Text style={[styles.planBadge, styles.premiumBadge]}>Best Value</Text>
+            </View>
+          </View>
+
+          <View style={styles.planBenefits}>
+            {premiumBenefits.map((item) => (
+              <BenefitRow key={item.text} icon={item.icon} text={item.text} />
+            ))}
+          </View>
+
+          <View style={[styles.planCTA, styles.premiumCTA]}>
+            <Text style={[styles.planCTAText, styles.premiumCTAText]}>Go Premium</Text>
           </View>
         </TouchableOpacity>
 
@@ -185,6 +216,22 @@ const styles = StyleSheet.create({
   accountPlan: {
     borderWidth: 1.5,
     borderColor: '#4A7C59', // Sage Green
+  },
+  premiumPlan: {
+    borderWidth: 2,
+    borderColor: '#F59E0B', // Gold/Amber
+    backgroundColor: '#FFFBEB', // Light Amber bg
+  },
+  premiumBadge: {
+    backgroundColor: '#F59E0B',
+    color: '#fff',
+  },
+  premiumCTA: {
+    backgroundColor: '#F59E0B',
+    borderColor: '#F59E0B',
+  },
+  premiumCTAText: {
+    color: '#fff',
   },
   planHeader: {
     flexDirection: 'row',
