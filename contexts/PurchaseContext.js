@@ -3,6 +3,7 @@ import { Platform, Alert } from 'react-native';
 import Purchases from 'react-native-purchases';
 import { config } from '../config';
 import { auth } from '../firebase.config';
+import { getUserUsage } from '../utils/usageTracking';
 
 const PurchaseContext = createContext();
 
@@ -85,7 +86,7 @@ export const PurchaseProvider = ({ children }) => {
     };
   }, []);
 
-  const checkEntitlements = (info) => {
+  const checkEntitlements = async (info) => {
     if (!info) return;
     
     const entitlementId = config.revenueCat.entitlementId || 'premium';
@@ -100,13 +101,27 @@ export const PurchaseProvider = ({ children }) => {
     
     setIsPremium(hasPremium);
     
-    // Sync with our backend if premium is active but Firestore might not be
-    if (hasPremium && auth.currentUser) {
-      syncPremiumStatus();
+    // Sync with our backend
+    if (auth.currentUser) {
+      if (hasPremium) {
+        // Always ensure backend knows we are premium
+        syncSubscriptionStatus('premium');
+      } else {
+        // If not premium locally, check if backend thinks we are
+        try {
+          const usage = await getUserUsage(auth.currentUser.uid);
+          if (usage && usage.tier === 'premium') {
+            console.log('Detected expired subscription, syncing downgrade to free');
+            syncSubscriptionStatus('free');
+          }
+        } catch (error) {
+          console.error('Error checking usage for downgrade:', error);
+        }
+      }
     }
   };
 
-  const syncPremiumStatus = async () => {
+  const syncSubscriptionStatus = async (tier) => {
     try {
       const token = await auth.currentUser.getIdToken();
       await fetch(config.upgradeTier, {
@@ -115,10 +130,10 @@ export const PurchaseProvider = ({ children }) => {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
         },
-        body: JSON.stringify({ newTier: 'premium' }),
+        body: JSON.stringify({ newTier: tier }),
       });
     } catch (error) {
-      console.error('Error syncing premium status:', error);
+      console.error('Error syncing subscription status:', error);
     }
   };
 

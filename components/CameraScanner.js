@@ -304,9 +304,9 @@ export default function CameraScanner({ navigation }) {
     if (result.expiryDate) {
       if (!silentNoItem) {
         Alert.alert(
-          '📅 Date Found',
-          `Expiry: ${result.expiryDate}\n\n⚠️ No food item recognized.\n\n💡 Try capturing the product label more clearly.`,
-          [{ text: 'Retry', onPress: () => scanAgain() }]
+          t('dateFound', language),
+          `${t('dateFoundMessage', language)}${result.expiryDate}${t('noFoodRecognized', language)}`,
+          [{ text: t('retry', language), onPress: () => scanAgain() }]
         );
       }
       return false;
@@ -427,7 +427,7 @@ export default function CameraScanner({ navigation }) {
 
       if (!cameraRef.current) {
         console.error('[CAPTURE] Camera reference not available after wait.');
-        Alert.alert('Error', 'Camera reference not available');
+        Alert.alert(t('error', language), t('cameraReferenceNotAvailable', language));
         return;
       }
 
@@ -441,7 +441,7 @@ export default function CameraScanner({ navigation }) {
         
         if (!photo || !photo.uri) {
           console.error('[CAPTURE] takePictureAsync returned no URI.');
-          Alert.alert('Error', 'Failed to capture image');
+          Alert.alert(t('error', language), t('failedToCaptureImage', language));
           return;
         }
         
@@ -451,7 +451,7 @@ export default function CameraScanner({ navigation }) {
         await processImage(photo.uri);
       } catch (error) {
         console.error('Camera error:', error);
-        Alert.alert('Error', 'Failed to take picture: ' + error.message);
+        Alert.alert(t('error', language), t('failedToTakePicture', language) + ': ' + error.message);
       }
     }
   };
@@ -465,13 +465,13 @@ export default function CameraScanner({ navigation }) {
 
     // Validate file type
     if (!file.type.startsWith('image/')) {
-      Alert.alert(t('error', language), 'Please select an image file');
+      Alert.alert(t('error', language), t('pleaseSelectImage', language));
       return;
     }
 
     // Validate file size (max 10MB)
     if (file.size > 10 * 1024 * 1024) {
-      Alert.alert(t('error', language), 'Image file is too large. Maximum size is 10MB');
+      Alert.alert(t('error', language), t('imageTooLarge', language));
       return;
     }
 
@@ -481,7 +481,7 @@ export default function CameraScanner({ navigation }) {
       await processImage(uri);
     } catch (error) {
       console.error('File selection error:', error);
-      Alert.alert(t('error', language), 'Failed to load image: ' + error.message);
+      Alert.alert(t('error', language), t('failedToLoadImage', language) + ': ' + error.message);
     } finally {
       // Reset file input so the same file can be selected again
       if (event.target) {
@@ -501,7 +501,7 @@ export default function CameraScanner({ navigation }) {
 
     console.log(`[ACTION] Toggling capture mode from ${captureMode} to ${captureMode === 'photo' ? 'video' : 'photo'}`);
     if (isRecording) {
-      Alert.alert('Recording in Progress', 'Please stop recording first.');
+      Alert.alert(t('recordingInProgress', language), t('stopRecordingFirst', language));
       return;
     }
     // Just change mode - CameraView key already includes captureMode, so it will remount automatically
@@ -536,7 +536,7 @@ export default function CameraScanner({ navigation }) {
     }
 
     if (Platform.OS === 'web') {
-      Alert.alert('Not Supported', 'Video recording is available on mobile only.');
+      Alert.alert(t('notSupported', language), t('videoOnMobileOnly', language));
       return;
     }
 
@@ -554,7 +554,7 @@ export default function CameraScanner({ navigation }) {
 
     if (!cameraRef.current) {
       console.error('[CAPTURE] Camera reference not available for video after wait.');
-      Alert.alert('Error', 'Camera not available');
+      Alert.alert(t('error', language), t('cameraNotAvailable', language));
       return;
     }
 
@@ -637,11 +637,11 @@ export default function CameraScanner({ navigation }) {
         resetCameraReadyState();
         setCameraKey(prev => prev + 1);
         Alert.alert(
-          'Camera Not Ready Yet',
-          'Android sometimes stops recording if the lens has not fully warmed up. We reset the camera—please wait a second and try again.'
+          t('cameraNotReady', language),
+          t('androidCameraIssue', language)
         );
       } else {
-        Alert.alert('Recording Error', error.message);
+        Alert.alert(t('recordingError', language), error.message);
       }
     } finally {
       console.log('[CAPTURE] Finalizing video recording process.');
@@ -692,9 +692,9 @@ export default function CameraScanner({ navigation }) {
     } catch (error) {
       console.error('Video processing error:', error);
       Alert.alert(
-        'Video Processing Error', 
-        'Failed to process video. Please try again or use photo mode.',
-        [{ text: 'OK', onPress: () => scanAgain() }]
+        t('videoProcessingError', language), 
+        t('failedToProcessVideo', language),
+        [{ text: t('ok', language), onPress: () => scanAgain() }]
       );
     } finally {
       setIsLoading(false);
@@ -742,7 +742,7 @@ export default function CameraScanner({ navigation }) {
       const userId = auth.currentUser?.uid;
       
       if (!userId) {
-        Alert.alert('Error', 'No authenticated user found');
+        Alert.alert(t('error', language), t('noUserFound', language));
         return;
       }
 
@@ -754,7 +754,7 @@ export default function CameraScanner({ navigation }) {
       }));
     } catch (error) {
       console.error('Error deleting item:', error);
-      Alert.alert('Error', 'Failed to delete item');
+      Alert.alert(t('error', language), t('failedToDelete', language));
     }
   };
 
@@ -766,7 +766,7 @@ export default function CameraScanner({ navigation }) {
 
   const saveEditItem = async () => {
     if (!editingItemId || !editItemName.trim()) {
-      Alert.alert('Error', 'Item name cannot be empty');
+      Alert.alert(t('error', language), t('itemNameEmpty', language));
       return;
     }
 
@@ -774,7 +774,7 @@ export default function CameraScanner({ navigation }) {
       const userId = auth.currentUser?.uid;
       
       if (!userId) {
-        Alert.alert('Error', 'No authenticated user found');
+        Alert.alert(t('error', language), t('noUserFound', language));
         return;
       }
 
@@ -800,7 +800,7 @@ export default function CameraScanner({ navigation }) {
       setEditItemCategory('');
     } catch (error) {
       console.error('Error updating item:', error);
-      Alert.alert('Error', 'Failed to update item');
+      Alert.alert(t('error', language), t('failedToUpdate', language));
     }
   };
 
@@ -817,18 +817,18 @@ export default function CameraScanner({ navigation }) {
     setShowReviewModal(false);
     
     if (remainingItems === 0) {
-      Alert.alert('All Items Removed', 'You removed all detected items. Scan again?');
+      Alert.alert(t('allItemsRemoved', language), t('allItemsRemovedMessage', language));
       scanAgain();
     } else {
       // Small delay to ensure modal closes before alert shows
       setTimeout(() => {
         Alert.alert(
-          '✅ Success!',
-          `${remainingItems} item(s) added to your pantry!\n\n💡 Edit details in the Pantry tab`,
+          `✅ ${t('success', language)}!`,
+          `${remainingItems} ${t('itemsAddedToPantry', language)}\n\n${t('editDetailsInPantry', language)}`,
           [
-            { text: 'Scan More', onPress: () => scanAgain() },
+            { text: t('scanMore', language), onPress: () => scanAgain() },
             { 
-              text: 'View Pantry', 
+              text: t('viewPantry', language), 
               onPress: () => {
                 scanAgain();
                 navigation.navigate('Pantry');
@@ -845,7 +845,7 @@ export default function CameraScanner({ navigation }) {
     // If permission is null, show a "Requesting permission..." text.
     return (
       <View style={styles.container}>
-        <Text style={styles.text}>Requesting camera permission...</Text>
+        <Text style={styles.text}>{t('requestingCameraPermission', language)}</Text>
       </View>
     );
   }
@@ -854,10 +854,10 @@ export default function CameraScanner({ navigation }) {
     // If permission is false, show a "No access to camera" text.
     return (
       <View style={styles.container}>
-        <Text style={styles.text}>No access to camera</Text>
-        <Text style={styles.subText}>Please enable camera permissions in settings</Text>
+        <Text style={styles.text}>{t('noCameraAccess', language)}</Text>
+        <Text style={styles.subText}>{t('enableCameraPermissions', language)}</Text>
         <TouchableOpacity style={styles.button} onPress={requestPermission}>
-          <Text style={styles.buttonText}>Grant Permission</Text>
+          <Text style={styles.buttonText}>{t('grantPermission', language)}</Text>
         </TouchableOpacity>
       </View>
     );
@@ -896,7 +896,7 @@ export default function CameraScanner({ navigation }) {
           onPress={scanAgain}
           disabled={isLoading}
         >
-          <Text style={styles.buttonText}>📷 Scan Again</Text>
+          <Text style={styles.buttonText}>{t('scanAgain', language)}</Text>
         </TouchableOpacity>
 
         {/* Review Modal for photo mode */}
@@ -970,12 +970,12 @@ export default function CameraScanner({ navigation }) {
                             style={styles.reviewDeleteButton}
                             onPress={() => {
                               Alert.alert(
-                                'Remove Item',
-                                `Remove "${item.name}"?`,
+                                t('removeItem', language),
+                                `${t('remove', language)} "${item.name}"?`,
                                 [
-                                  { text: 'Cancel', style: 'cancel' },
+                                  { text: t('cancel', language), style: 'cancel' },
                                   { 
-                                    text: 'Remove', 
+                                    text: t('remove', language), 
                                     style: 'destructive',
                                     onPress: () => deleteDetectedItem(item.id)
                                   }
@@ -1158,7 +1158,7 @@ export default function CameraScanner({ navigation }) {
                   : t('tapToCapture', language)}
               </Text>
               {!isCameraReady && (
-                <Text style={styles.cameraReadyHint}>Camera initializing...</Text>
+                <Text style={styles.cameraReadyHint}>{t('cameraInitializing', language)}</Text>
               )}
             </View>
 
@@ -1203,7 +1203,7 @@ export default function CameraScanner({ navigation }) {
                   </TouchableOpacity>
                   <Text style={styles.captureHint}>
                     {!isCameraReady
-                      ? 'Camera initializing...'
+                      ? t('cameraInitializing', language)
                       : captureMode === 'video'
                         ? t('tapToRecord', language)
                         : t('tapToCapture', language)}
@@ -1286,12 +1286,12 @@ export default function CameraScanner({ navigation }) {
                           style={styles.reviewDeleteButton}
                           onPress={() => {
                             Alert.alert(
-                              'Remove Item',
-                              `Remove "${item.name}"?`,
+                              t('removeItem', language),
+                              `${t('remove', language)} "${item.name}"?`,
                               [
-                                { text: 'Cancel', style: 'cancel' },
+                                { text: t('cancel', language), style: 'cancel' },
                                 { 
-                                  text: 'Remove', 
+                                  text: t('remove', language), 
                                   style: 'destructive',
                                   onPress: () => deleteDetectedItem(item.id)
                                 }

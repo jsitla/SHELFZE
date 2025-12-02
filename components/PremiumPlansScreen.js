@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Platform, ActivityIndicator, Alert } from 'react-native';
+import { PACKAGE_TYPE } from 'react-native-purchases';
 import { useNavigation } from '@react-navigation/native';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTranslation } from '../contexts/translations';
@@ -39,8 +40,23 @@ export default function PremiumPlansScreen() {
 
   // Get packages from RevenueCat offerings
   const currentOffering = offerings;
-  const monthlyPackage = currentOffering?.monthly;
-  const annualPackage = currentOffering?.annual;
+  
+  // Try to get packages using standard properties first, then fallback to searching availablePackages
+  let monthlyPackage = currentOffering?.monthly;
+  let annualPackage = currentOffering?.annual;
+
+  if (currentOffering?.availablePackages) {
+    if (!monthlyPackage) {
+      monthlyPackage = currentOffering.availablePackages.find(
+        (pkg) => pkg.packageType === PACKAGE_TYPE.MONTHLY || pkg.identifier === '$rc_monthly' || pkg.identifier === 'monthly'
+      );
+    }
+    if (!annualPackage) {
+      annualPackage = currentOffering.availablePackages.find(
+        (pkg) => pkg.packageType === PACKAGE_TYPE.ANNUAL || pkg.identifier === '$rc_annual' || pkg.identifier === 'annual'
+      );
+    }
+  }
 
   if (!currentOffering) {
     return (
