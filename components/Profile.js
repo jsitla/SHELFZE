@@ -622,7 +622,8 @@ export default function Profile({ navigation }) {
         )}
       </View>
 
-      {/* Gift Code Section */}
+      {/* Gift Code Section - HIDDEN FOR APP STORE COMPLIANCE */}
+      {false && (
       <View style={styles.giftCodeSection}>
         {showGiftCode ? (
           <View>
@@ -667,6 +668,7 @@ export default function Profile({ navigation }) {
           </TouchableOpacity>
         )}
       </View>
+      )}
 
       {isAnonymous && (
         <View style={styles.upgradeSection}>
