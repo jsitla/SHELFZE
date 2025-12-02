@@ -27,7 +27,6 @@ export default function PremiumPlansScreen() {
   };
 
   // Get packages from RevenueCat offerings
-  // Assumes you have an offering named 'default' with 'monthly' and 'annual' packages
   const currentOffering = offerings;
   const monthlyPackage = currentOffering?.monthly;
   const annualPackage = currentOffering?.annual;
@@ -43,9 +42,9 @@ export default function PremiumPlansScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>{t('premiumTitle') || 'Upgrade to Premium'}</Text>
+      <Text style={styles.title}>{t('premiumTitle') || 'Unlock Premium'}</Text>
       <Text style={styles.subtitle}>
-        {t('premiumDescription') || 'Get 500 scans and 500 recipes every month.'}
+        {t('premiumDescription') || 'Get unlimited scans and recipes every month.'}
       </Text>
 
       {isPremium && (
@@ -54,7 +53,7 @@ export default function PremiumPlansScreen() {
         </View>
       )}
 
-      <View style={styles.planRow}>
+      <View style={styles.planContainer}>
         {/* Monthly Plan */}
         <View style={[styles.planCard, isPremium && styles.disabledCard]}>
           <Text style={styles.planName}>{t('premiumMonthly') || 'Monthly'}</Text>
@@ -62,7 +61,7 @@ export default function PremiumPlansScreen() {
             {monthlyPackage?.product?.priceString || '...'}
           </Text>
           <Text style={styles.planDetail}>
-            {t('premiumPlanDetail') || '500 scans · 500 recipes/month'}
+            {t('premiumPlanDetail') || '500 scans + 500 recipes/month'}
           </Text>
           <TouchableOpacity 
             style={[styles.subscribeButton, (loading || isPremium) && styles.disabledButton]}
@@ -78,13 +77,16 @@ export default function PremiumPlansScreen() {
         </View>
 
         {/* Annual Plan */}
-        <View style={[styles.planCard, isPremium && styles.disabledCard]}>
+        <View style={[styles.planCard, isPremium && styles.disabledCard, styles.bestValueCard]}>
+          <View style={styles.bestValueBadge}>
+            <Text style={styles.bestValueText}>{t('bestValue') || 'Best Value'}</Text>
+          </View>
           <Text style={styles.planName}>{t('premiumAnnual') || 'Annual'}</Text>
           <Text style={styles.planPrice}>
             {annualPackage?.product?.priceString || '...'}
           </Text>
           <Text style={styles.planDetail}>
-            {t('premiumPlanDetail') || '500 scans · 500 recipes/month'}
+            {t('premiumPlanDetail') || '500 scans + 500 recipes/month'}
           </Text>
           <TouchableOpacity 
             style={[styles.subscribeButton, (loading || isPremium) && styles.disabledButton]}
@@ -110,7 +112,7 @@ export default function PremiumPlansScreen() {
 
       <Text style={styles.footerText}>
         {t('premiumFooter') ||
-          'Payments will be processed via the Apple App Store or Google Play Store.'}
+          'Payments will be processed via your app store account. Subscription automatically renews unless canceled at least 24 hours before the end of the current period.'}
       </Text>
       
       {loading && (
@@ -157,21 +159,39 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 12,
   },
-  planRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  planContainer: {
+    marginTop: 10,
+    gap: 16,
   },
   planCard: {
-    flex: 1,
     backgroundColor: '#fff',
     borderRadius: 16,
     padding: 16,
-    marginHorizontal: 4,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
+    position: 'relative',
+    width: '100%',
+  },
+  bestValueCard: {
+    borderColor: '#E07A5F',
+    borderWidth: 2,
+  },
+  bestValueBadge: {
+    position: 'absolute',
+    top: -12,
+    right: 12,
+    backgroundColor: '#E07A5F',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  bestValueText: {
+    color: '#FFF',
+    fontSize: 10,
+    fontWeight: 'bold',
   },
   disabledCard: {
     opacity: 0.7,
@@ -198,6 +218,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingVertical: 10,
     alignItems: 'center',
+    marginTop: 'auto',
   },
   disabledButton: {
     backgroundColor: '#ccc',
