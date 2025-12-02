@@ -304,6 +304,14 @@ export default function Profile({ navigation }) {
     }
   };
 
+  const handleManageSubscription = () => {
+    if (Platform.OS === 'ios') {
+      Linking.openURL('https://apps.apple.com/account/subscriptions');
+    } else {
+      Linking.openURL('https://play.google.com/store/account/subscriptions');
+    }
+  };
+
   const handleUpgradeAccount = async () => {
     if (!email || !password || !confirmPassword) {
       Alert.alert(t('error', language), t('fillAllFields', language));
@@ -588,7 +596,7 @@ export default function Profile({ navigation }) {
           </View>
         )}
 
-        {usageData?.tier !== 'premium' && (
+        {usageData?.tier !== 'premium' ? (
           <TouchableOpacity 
             style={styles.upgradePremiumButton}
             onPress={() => {
@@ -603,6 +611,13 @@ export default function Profile({ navigation }) {
             }}
           >
             <Text style={styles.upgradePremiumText}>⬆️ {t('upgradeToPremium', language)}</Text>
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity 
+            style={styles.manageSubscriptionButton}
+            onPress={handleManageSubscription}
+          >
+            <Text style={styles.manageSubscriptionText}>⚙️ {t('manageSubscription', language) || 'Manage Subscription'}</Text>
           </TouchableOpacity>
         )}
       </View>
@@ -1116,6 +1131,19 @@ const styles = StyleSheet.create({
   },
   upgradePremiumText: {
     color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  manageSubscriptionButton: {
+    backgroundColor: '#F1F5F9',
+    padding: 15,
+    borderRadius: 8,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+  },
+  manageSubscriptionText: {
+    color: '#3D405B',
     fontSize: 16,
     fontWeight: 'bold',
   },

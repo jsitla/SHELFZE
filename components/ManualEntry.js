@@ -42,6 +42,19 @@ const UNITS = [
   { id: 'tsp', label: 'teaspoons' },
 ];
 
+const categoryKeyMap = {
+  'Dairy': 'dairy',
+  'Meat & Poultry': 'meatPoultry',
+  'Fruits': 'fruits',
+  'Vegetables': 'vegetables',
+  'Beverages': 'beverages',
+  'Packaged Food': 'packagedFood',
+  'Bakery': 'bakery',
+  'Condiments': 'condiments',
+  'Spices': 'spices',
+  'Other': 'other'
+};
+
 export default function ManualEntry({ navigation, onItemAdded }) {
   const { language } = useLanguage();
   const [foodName, setFoodName] = useState('');
@@ -234,7 +247,7 @@ export default function ManualEntry({ navigation, onItemAdded }) {
                   selectedCategory === cat.id && styles.categoryLabelSelected,
                 ]}
               >
-                {t(cat.id === 'meat' ? 'meatPoultry' : cat.id === 'grains' ? 'other' : cat.id, language)}
+                {t(categoryKeyMap[cat.id] || 'other', language)}
               </Text>
             </TouchableOpacity>
           ))}
@@ -284,7 +297,7 @@ export default function ManualEntry({ navigation, onItemAdded }) {
                       selectedUnit === unit.id && styles.unitTextSelected,
                     ]}
                   >
-                    {unit.id}
+                    {t(unit.id === 'l' ? 'L' : unit.id, language)}
                   </Text>
                 </TouchableOpacity>
               ))}
@@ -358,10 +371,10 @@ export default function ManualEntry({ navigation, onItemAdded }) {
 
       {/* Quick Tips */}
       <View style={styles.tipsContainer}>
-        <Text style={styles.tipsTitle}>💡 Quick Tips</Text>
-        <Text style={styles.tipText}>• Tap category icons to select</Text>
-        <Text style={styles.tipText}>• Swipe units left/right to see more</Text>
-        <Text style={styles.tipText}>• Expiry date helps track freshness</Text>
+        <Text style={styles.tipsTitle}>💡 {t('quickTips', language)}</Text>
+        <Text style={styles.tipText}>• {t('tipTapCategory', language)}</Text>
+        <Text style={styles.tipText}>• {t('tipSwipeUnits', language)}</Text>
+        <Text style={styles.tipText}>• {t('tipExpiryDate', language)}</Text>
       </View>
     </ScrollView>
   );

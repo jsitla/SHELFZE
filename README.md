@@ -235,8 +235,9 @@ When you select a recipe, you get:
 | **Asia** | 🇨🇳 Chinese • 🇯🇵 Japanese • 🇰🇷 Korean • 🇮🇳 Hindi |
 | **Middle East** | 🇸🇦 Arabic • 🇹🇷 Turkish |
 
-#### Full UI Translation (126+ strings)
+#### Full UI Translation (150+ strings)
 - **Complete Interface** - Every button, label, message, and placeholder
+- **Payment Screens** - Subscription plans, terms, and purchase flows fully localized
 - **Context-Aware** - Proper pluralization and grammar rules
 - **Persistent Preferences** - Language selection saved using AsyncStorage
 - **Instant Switching** - Change language anytime without app restart
@@ -1691,10 +1692,10 @@ Thank you to all contributors who have helped make Shelfze better!
 
 ## 📊 Project Stats
 
-- **Lines of Code**: ~7,000+
-- **Components**: 9 React components (5 main + 4 UI primitives)
+- **Lines of Code**: ~7,500+
+- **Components**: 10 React components (6 main + 4 UI primitives)
 - **Cloud Functions**: 3 serverless functions
-- **Translation Keys**: 126+ strings
+- **Translation Keys**: 150+ strings
 - **Supported Languages**: 18 languages
 - **Food Categories**: 11 categories
 - **Platform Support**: iOS, Android, Web
@@ -1756,8 +1757,8 @@ Thank you to all contributors who have helped make Shelfze better!
 
 ---
 
-*Last Updated: November 30, 2025*  
-*Version: 1.0.2*  
+*Last Updated: May 22, 2025*  
+*Version: 1.0.3*  
 *Expo SDK: 54*
 
 </div>

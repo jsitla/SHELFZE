@@ -439,10 +439,10 @@ export default function PantryList({ navigation }) {
     const today = new Date();
     const days = Math.ceil((expiry - today) / (1000 * 60 * 60 * 24));
     
-    if (days < 0) return `Expired ${Math.abs(days)} days ago`;
-    if (days === 0) return 'Expires today!';
-    if (days === 1) return 'Expires tomorrow';
-    return `${days} days left`;
+    if (days < 0) return `${t('expired', language)} ${Math.abs(days)} ${t('expiresAgo', language)}`;
+    if (days === 0) return t('expirestoday', language);
+    if (days === 1) return t('expirestomorrow', language);
+    return `${days} ${t('expiresIn', language)}`;
   };
 
   // 5. Render the data using a FlatList component.
@@ -459,26 +459,26 @@ export default function PantryList({ navigation }) {
         <View style={styles.itemContent}>
           <View style={styles.itemInfo}>
             <View style={styles.nameRow}>
-              <Text style={styles.itemName}>{item.name || item.itemName || 'Unknown Item'}</Text>
+              <Text style={styles.itemName}>{item.name || item.itemName || t('unknownItem', language)}</Text>
               {item.detectionSource === 'Gemini AI' && (
-                <Text style={styles.aiTag}>🤖 AI</Text>
+                <Text style={styles.aiTag}>🤖 {t('aiTag', language)}</Text>
               )}
               {item.detectionSource === 'Manual Entry' && (
-                <Text style={styles.manualTag}>✏️ Manual</Text>
+                <Text style={styles.manualTag}>✏️ {t('manualTag', language)}</Text>
               )}
             </View>
             {item.category && (
-              <Text style={styles.categoryTag}>{item.category}</Text>
+              <Text style={styles.categoryTag}>{getCategoryTranslation(item.category)}</Text>
             )}
             {item.quantity && (
               <Text style={styles.quantityText}>
-                📦 {item.quantity} {item.unit || 'pcs'}
+                📦 {item.quantity} {t(item.unit || 'pcs', language)}
               </Text>
             )}
             {item.expiryDate && (
               <>
                 <Text style={styles.expiryDate}>
-                  📅 Expires: {formatDate(parseDate(item.expiryDate))}
+                  📅 {t('expires', language)}: {formatDate(parseDate(item.expiryDate))}
                 </Text>
                 <Text style={[
                   styles.daysLeft,
@@ -491,7 +491,7 @@ export default function PantryList({ navigation }) {
             )}
             {item.confidence && (
               <Text style={styles.confidence}>
-                Detection confidence: {Math.round(item.confidence * 100)}%
+                {t('detectionConfidence', language)}: {Math.round(item.confidence * 100)}%
               </Text>
             )}
           </View>
@@ -679,7 +679,7 @@ export default function PantryList({ navigation }) {
                           styles.categoryChipText,
                           editCategory === cat && styles.categoryChipTextSelected
                         ]}>
-                          {cat}
+                          {getCategoryTranslation(cat)}
                         </Text>
                       </TouchableOpacity>
                     ))}
@@ -715,7 +715,7 @@ export default function PantryList({ navigation }) {
                             styles.unitChipText,
                             editUnit === unit && styles.unitChipTextSelected
                           ]}>
-                            {unit}
+                            {t(unit, language)}
                           </Text>
                         </TouchableOpacity>
                       ))}
