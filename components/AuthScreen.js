@@ -17,7 +17,6 @@ import * as WebBrowser from 'expo-web-browser';
 // import * as Google from 'expo-auth-session/providers/google'; // Replaced with native lib
 import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
 import Constants from 'expo-constants';
-import { LoginManager, AccessToken } from 'react-native-fbsdk-next';
 import { 
   signInWithEmailAndPassword, 
   createUserWithEmailAndPassword,
@@ -25,7 +24,6 @@ import {
   updateProfile,
   signInWithCredential,
   GoogleAuthProvider,
-  FacebookAuthProvider,
   OAuthProvider,
   getAdditionalUserInfo,
 } from 'firebase/auth';
@@ -120,40 +118,6 @@ const AuthScreen = ({ mode, onBack, onSuccess }) => {
         // some other error happened
         Alert.alert(t('error', language), error.message || 'Unable to sign in with Google');
       }
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleFacebookSignIn = async () => {
-    try {
-      setLoading(true);
-      
-      // Attempt login with permissions
-      const result = await LoginManager.logInWithPermissions(['public_profile', 'email']);
-
-      if (result.isCancelled) {
-        setLoading(false);
-        return;
-      }
-
-      // Get the access token
-      const data = await AccessToken.getCurrentAccessToken();
-
-      if (!data) {
-        throw new Error('Something went wrong obtaining the access token');
-      }
-
-      // Create a Firebase credential with the access token
-      const credential = FacebookAuthProvider.credential(data.accessToken);
-
-      // Sign-in the user with the credential
-      const userCredential = await signInWithCredential(auth, credential);
-      const { isNewUser } = getAdditionalUserInfo(userCredential) || {};
-      
-      if (onSuccess) onSuccess(isNewUser ? 'signup' : 'login');
-    } catch (error) {
-      Alert.alert(t('error', language), error.message || 'Facebook sign-in failed.');
     } finally {
       setLoading(false);
     }
