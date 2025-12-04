@@ -47,6 +47,14 @@
         {
           "iosUrlScheme": "com.googleusercontent.apps.747247644525-bmcc1cc6uq06kdd8aiobr0d2iu0h8s53"
         }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "useFrameworks": "static"
+          }
+        }
       ]
     ],
     "sdkVersion": "54.0.0",
