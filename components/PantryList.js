@@ -36,7 +36,7 @@ export default function PantryList({ navigation }) {
   const [editCategory, setEditCategory] = useState('Other');
   const [editQuantity, setEditQuantity] = useState('');
   const [editUnit, setEditUnit] = useState('pcs');
-  const [editExpiryDate, setEditExpiryDate] = useState(new Date());
+  const [editExpiryDate, setEditExpiryDate] = useState(null);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [searchText, setSearchText] = useState('');
   const [showSearch, setShowSearch] = useState(false);
@@ -44,7 +44,7 @@ export default function PantryList({ navigation }) {
 
   // Helper for safe date parsing
   const parseDate = (dateInput) => {
-    if (!dateInput) return new Date();
+    if (!dateInput) return null;
     if (dateInput instanceof Date) return dateInput;
     
     const date = new Date(dateInput);
@@ -54,7 +54,7 @@ export default function PantryList({ navigation }) {
     }
     
     console.warn('Invalid date encountered:', dateInput);
-    return new Date(); // Fallback to today
+    return null; // Fallback to null
   };
 
   // Food categories for filtering
@@ -392,7 +392,7 @@ export default function PantryList({ navigation }) {
         category: editCategory,
         quantity: parseFloat(editQuantity) || 1,
         unit: editUnit,
-        expiryDate: editExpiryDate.toISOString(),
+        expiryDate: editExpiryDate ? editExpiryDate.toISOString() : null,
       });
       setEditModalVisible(false);
       Alert.alert(t('updated', language), t('updateSuccess', language));
@@ -410,6 +410,7 @@ export default function PantryList({ navigation }) {
   };
 
   const formatDate = (date) => {
+    if (!date) return '';
     return date.toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
@@ -472,7 +473,7 @@ export default function PantryList({ navigation }) {
             )}
             {item.quantity && (
               <Text style={styles.quantityText}>
-                📦 {item.quantity} {t(item.unit || 'pcs', language)}
+                {item.quantity} {t(item.unit || 'pcs', language)}
               </Text>
             )}
             {item.expiryDate && (
@@ -726,18 +727,34 @@ export default function PantryList({ navigation }) {
                 {/* Expiry Date */}
                 <View style={styles.editSection}>
                   <Text style={styles.editLabel}>{t('expiryDate', language)}</Text>
-                  <TouchableOpacity
-                    style={styles.datePickerButton}
-                    onPress={() => setShowDatePicker(true)}
-                  >
-                    <Text style={styles.datePickerText}>
-                      📅 {formatDate(editExpiryDate)}
-                    </Text>
-                  </TouchableOpacity>
+                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    <TouchableOpacity
+                      style={[styles.datePickerButton, { flex: 1 }]}
+                      onPress={() => {
+                        if (!editExpiryDate) {
+                          setEditExpiryDate(new Date());
+                        }
+                        setShowDatePicker(true);
+                      }}
+                    >
+                      <Text style={styles.datePickerText}>
+                        📅 {editExpiryDate ? formatDate(editExpiryDate) : (t('notSet', language) || 'Not Set')}
+                      </Text>
+                    </TouchableOpacity>
+
+                    {editExpiryDate && (
+                      <TouchableOpacity 
+                        style={{ marginLeft: 10, padding: 10 }}
+                        onPress={() => setEditExpiryDate(null)}
+                      >
+                        <Text style={{ fontSize: 20, color: '#999' }}>✕</Text>
+                      </TouchableOpacity>
+                    )}
+                  </View>
                   
                   {showDatePicker && (
                     <DateTimePicker
-                      value={editExpiryDate}
+                      value={editExpiryDate || new Date()}
                       mode="date"
                       display={Platform.OS === 'ios' ? 'spinner' : 'default'}
                       onChange={handleDateChange}
