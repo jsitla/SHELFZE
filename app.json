@@ -29,21 +29,6 @@
             ]
           }
         ],
-        "NSUserTrackingUsageDescription": "This identifier will be used to deliver personalized ads to you.",
-        "SKAdNetworkItems": [
-          {
-            "SKAdNetworkIdentifier": "v9wttpbfk9.skadnetwork"
-          },
-          {
-            "SKAdNetworkIdentifier": "n38lu8286q.skadnetwork"
-          }
-        ],
-        "LSApplicationQueriesSchemes": [
-          "fbapi",
-          "fb-messenger-api",
-          "fbauth2",
-          "fbshareextension"
-        ],
         "ITSAppUsesNonExemptEncryption": false
       },
       "googleServicesFile": "./GoogleService-Info.plist"
