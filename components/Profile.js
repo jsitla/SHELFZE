@@ -543,7 +543,7 @@ export default function Profile({ navigation }) {
         )}
         
         <Text style={styles.userId}>
-          {t('userId', language)}: {user.uid.substring(0, 8)}...
+          {t('userId', language)}: {user.uid}
         </Text>
       </View>
 
