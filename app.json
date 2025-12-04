@@ -22,15 +22,7 @@
       "usesAppleSignIn": true,
       "infoPlist": {
         "NSCameraUsageDescription": "Shelfze needs access to your camera to scan food items and expiry dates.",
-        "CFBundleURLTypes": [
-          {
-            "CFBundleURLSchemes": [
-              "com.googleusercontent.apps.747247644525-bmcc1cc6uq06kdd8aiobr0d2iu0h8s53"
-            ]
-          }
-        ],
-        "ITSAppUsesNonExemptEncryption": false
-      },
+        "NSUserTrackingUsageDescription": "This identifier will be used to deliver personalized ads to you.",,
       "googleServicesFile": "./GoogleService-Info.plist"
     },
     "android": {
@@ -48,7 +40,14 @@
     "web": {
       "favicon": "assets/favicon.png"
     },
-    "plugins": [],
+    "plugins": [
+      [
+        "@react-native-google-signin/google-signin",
+        {
+          "iosUrlScheme": "com.googleusercontent.apps.747247644525-bmcc1cc6uq06kdd8aiobr0d2iu0h8s53"
+        }
+      ]
+    ],
     "sdkVersion": "54.0.0",
     "extra": {
       "googleIosClientId": "747247644525-bmcc1cc6uq06kdd8aiobr0d2iu0h8s53.apps.googleusercontent.com",
