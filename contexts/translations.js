@@ -2637,7 +2637,6 @@ export const translations = {
 		failedToMatchPantry: 'Ujemanje shrambe ni uspelo. Poskusite znova.',
 		matching: 'Ujemanje...',
 		readyToCook: 'Pripravljeno za kuhanje!',
-		error: 'Napaka',
 		addedToWouldMakeAgain: 'Dodano v "Bi ponovno naredil" 🔄',
 		removedFromWouldMakeAgain: 'Odstranjeno iz "Bi ponovno naredil"',
 		profile: 'Profil',
