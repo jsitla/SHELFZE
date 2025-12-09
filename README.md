@@ -332,11 +332,12 @@ Located in `components/ui/`:
 
 ## 🤖 AI Technology
 
-### Primary AI Model: Google Gemini 2.0 Flash
+### Primary AI Models: Google Gemini
 
-**Model ID:** `gemini-2.0-flash-001`
+**Camera & Pantry Analysis:** `gemini-2.0-flash-exp`
+**Recipe Generation:** `gemini-2.5-flash`
 
-#### Why Gemini 2.0 Flash?
+#### Why Gemini?
 - **Latest Stable Model** - Google's newest production-ready model
 - **Native Video Support** - Processes video files directly without client-side frame extraction
 - **Multi-Modal** - Processes images, video, and text simultaneously
@@ -383,13 +384,13 @@ Located in `components/ui/`:
 ## 🛠️ Technology Stack
 
 ### Frontend (Mobile & Web)
-- **React Native** 0.81.4 - Cross-platform mobile framework
-- **Expo** 54.0.13 - Development platform and tooling
+- **React Native** 0.81.5 - Cross-platform mobile framework
+- **Expo** 54.0.25 - Development platform and tooling
 - **Expo SDK** 54 - Native modules and APIs
 - **React Navigation** 6.1.18 - Routing and navigation
-- **expo-camera** 17.0.8 - Camera and video capture
-- **expo-video-thumbnails** 9.0.0 - Video frame extraction
-- **expo-file-system** 18.0.8 - File operations
+- **expo-camera** 17.0.9 - Camera and video capture
+- **expo-video-thumbnails** 10.0.7 - Video frame extraction
+- **expo-file-system** 19.0.17 - File operations
 - **@react-native-community/datetimepicker** 8.4.5 - Date selection
 - **@react-native-async-storage/async-storage** 2.2.0 - Local persistence
 
@@ -442,8 +443,8 @@ firebase login
 firebase deploy --only functions
 cd ..
 
-# 5. Update Cloud Function URL in CameraScanner.js
-# Replace YOUR_CLOUD_FUNCTION_URL with deployed URL
+# 5. Update Cloud Function URLs in config.js
+# Replace the URLs in config.js with your deployed Cloud Function URLs
 
 # 6. Start the app
 npm start
