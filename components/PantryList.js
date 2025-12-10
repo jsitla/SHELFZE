@@ -23,6 +23,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { app, auth } from '../firebase.config';
 import { useLanguage } from '../contexts/LanguageContext';
 import { t } from '../contexts/translations';
+import { parseDate, formatDate } from '../utils/dateHelpers';
 
 export default function PantryList({ navigation }) {
   // 2. Use hooks to manage state for the list of items.
@@ -40,22 +41,9 @@ export default function PantryList({ navigation }) {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [searchText, setSearchText] = useState('');
   const [showSearch, setShowSearch] = useState(false);
+  const [sortOption, setSortOption] = useState('expiryAsc');
+  const [sortModalVisible, setSortModalVisible] = useState(false);
   const { language } = useLanguage();
-
-  // Helper for safe date parsing
-  const parseDate = (dateInput) => {
-    if (!dateInput) return null;
-    if (dateInput instanceof Date) return dateInput;
-    
-    const date = new Date(dateInput);
-    // Check if valid date
-    if (!isNaN(date.getTime())) {
-      return date;
-    }
-    
-    console.warn('Invalid date encountered:', dateInput);
-    return null; // Fallback to null
-  };
 
   // Food categories for filtering
   const categories = [
@@ -205,22 +193,20 @@ export default function PantryList({ navigation }) {
     };
   }, []);
 
-  // Filter items by category and search text
+  // Filter and Sort items
   useEffect(() => {
-    console.log('🔍 Filtering - Selected Category:', selectedCategory, 'Search:', searchText);
-    console.log('🔍 Total items:', items.length);
+    console.log('🔍 Filtering - Selected Category:', selectedCategory, 'Search:', searchText, 'Sort:', sortOption);
     
-    let filtered = items;
+    let result = [...items];
 
-    // Filter by Category
+    // 1. Filter by Category
     if (selectedCategory !== 'All') {
-      filtered = filtered.filter(item => {
+      result = result.filter(item => {
         const itemCategory = (item.category || '').trim();
         const selectedCat = selectedCategory.trim();
         
         // Normalize categories for better matching
         const normalizeCategory = (cat) => {
-          // Map both old (lowercase) and new (Title Case) formats
           const categoryMap = {
             'dairy': 'dairy',
             'meat': 'meatpoultry',
@@ -247,18 +233,51 @@ export default function PantryList({ navigation }) {
       });
     }
 
-    // Filter by Search Text
+    // 2. Filter by Search Text
     if (searchText.trim()) {
       const searchLower = searchText.toLowerCase().trim();
-      filtered = filtered.filter(item => {
+      result = result.filter(item => {
         const name = (item.name || item.itemName || '').toLowerCase();
         return name.includes(searchLower);
       });
     }
 
-    setFilteredItems(filtered);
-    console.log('✅ Filtered items:', filtered.length);
-  }, [selectedCategory, searchText, items]);
+    // 3. Sort Items
+    result.sort((a, b) => {
+      switch (sortOption) {
+        case 'expiryAsc':
+          if (a.expiryDate && b.expiryDate) return new Date(a.expiryDate) - new Date(b.expiryDate);
+          if (a.expiryDate) return -1;
+          if (b.expiryDate) return 1;
+          return 0;
+        
+        case 'expiryDesc':
+          if (a.expiryDate && b.expiryDate) return new Date(b.expiryDate) - new Date(a.expiryDate);
+          if (a.expiryDate) return -1;
+          if (b.expiryDate) return 1;
+          return 0;
+          
+        case 'nameAsc':
+          return (a.name || a.itemName || '').localeCompare(b.name || b.itemName || '');
+          
+        case 'nameDesc':
+          return (b.name || b.itemName || '').localeCompare(a.name || a.itemName || '');
+          
+        case 'dateAddedAsc':
+          if (a.createdAt && b.createdAt) return a.createdAt.toMillis() - b.createdAt.toMillis();
+          return 0;
+          
+        case 'dateAddedDesc':
+          if (a.createdAt && b.createdAt) return b.createdAt.toMillis() - a.createdAt.toMillis();
+          return 0;
+          
+        default:
+          return 0;
+      }
+    });
+
+    setFilteredItems(result);
+  }, [selectedCategory, searchText, items, sortOption]);
 
   const deleteItem = async (itemId) => {
     try {
@@ -409,36 +428,51 @@ export default function PantryList({ navigation }) {
     }
   };
 
-  const formatDate = (date) => {
-    if (!date) return '';
-    return date.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-    });
-  };
-
   // Helper function to check if item is expiring soon
   const isExpiringSoon = (expiryDate) => {
     if (!expiryDate) return false;
     const expiry = parseDate(expiryDate);
+    if (!expiry) return false;
+    
+    // Normalize to midnight for accurate day comparison
     const today = new Date();
-    const daysUntilExpiry = Math.ceil((expiry - today) / (1000 * 60 * 60 * 24));
+    today.setHours(0, 0, 0, 0);
+    
+    const expiryMidnight = new Date(expiry);
+    expiryMidnight.setHours(0, 0, 0, 0);
+    
+    const daysUntilExpiry = Math.ceil((expiryMidnight - today) / (1000 * 60 * 60 * 24));
     return daysUntilExpiry <= 7 && daysUntilExpiry >= 0;
   };
 
   const isExpired = (expiryDate) => {
     if (!expiryDate) return false;
     const expiry = parseDate(expiryDate);
+    if (!expiry) return false;
+    
+    // Normalize to midnight
     const today = new Date();
-    return expiry < today;
+    today.setHours(0, 0, 0, 0);
+    
+    const expiryMidnight = new Date(expiry);
+    expiryMidnight.setHours(0, 0, 0, 0);
+    
+    return expiryMidnight < today;
   };
 
   const getDaysUntilExpiry = (expiryDate) => {
     if (!expiryDate) return null;
     const expiry = parseDate(expiryDate);
+    if (!expiry) return null;
+    
+    // Normalize to midnight
     const today = new Date();
-    const days = Math.ceil((expiry - today) / (1000 * 60 * 60 * 24));
+    today.setHours(0, 0, 0, 0);
+    
+    const expiryMidnight = new Date(expiry);
+    expiryMidnight.setHours(0, 0, 0, 0);
+    
+    const days = Math.ceil((expiryMidnight - today) / (1000 * 60 * 60 * 24));
     
     if (days < 0) return `${t('expired', language)} ${Math.abs(days)} ${t('expiresAgo', language)}`;
     if (days === 0) return t('expirestoday', language);
@@ -447,7 +481,7 @@ export default function PantryList({ navigation }) {
   };
 
   // 5. Render the data using a FlatList component.
-  const renderItem = ({ item }) => {
+  const renderItem = React.useCallback(({ item }) => {
     // Add styling to highlight items that are expiring soon (e.g., text color red).
     const itemStyle = isExpired(item.expiryDate) 
       ? styles.itemExpired 
@@ -479,7 +513,7 @@ export default function PantryList({ navigation }) {
             {item.expiryDate && (
               <>
                 <Text style={styles.expiryDate}>
-                  📅 {t('expires', language)}: {formatDate(parseDate(item.expiryDate))}
+                  📅 {t('expires', language)}: {formatDate(parseDate(item.expiryDate), language)}
                 </Text>
                 <Text style={[
                   styles.daysLeft,
@@ -515,7 +549,7 @@ export default function PantryList({ navigation }) {
         </View>
       </View>
     );
-  };
+  }, [language, selectedCategory]); // Dependencies for renderItem
 
   if (loading) {
     return (
@@ -581,6 +615,19 @@ export default function PantryList({ navigation }) {
             }}
           >
             <Text style={[styles.filterButtonText, showSearch && styles.filterButtonTextActive]}>🔍</Text>
+          </TouchableOpacity>
+
+          {/* Sort Button */}
+          <TouchableOpacity
+            style={[
+              styles.filterButton,
+              { marginLeft: 8, marginRight: 0, paddingHorizontal: 12 }
+            ]}
+            onPress={() => setSortModalVisible(true)}
+          >
+            <Text style={styles.filterButtonText}>
+              ⇅
+            </Text>
           </TouchableOpacity>
           <ScrollView 
             horizontal 
@@ -738,7 +785,7 @@ export default function PantryList({ navigation }) {
                       }}
                     >
                       <Text style={styles.datePickerText}>
-                        📅 {editExpiryDate ? formatDate(editExpiryDate) : (t('notSet', language) || 'Not Set')}
+                        📅 {editExpiryDate ? formatDate(editExpiryDate, language) : (t('notSet', language) || 'Not Set')}
                       </Text>
                     </TouchableOpacity>
 
@@ -779,6 +826,66 @@ export default function PantryList({ navigation }) {
                 </View>
               </ScrollView>
             )}
+          </View>
+        </View>
+      </Modal>
+
+      {/* Sort Modal */}
+      <Modal
+        visible={sortModalVisible}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setSortModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>{t('sortBy', language)}</Text>
+            
+            <ScrollView style={{ maxHeight: 400 }}>
+              {[
+                { id: 'expiryAsc', label: t('sortExpiryAsc', language) },
+                { id: 'expiryDesc', label: t('sortExpiryDesc', language) },
+                { id: 'nameAsc', label: t('sortNameAsc', language) },
+                { id: 'nameDesc', label: t('sortNameDesc', language) },
+                { id: 'dateAddedAsc', label: t('sortDateAddedAsc', language) },
+                { id: 'dateAddedDesc', label: t('sortDateAddedDesc', language) },
+              ].map((option) => (
+                <TouchableOpacity
+                  key={option.id}
+                  style={[
+                    styles.categoryChip,
+                    { 
+                      marginBottom: 10, 
+                      width: '100%', 
+                      backgroundColor: sortOption === option.id ? '#4A7C59' : '#F5F5F5',
+                      borderColor: sortOption === option.id ? '#4A7C59' : '#DDD'
+                    }
+                  ]}
+                  onPress={() => {
+                    setSortOption(option.id);
+                    setSortModalVisible(false);
+                  }}
+                >
+                  <Text style={[
+                    styles.categoryChipText,
+                    { 
+                      textAlign: 'center',
+                      color: sortOption === option.id ? '#FFF' : '#666',
+                      fontWeight: sortOption === option.id ? 'bold' : '500'
+                    }
+                  ]}>
+                    {option.label}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+
+            <TouchableOpacity
+              style={[styles.modalButton, styles.cancelButton, { marginTop: 20 }]}
+              onPress={() => setSortModalVisible(false)}
+            >
+              <Text style={styles.cancelButtonText}>{t('close', language)}</Text>
+            </TouchableOpacity>
           </View>
         </View>
       </Modal>

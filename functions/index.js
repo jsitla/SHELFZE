@@ -246,7 +246,12 @@ exports.analyzeImage = onRequest({
             });
         savedItems.push({
           id: docRef.id,
-          ...foodItem,
+          name: foodItem.name,
+          category: foodItem.category,
+          confidence: foodItem.confidence,
+          quantity: 1,
+          unit: "pcs",
+          expiryDate: formattedDate || null,
         });
       }
     }
@@ -1756,17 +1761,17 @@ exports.onRecipeRequestCreated = functions
         if (typeof maxRecipes === "number" && maxRecipes > 0) {
           maxRecipeCount = maxRecipes;
         } else {
-          if (ingredientCount <= 2) maxRecipeCount = 0;
+          // Allow generation even with few ingredients, but limit count
+          if (ingredientCount <= 2) maxRecipeCount = 2;
           else if (ingredientCount === 3) maxRecipeCount = 3;
           else if (ingredientCount <= 5) maxRecipeCount = 4;
         }
 
-        if (maxRecipeCount === 0) {
+        if (ingredientCount === 0) {
           await snap.ref.update({
             status: "completed",
             recipes: [],
-            note: "Not enough ingredients available to confidently suggest " +
-              "recipes. Add more pantry items and try again.",
+            note: "No valid cooking ingredients found. Please add food items.",
             noteCode: "limited_pantry_none",
           });
           return;
@@ -2244,6 +2249,272 @@ exports.matchPantryToRecipes = onRequest({
     console.error("Error matching pantry to recipes:", error);
     res.status(500).json({
       error: "Failed to match recipes",
+      details: error.message,
+    });
+  }
+});
+
+exports.generateCustomRecipe = onRequest({
+  cors: true,
+  timeoutSeconds: 300,
+}, async (req, res) => {
+  if (req.method !== "POST") {
+    res.status(405).json({error: "Method not allowed. Use POST."});
+    return;
+  }
+
+  try {
+    const uid = await verifyAuth(req);
+    if (!uid) {
+      res.status(401).json({error: "Unauthorized. Invalid or missing token."});
+      return;
+    }
+
+    const db = admin.firestore();
+    const usageRef = db.collection("users").doc(uid)
+        .collection("usage").doc("current");
+    const usageDoc = await usageRef.get();
+
+    let usageData = usageDoc.exists ? usageDoc.data() : null;
+
+    if (!usageData) {
+      usageData = {
+        tier: "anonymous",
+        scansRemaining: 10,
+        recipesRemaining: 10,
+        totalScansUsed: 0,
+        totalRecipesUsed: 0,
+        lastMonthlyBonusDate: admin.firestore.FieldValue.serverTimestamp(),
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        resetDate: null,
+      };
+      await usageRef.set(usageData);
+    }
+
+    if (usageData.recipesRemaining <= 0) {
+      res.status(403).json({error: "No recipes remaining."});
+      return;
+    }
+
+    const {prompt, language} = req.body;
+    if (!prompt) {
+      res.status(400).json({error: "No prompt provided"});
+      return;
+    }
+
+    const targetLanguage = language || "en";
+    const langNames = {
+      en: "English", es: "Spanish", fr: "French", de: "German",
+      it: "Italian", pt: "Portuguese", ru: "Russian", zh: "Chinese",
+      ja: "Japanese", ko: "Korean", ar: "Arabic", hi: "Hindi",
+      tr: "Turkish", pl: "Polish", nl: "Dutch",
+      sl: "Slovenian", hr: "Croatian", sr: "Serbian",
+    };
+    const targetLanguageName = langNames[targetLanguage] || "English";
+
+    console.log("Generating custom recipe for:", prompt);
+    console.log("Target language:", targetLanguageName);
+
+    const systemPrompt = `
+You are a world-class professional chef at a "Chef's Table".
+The user will ask for a specific dish or give you a culinary idea.
+Your goal is to create a PERFECT, custom recipe based on their request.
+
+USER REQUEST: "${prompt}"
+
+TARGET LANGUAGE: ${targetLanguageName} (ALL output must be in this language).
+
+GUIDELINES:
+1. IGNORE PANTRY RESTRICTIONS. You have access to every ingredient in the world.
+2. Focus on FLAVOR, TECHNIQUE, and PRESENTATION.
+3. Be creative but practical.
+4. Provide accurate nutrition estimates.
+
+RESPONSE FORMAT (STRICT JSON):
+You MUST return a single JSON object matching this exact schema:
+{
+  "name": "Recipe Name",
+  "emoji": "🍲",
+  "description": "Appetizing summary",
+  "prepTime": "15 min",
+  "cookTime": "30 min",
+  "servings": "4",
+  "difficulty": "Easy/Medium/Hard",
+  "cuisine": "Cuisine Type",
+  "skillLevel": "Beginner/Intermediate/Advanced",
+  "nutrition": {
+    "calories": 450,
+    "protein": "25g",
+    "carbs": "35g",
+    "fat": "18g"
+  },
+  "ingredients": [
+    "2 cups Flour",
+    "1 tsp Salt",
+    "etc..."
+  ],
+  "instructions": [
+    "Step 1: Mix flour and salt...",
+    "Step 2: ..."
+  ],
+  "tips": [
+    "Chef's Tip 1...",
+    "Substitution idea..."
+  ]
+}
+`;
+
+    const result = await recipeModel.generateContent({
+      contents: [{role: "user", parts: [{text: systemPrompt}]}],
+      generationConfig: {responseMimeType: "application/json"},
+    });
+
+    const response = await result.response;
+    let text = "";
+    if (response.candidates && response.candidates[0] &&
+        response.candidates[0].content &&
+        response.candidates[0].content.parts &&
+        response.candidates[0].content.parts[0]) {
+      text = response.candidates[0].content.parts[0].text || "";
+    }
+
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      const parsed = JSON.parse(jsonMatch[0]);
+
+      // Decrement quota
+      await usageRef.update({
+        recipesRemaining: admin.firestore.FieldValue.increment(-1),
+        totalRecipesUsed: admin.firestore.FieldValue.increment(1),
+      });
+
+      res.status(200).json(parsed);
+    } else {
+      res.status(500).json({error: "Failed to parse generated recipe"});
+    }
+  } catch (error) {
+    console.error("Error generating custom recipe:", error);
+    res.status(500).json({
+      error: "Failed to generate custom recipe",
+      details: error.message,
+    });
+  }
+});
+
+exports.modifyRecipe = onRequest({
+  cors: true,
+  timeoutSeconds: 300,
+}, async (req, res) => {
+  if (req.method !== "POST") {
+    res.status(405).json({error: "Method not allowed. Use POST."});
+    return;
+  }
+
+  try {
+    const uid = await verifyAuth(req);
+    if (!uid) {
+      res.status(401).json({error: "Unauthorized. Invalid or missing token."});
+      return;
+    }
+
+    const db = admin.firestore();
+    const usageRef = db.collection("users").doc(uid)
+        .collection("usage").doc("current");
+    const usageDoc = await usageRef.get();
+    let usageData = usageDoc.exists ? usageDoc.data() : null;
+
+    if (!usageData || usageData.recipesRemaining <= 0) {
+      res.status(403).json({error: "No recipes remaining."});
+      return;
+    }
+
+    const {currentRecipe, modificationRequest, language} = req.body;
+    if (!currentRecipe || !modificationRequest) {
+      res.status(400).json({error: "Missing recipe or modification request"});
+      return;
+    }
+
+    const targetLanguage = language || "en";
+    const langNames = {
+      en: "English", es: "Spanish", fr: "French", de: "German",
+      it: "Italian", pt: "Portuguese", ru: "Russian", zh: "Chinese",
+      ja: "Japanese", ko: "Korean", ar: "Arabic", hi: "Hindi",
+      tr: "Turkish", pl: "Polish", nl: "Dutch",
+      sl: "Slovenian", hr: "Croatian", sr: "Serbian",
+    };
+    const targetLanguageName = langNames[targetLanguage] || "English";
+
+    console.log("Modifying recipe:", currentRecipe.name);
+    console.log("Request:", modificationRequest);
+
+    const systemPrompt = `
+You are a professional chef. The user wants to MODIFY an existing recipe.
+
+CURRENT RECIPE:
+${JSON.stringify(currentRecipe)}
+
+USER MODIFICATION REQUEST:
+"${modificationRequest}"
+
+TARGET LANGUAGE: ${targetLanguageName}
+
+INSTRUCTIONS:
+1. Apply the user's changes to the recipe.
+2. Adjust ingredients, instructions, nutrition, and description accordingly.
+3. Keep the rest of the recipe consistent.
+4. Ensure the output is still a valid, delicious recipe.
+
+RESPONSE FORMAT (STRICT JSON):
+Return the UPDATED recipe object matching the exact same schema:
+{
+  "name": "Updated Name",
+  "emoji": "🍲",
+  "description": "Updated summary",
+  "prepTime": "...",
+  "cookTime": "...",
+  "servings": "...",
+  "difficulty": "...",
+  "cuisine": "...",
+  "skillLevel": "...",
+  "nutrition": { ... },
+  "ingredients": [ ... ],
+  "instructions": [ ... ],
+  "tips": [ ... ]
+}
+`;
+
+    const result = await recipeModel.generateContent({
+      contents: [{role: "user", parts: [{text: systemPrompt}]}],
+      generationConfig: {responseMimeType: "application/json"},
+    });
+
+    const response = await result.response;
+    let text = "";
+    if (response.candidates && response.candidates[0] &&
+        response.candidates[0].content &&
+        response.candidates[0].content.parts &&
+        response.candidates[0].content.parts[0]) {
+      text = response.candidates[0].content.parts[0].text || "";
+    }
+
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      const parsed = JSON.parse(jsonMatch[0]);
+
+      // Decrement quota
+      await usageRef.update({
+        recipesRemaining: admin.firestore.FieldValue.increment(-1),
+        totalRecipesUsed: admin.firestore.FieldValue.increment(1),
+      });
+
+      res.status(200).json(parsed);
+    } else {
+      res.status(500).json({error: "Failed to parse modified recipe"});
+    }
+  } catch (error) {
+    console.error("Error modifying recipe:", error);
+    res.status(500).json({
+      error: "Failed to modify recipe",
       details: error.message,
     });
   }

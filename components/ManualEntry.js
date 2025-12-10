@@ -15,6 +15,7 @@ import { getFirestore, collection, addDoc } from 'firebase/firestore';
 import { app, auth } from '../firebase.config';
 import { useLanguage } from '../contexts/LanguageContext';
 import { t } from '../contexts/translations';
+import { formatDate } from '../utils/dateHelpers';
 
 const CATEGORIES = [
   { id: 'Dairy', label: '🥛 Dairy', emoji: '🥛' },
@@ -191,14 +192,6 @@ export default function ManualEntry({ navigation, onItemAdded }) {
     }
   };
 
-  const formatDate = (date) => {
-    return date.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-    });
-  };
-
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
       {/* Header */}
@@ -320,7 +313,7 @@ export default function ManualEntry({ navigation, onItemAdded }) {
           }}
         >
           <Text style={styles.dateButtonText}>
-            📅 {expiryDate ? formatDate(expiryDate) : t('notSet', language)}
+            📅 {expiryDate ? formatDate(expiryDate, language) : t('notSet', language)}
           </Text>
         </TouchableOpacity>
 

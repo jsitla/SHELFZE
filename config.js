@@ -13,6 +13,8 @@ export const config = {
   rateRecipe: 'https://us-central1-pantryai-3d396.cloudfunctions.net/rateRecipe',
   checkIngredients: 'https://checkingredients-awiyk42b4q-uc.a.run.app',
   matchPantryToRecipes: 'https://matchpantrytorecipes-awiyk42b4q-uc.a.run.app',
+  generateCustomRecipe: 'https://us-central1-pantryai-3d396.cloudfunctions.net/generateCustomRecipe',
+  modifyRecipe: 'https://us-central1-pantryai-3d396.cloudfunctions.net/modifyRecipe',
   
   // RevenueCat API Keys
   revenueCat: {

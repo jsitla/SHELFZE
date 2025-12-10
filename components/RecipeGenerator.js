@@ -86,7 +86,14 @@ export default function RecipeGenerator() {
       });
     } else {
       navigation.setOptions({
-        headerLeft: () => null,
+        headerLeft: () => (
+          <TouchableOpacity
+            style={[styles.languageButton, { marginRight: 0, marginLeft: 16 }]}
+            onPress={() => navigation.navigate('CustomRecipeGenerator')}
+          >
+            <Text style={styles.languageButtonText}>👨‍🍳</Text>
+          </TouchableOpacity>
+        ),
         headerRight: () => (
           <TouchableOpacity
             style={styles.languageButton}

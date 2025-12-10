@@ -15,8 +15,10 @@ import {
   ScrollView,
   FlatList,
   TextInput,
-  AppState
+  AppState,
+  KeyboardAvoidingView
 } from 'react-native';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { CameraView, useCameraPermissions, useMicrophonePermissions } from 'expo-camera';
 import * as FileSystem from 'expo-file-system/legacy';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -26,6 +28,7 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { getFirestore, doc, deleteDoc, updateDoc } from 'firebase/firestore';
 import { app, auth } from '../firebase.config';
 import { getUserUsage } from '../utils/usageTracking';
+import { parseDate, formatDate } from '../utils/dateHelpers';
 import { config } from '../config';
 
 // 2. Create a functional component named CameraScanner.
@@ -45,6 +48,10 @@ export default function CameraScanner({ navigation }) {
   const [editingItemId, setEditingItemId] = useState(null);
   const [editItemName, setEditItemName] = useState('');
   const [editItemCategory, setEditItemCategory] = useState('');
+  const [editItemQuantity, setEditItemQuantity] = useState('1');
+  const [editItemUnit, setEditItemUnit] = useState('pieces');
+  const [editItemExpiryDate, setEditItemExpiryDate] = useState(new Date());
+  const [showEditDatePicker, setShowEditDatePicker] = useState(false);
   const [usageData, setUsageData] = useState(null);
   const [loadingUsage, setLoadingUsage] = useState(true);
   const [processingMode, setProcessingMode] = useState('photo'); // 'photo' or 'video'
@@ -59,10 +66,20 @@ export default function CameraScanner({ navigation }) {
   const lastToggleTime = useRef(0);
   const [isCameraReady, setIsCameraReady] = useState(false);
   const cameraReadyResolvers = useRef([]);
+  const editScrollViewRef = useRef(null);
   const { language } = useLanguage(); // Get current language
   const isFocused = useIsFocused();
   const db = getFirestore(app);
   
+  // Auto-scroll to date picker when opened
+  useEffect(() => {
+    if (showEditDatePicker && editScrollViewRef.current) {
+      setTimeout(() => {
+        editScrollViewRef.current.scrollToEnd({ animated: true });
+      }, 100);
+    }
+  }, [showEditDatePicker]);
+
   // Battery Optimization: Track AppState to disable camera when in background
   const appState = useRef(AppState.currentState);
   const [isAppActive, setIsAppActive] = useState(appState.current === 'active');
@@ -759,12 +776,41 @@ export default function CameraScanner({ navigation }) {
   };
 
   const startEditItem = (item) => {
+    console.log('Starting edit for item:', item.id, item.name);
     setEditingItemId(item.id);
     setEditItemName(item.name);
-    setEditItemCategory(item.category);
+    setEditItemCategory(item.category || 'Other');
+    setEditItemQuantity(item.quantity?.toString() || '1');
+    setEditItemUnit(item.unit || 'pieces');
+    setEditItemExpiryDate(parseDate(item.expiryDate));
+  };
+
+  const closeEditItemModal = () => {
+    setEditingItemId(null);
+    setEditItemName('');
+    setEditItemCategory('');
+    setEditItemQuantity('1');
+    setEditItemUnit('pieces');
+    setEditItemExpiryDate(null);
+    setShowEditDatePicker(false);
+  };
+
+  const handleEditDateChange = (event, selectedDate) => {
+    setShowEditDatePicker(Platform.OS === 'ios');
+    if (selectedDate) {
+      setEditItemExpiryDate(selectedDate);
+    }
+  };
+
+  const editCategories = ['Dairy', 'Meat', 'Vegetables', 'Fruits', 'Beverages', 'Snacks', 'Condiments', 'Grains', 'Frozen', 'Other'];
+
+  const getEditCategoryTranslation = (category) => {
+    const categoryKey = category.toLowerCase();
+    return t(categoryKey, language) || category;
   };
 
   const saveEditItem = async () => {
+    console.log('Saving edit for item ID:', editingItemId, 'Name:', editItemName);
     if (!editingItemId || !editItemName.trim()) {
       Alert.alert(t('error', language), t('itemNameEmpty', language));
       return;
@@ -778,11 +824,15 @@ export default function CameraScanner({ navigation }) {
         return;
       }
 
+      console.log('Updating Firestore doc:', `users/${userId}/pantry/${editingItemId}`);
       const itemRef = doc(db, `users/${userId}/pantry`, editingItemId);
       await updateDoc(itemRef, {
         name: editItemName.trim(),
         itemName: editItemName.trim(),
         category: editItemCategory,
+        quantity: parseInt(editItemQuantity) || 1,
+        unit: editItemUnit,
+        expiryDate: editItemExpiryDate ? editItemExpiryDate.toISOString() : null,
       });
 
       // Update local state
@@ -790,14 +840,19 @@ export default function CameraScanner({ navigation }) {
         ...prev,
         items: prev.items.map(item =>
           item.id === editingItemId
-            ? { ...item, name: editItemName.trim(), category: editItemCategory }
+            ? { 
+                ...item, 
+                name: editItemName.trim(), 
+                category: editItemCategory,
+                quantity: parseInt(editItemQuantity) || 1,
+                unit: editItemUnit,
+                expiryDate: editItemExpiryDate ? editItemExpiryDate.toISOString() : null,
+              }
             : item
         )
       }));
 
-      setEditingItemId(null);
-      setEditItemName('');
-      setEditItemCategory('');
+      closeEditItemModal();
     } catch (error) {
       console.error('Error updating item:', error);
       Alert.alert(t('error', language), t('failedToUpdate', language));
@@ -805,9 +860,7 @@ export default function CameraScanner({ navigation }) {
   };
 
   const cancelEditItem = () => {
-    setEditingItemId(null);
-    setEditItemName('');
-    setEditItemCategory('');
+    closeEditItemModal();
   };
 
   const confirmReview = () => {
@@ -906,56 +959,189 @@ export default function CameraScanner({ navigation }) {
           transparent={true}
           onRequestClose={() => setShowReviewModal(false)}
         >
-          <View style={styles.reviewModalOverlay}>
+          <KeyboardAvoidingView 
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            style={styles.reviewModalOverlay}
+          >
             <View style={styles.reviewModalContent}>
-              <Text style={styles.reviewModalTitle}>{t('itemsDetected', language)}</Text>
-              <Text style={styles.reviewModalSubtitle}>
-                {t('reviewSubtitle', language)}
-              </Text>
+              {editingItemId ? (
+                // Edit Mode
+                <>
+                  <Text style={styles.editModalTitle}>{t('editItem', language)}</Text>
+                  
+                  <ScrollView 
+                    ref={editScrollViewRef}
+                    style={styles.editModalScroll}
+                    keyboardShouldPersistTaps="handled"
+                    showsVerticalScrollIndicator={false}
+                  >
+                    {/* Item Name */}
+                    <Text style={styles.editModalLabel}>{t('itemName', language)}</Text>
+                    <TextInput
+                      style={styles.editModalInput}
+                      value={editItemName}
+                      onChangeText={setEditItemName}
+                      placeholder={t('foodNamePlaceholder', language)}
+                      placeholderTextColor="#999"
+                    />
 
-              <ScrollView style={styles.reviewItemsList}>
-                {detectedItems?.items.map((item, index) => (
-                  <View key={item.id} style={styles.reviewItem}>
-                    {editingItemId === item.id ? (
-                      // Edit mode
-                      <View style={styles.editItemContainer}>
-                        <TextInput
-                          style={styles.editItemInput}
-                          value={editItemName}
-                          onChangeText={setEditItemName}
-                          placeholder={t('itemName', language)}
-                          autoFocus
-                        />
-                        <TextInput
-                          style={styles.editItemInput}
-                          value={editItemCategory}
-                          onChangeText={setEditItemCategory}
-                          placeholder={t('category', language)}
-                        />
-                        <View style={styles.editItemButtons}>
-                          <TouchableOpacity
-                            style={[styles.editItemButton, styles.editCancelButton]}
-                            onPress={cancelEditItem}
-                          >
-                            <Text style={styles.editCancelButtonText}>{t('cancel', language)}</Text>
-                          </TouchableOpacity>
-                          <TouchableOpacity
-                            style={[styles.editItemButton, styles.editSaveButton]}
-                            onPress={saveEditItem}
-                          >
-                            <Text style={styles.editSaveButtonText}>{t('save', language)}</Text>
-                          </TouchableOpacity>
-                        </View>
-                      </View>
-                    ) : (
-                      // View mode
-                      <>
+                    {/* Category */}
+                    <Text style={styles.editModalLabel}>{t('category', language)}</Text>
+                    <ScrollView 
+                      horizontal 
+                      showsHorizontalScrollIndicator={false} 
+                      style={styles.editCategoryScroll}
+                      keyboardShouldPersistTaps="handled"
+                    >
+                      {editCategories.map((cat) => (
+                        <TouchableOpacity
+                          key={cat}
+                          style={[
+                            styles.editCategoryChip,
+                            editItemCategory === cat && styles.editCategoryChipSelected
+                          ]}
+                          onPress={() => setEditItemCategory(cat)}
+                        >
+                          <Text style={[
+                            styles.editCategoryChipText,
+                            editItemCategory === cat && styles.editCategoryChipTextSelected
+                          ]}>
+                            {getEditCategoryTranslation(cat)}
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
+                    </ScrollView>
+
+                    {/* Quantity */}
+                    <Text style={styles.editModalLabel}>{t('quantity', language)}</Text>
+                    <View style={styles.editQuantityRow}>
+                      <TouchableOpacity
+                        style={styles.editQuantityButton}
+                        onPress={() => setEditItemQuantity(Math.max(1, parseInt(editItemQuantity) - 1).toString())}
+                      >
+                        <Ionicons name="remove" size={24} color="#4A7C59" />
+                      </TouchableOpacity>
+                      <TextInput
+                        style={styles.editQuantityInput}
+                        value={editItemQuantity}
+                        onChangeText={setEditItemQuantity}
+                        keyboardType="numeric"
+                        textAlign="center"
+                      />
+                      <TouchableOpacity
+                        style={styles.editQuantityButton}
+                        onPress={() => setEditItemQuantity((parseInt(editItemQuantity) + 1).toString())}
+                      >
+                        <Ionicons name="add" size={24} color="#4A7C59" />
+                      </TouchableOpacity>
+                    </View>
+
+                    {/* Unit */}
+                    <Text style={styles.editModalLabel}>{t('unit', language)}</Text>
+                    <ScrollView 
+                      horizontal 
+                      showsHorizontalScrollIndicator={false} 
+                      style={styles.editUnitScroll}
+                      keyboardShouldPersistTaps="handled"
+                    >
+                      {['pieces', 'kg', 'g', 'l', 'ml', 'packs', 'bottles', 'cans', 'boxes'].map((unit) => (
+                        <TouchableOpacity
+                          key={unit}
+                          style={[
+                            styles.editUnitChip,
+                            editItemUnit === unit && styles.editUnitChipSelected
+                          ]}
+                          onPress={() => setEditItemUnit(unit)}
+                        >
+                          <Text style={[
+                            styles.editUnitChipText,
+                            editItemUnit === unit && styles.editUnitChipTextSelected
+                          ]}>
+                            {t(unit, language) || unit}
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
+                    </ScrollView>
+
+                    {/* Expiry Date */}
+                    <Text style={styles.editModalLabel}>{t('expiryDate', language)}</Text>
+                    <View style={styles.editDateContainer}>
+                      <TouchableOpacity
+                        style={styles.editDateButton}
+                        onPress={() => {
+                          if (!editItemExpiryDate) {
+                            setEditItemExpiryDate(new Date());
+                          }
+                          setShowEditDatePicker(!showEditDatePicker);
+                        }}
+                      >
+                        <Ionicons name="calendar-outline" size={20} color="#4A7C59" />
+                        <Text style={styles.editDateButtonText}>
+                          {editItemExpiryDate ? formatDate(editItemExpiryDate, language) : t('notSet', language) || 'Not set'}
+                        </Text>
+                      </TouchableOpacity>
+                      {editItemExpiryDate && (
+                        <TouchableOpacity 
+                          style={styles.clearDateButton}
+                          onPress={() => {
+                            setEditItemExpiryDate(null);
+                            setShowEditDatePicker(false);
+                          }}
+                        >
+                          <Ionicons name="close-circle" size={24} color="#FF6B6B" />
+                        </TouchableOpacity>
+                      )}
+                    </View>
+
+                    {showEditDatePicker && (
+                      <DateTimePicker
+                        value={editItemExpiryDate || new Date()}
+                        mode="date"
+                        display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                        onChange={handleEditDateChange}
+                        minimumDate={new Date(new Date().setHours(0, 0, 0, 0))}
+                      />
+                    )}
+                  </ScrollView>
+
+                  {/* Modal Buttons */}
+                  <View style={styles.editModalButtons}>
+                    <TouchableOpacity
+                      style={[styles.editModalButton, styles.editModalCancelButton]}
+                      onPress={cancelEditItem}
+                    >
+                      <Text style={styles.editModalCancelButtonText}>{t('cancel', language)}</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[styles.editModalButton, styles.editModalSaveButton]}
+                      onPress={saveEditItem}
+                    >
+                      <Text style={styles.editModalSaveButtonText}>{t('save', language)}</Text>
+                    </TouchableOpacity>
+                  </View>
+                </>
+              ) : (
+                // List Mode
+                <>
+                  <Text style={styles.reviewModalTitle}>{t('itemsDetected', language)}</Text>
+                  <Text style={styles.reviewModalSubtitle}>
+                    {t('reviewSubtitle', language)}
+                  </Text>
+
+                  <ScrollView style={styles.reviewItemsList}>
+                    {detectedItems?.items.map((item, index) => (
+                      <View key={item.id} style={styles.reviewItem}>
                         <View style={styles.reviewItemInfo}>
                           <Text style={styles.reviewItemName}>{item.name}</Text>
                           <Text style={styles.reviewItemCategory}>{item.category}</Text>
-                          {detectedItems.expiryDate && (
+                          {item.expiryDate && (
                             <Text style={styles.reviewItemExpiry}>
-                              📅 {detectedItems.expiryDate}
+                              📅 {new Date(item.expiryDate).toLocaleDateString()}
+                            </Text>
+                          )}
+                          {item.quantity && (
+                            <Text style={styles.reviewItemQuantity}>
+                              📦 {item.quantity} {item.unit || 'pieces'}
                             </Text>
                           )}
                         </View>
@@ -986,49 +1172,49 @@ export default function CameraScanner({ navigation }) {
                             <Text style={styles.reviewDeleteButtonText}>🗑️</Text>
                           </TouchableOpacity>
                         </View>
-                      </>
-                    )}
-                  </View>
-                ))}
-              </ScrollView>
+                      </View>
+                    ))}
+                  </ScrollView>
 
-              <View style={styles.reviewModalButtons}>
-                <TouchableOpacity
-                  style={[styles.reviewButton, styles.reviewCancelButton]}
-                  onPress={() => {
-                    Alert.alert(
-                      t('discardAll', language),
-                      t('discardAllMessage', language),
-                      [
-                        { text: t('cancel', language), style: 'cancel' },
-                        {
-                          text: t('discardAll', language),
-                          style: 'destructive',
-                          onPress: async () => {
-                            // Delete all items
-                            for (const item of detectedItems.items) {
-                              await deleteDetectedItem(item.id);
+                  <View style={styles.reviewModalButtons}>
+                    <TouchableOpacity
+                      style={[styles.reviewButton, styles.reviewCancelButton]}
+                      onPress={() => {
+                        Alert.alert(
+                          t('discardAll', language),
+                          t('discardAllMessage', language),
+                          [
+                            { text: t('cancel', language), style: 'cancel' },
+                            {
+                              text: t('discardAll', language),
+                              style: 'destructive',
+                              onPress: async () => {
+                                // Delete all items
+                                for (const item of detectedItems.items) {
+                                  await deleteDetectedItem(item.id);
+                                }
+                                scanAgain();
+                              }
                             }
-                            scanAgain();
-                          }
-                        }
-                      ]
-                    );
-                  }}
-                >
-                  <Text style={styles.reviewCancelButtonText}>{t('scanAgain', language)}</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.reviewButton, styles.reviewConfirmButton]}
-                  onPress={confirmReview}
-                >
-                  <Text style={styles.reviewConfirmButtonText}>
-                    {t('confirm', language)} ({detectedItems?.items.length || 0})
-                  </Text>
-                </TouchableOpacity>
-              </View>
+                          ]
+                        );
+                      }}
+                    >
+                      <Text style={styles.reviewCancelButtonText}>{t('scanAgain', language)}</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[styles.reviewButton, styles.reviewConfirmButton]}
+                      onPress={confirmReview}
+                    >
+                      <Text style={styles.reviewConfirmButtonText}>
+                        {t('confirm', language)} ({detectedItems?.items.length || 0})
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                </>
+              )}
             </View>
-          </View>
+          </KeyboardAvoidingView>
         </Modal>
       </View>
     );
@@ -1222,56 +1408,189 @@ export default function CameraScanner({ navigation }) {
         transparent={true}
         onRequestClose={() => setShowReviewModal(false)}
       >
-        <View style={styles.reviewModalOverlay}>
+        <KeyboardAvoidingView 
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.reviewModalOverlay}
+        >
           <View style={styles.reviewModalContent}>
-            <Text style={styles.reviewModalTitle}>{t('itemsDetected', language)}</Text>
-            <Text style={styles.reviewModalSubtitle}>
-              {t('reviewSubtitle', language)}
-            </Text>
+            {editingItemId ? (
+              // Edit Mode
+              <>
+                <Text style={styles.editModalTitle}>{t('editItem', language)}</Text>
+                
+                <ScrollView 
+                  ref={editScrollViewRef}
+                  style={styles.editModalScroll}
+                  keyboardShouldPersistTaps="handled"
+                  showsVerticalScrollIndicator={false}
+                >
+                  {/* Item Name */}
+                  <Text style={styles.editModalLabel}>{t('itemName', language)}</Text>
+                  <TextInput
+                    style={styles.editModalInput}
+                    value={editItemName}
+                    onChangeText={setEditItemName}
+                    placeholder={t('foodNamePlaceholder', language)}
+                    placeholderTextColor="#999"
+                  />
 
-            <ScrollView style={styles.reviewItemsList}>
-              {detectedItems?.items.map((item, index) => (
-                <View key={item.id} style={styles.reviewItem}>
-                  {editingItemId === item.id ? (
-                    // Edit mode
-                    <View style={styles.editItemContainer}>
-                      <TextInput
-                        style={styles.editItemInput}
-                        value={editItemName}
-                        onChangeText={setEditItemName}
-                        placeholder={t('itemName', language)}
-                        autoFocus
-                      />
-                      <TextInput
-                        style={styles.editItemInput}
-                        value={editItemCategory}
-                        onChangeText={setEditItemCategory}
-                        placeholder={t('category', language)}
-                      />
-                      <View style={styles.editItemButtons}>
-                        <TouchableOpacity
-                          style={[styles.editItemButton, styles.editCancelButton]}
-                          onPress={cancelEditItem}
-                        >
-                          <Text style={styles.editCancelButtonText}>{t('cancel', language)}</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                          style={[styles.editItemButton, styles.editSaveButton]}
-                          onPress={saveEditItem}
-                        >
-                          <Text style={styles.editSaveButtonText}>{t('save', language)}</Text>
-                        </TouchableOpacity>
-                      </View>
-                    </View>
-                  ) : (
-                    // View mode
-                    <>
+                  {/* Category */}
+                  <Text style={styles.editModalLabel}>{t('category', language)}</Text>
+                  <ScrollView 
+                    horizontal 
+                    showsHorizontalScrollIndicator={false} 
+                    style={styles.editCategoryScroll}
+                    keyboardShouldPersistTaps="handled"
+                  >
+                    {editCategories.map((cat) => (
+                      <TouchableOpacity
+                        key={cat}
+                        style={[
+                          styles.editCategoryChip,
+                          editItemCategory === cat && styles.editCategoryChipSelected
+                        ]}
+                        onPress={() => setEditItemCategory(cat)}
+                      >
+                        <Text style={[
+                          styles.editCategoryChipText,
+                          editItemCategory === cat && styles.editCategoryChipTextSelected
+                        ]}>
+                          {getEditCategoryTranslation(cat)}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
+
+                  {/* Quantity */}
+                  <Text style={styles.editModalLabel}>{t('quantity', language)}</Text>
+                  <View style={styles.editQuantityRow}>
+                    <TouchableOpacity
+                      style={styles.editQuantityButton}
+                      onPress={() => setEditItemQuantity(Math.max(1, parseInt(editItemQuantity) - 1).toString())}
+                    >
+                      <Ionicons name="remove" size={24} color="#4A7C59" />
+                    </TouchableOpacity>
+                    <TextInput
+                      style={styles.editQuantityInput}
+                      value={editItemQuantity}
+                      onChangeText={setEditItemQuantity}
+                      keyboardType="numeric"
+                      textAlign="center"
+                    />
+                    <TouchableOpacity
+                      style={styles.editQuantityButton}
+                      onPress={() => setEditItemQuantity((parseInt(editItemQuantity) + 1).toString())}
+                    >
+                      <Ionicons name="add" size={24} color="#4A7C59" />
+                    </TouchableOpacity>
+                  </View>
+
+                  {/* Unit */}
+                  <Text style={styles.editModalLabel}>{t('unit', language)}</Text>
+                  <ScrollView 
+                    horizontal 
+                    showsHorizontalScrollIndicator={false} 
+                    style={styles.editUnitScroll}
+                    keyboardShouldPersistTaps="handled"
+                  >
+                    {['pieces', 'kg', 'g', 'l', 'ml', 'packs', 'bottles', 'cans', 'boxes'].map((unit) => (
+                      <TouchableOpacity
+                        key={unit}
+                        style={[
+                          styles.editUnitChip,
+                          editItemUnit === unit && styles.editUnitChipSelected
+                        ]}
+                        onPress={() => setEditItemUnit(unit)}
+                      >
+                        <Text style={[
+                          styles.editUnitChipText,
+                          editItemUnit === unit && styles.editUnitChipTextSelected
+                        ]}>
+                          {t(unit, language) || unit}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
+
+                  {/* Expiry Date */}
+                  <Text style={styles.editModalLabel}>{t('expiryDate', language)}</Text>
+                  <View style={styles.editDateContainer}>
+                    <TouchableOpacity
+                      style={styles.editDateButton}
+                      onPress={() => {
+                        if (!editItemExpiryDate) {
+                          setEditItemExpiryDate(new Date());
+                        }
+                        setShowEditDatePicker(!showEditDatePicker);
+                      }}
+                    >
+                      <Ionicons name="calendar-outline" size={20} color="#4A7C59" />
+                      <Text style={styles.editDateButtonText}>
+                        {editItemExpiryDate ? formatDate(editItemExpiryDate, language) : t('notSet', language) || 'Not set'}
+                      </Text>
+                    </TouchableOpacity>
+                    {editItemExpiryDate && (
+                      <TouchableOpacity 
+                        style={styles.clearDateButton}
+                        onPress={() => {
+                          setEditItemExpiryDate(null);
+                          setShowEditDatePicker(false);
+                        }}
+                      >
+                        <Ionicons name="close-circle" size={24} color="#FF6B6B" />
+                      </TouchableOpacity>
+                    )}
+                  </View>
+
+                  {showEditDatePicker && (
+                    <DateTimePicker
+                      value={editItemExpiryDate || new Date()}
+                      mode="date"
+                      display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                      onChange={handleEditDateChange}
+                      minimumDate={new Date(new Date().setHours(0, 0, 0, 0))}
+                    />
+                  )}
+                </ScrollView>
+
+                {/* Modal Buttons */}
+                <View style={styles.editModalButtons}>
+                  <TouchableOpacity
+                    style={[styles.editModalButton, styles.editModalCancelButton]}
+                    onPress={cancelEditItem}
+                  >
+                    <Text style={styles.editModalCancelButtonText}>{t('cancel', language)}</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.editModalButton, styles.editModalSaveButton]}
+                    onPress={saveEditItem}
+                  >
+                    <Text style={styles.editModalSaveButtonText}>{t('save', language)}</Text>
+                  </TouchableOpacity>
+                </View>
+              </>
+            ) : (
+              // List Mode
+              <>
+                <Text style={styles.reviewModalTitle}>{t('itemsDetected', language)}</Text>
+                <Text style={styles.reviewModalSubtitle}>
+                  {t('reviewSubtitle', language)}
+                </Text>
+
+                <ScrollView style={styles.reviewItemsList}>
+                  {detectedItems?.items.map((item, index) => (
+                    <View key={item.id} style={styles.reviewItem}>
                       <View style={styles.reviewItemInfo}>
                         <Text style={styles.reviewItemName}>{item.name}</Text>
                         <Text style={styles.reviewItemCategory}>{item.category}</Text>
-                        {detectedItems.expiryDate && (
+                        {item.expiryDate && (
                           <Text style={styles.reviewItemExpiry}>
-                            📅 {detectedItems.expiryDate}
+                            📅 {new Date(item.expiryDate).toLocaleDateString()}
+                          </Text>
+                        )}
+                        {item.quantity && (
+                          <Text style={styles.reviewItemQuantity}>
+                            📦 {item.quantity} {item.unit || 'pieces'}
                           </Text>
                         )}
                       </View>
@@ -1302,49 +1621,49 @@ export default function CameraScanner({ navigation }) {
                           <Text style={styles.reviewDeleteButtonText}>🗑️</Text>
                         </TouchableOpacity>
                       </View>
-                    </>
-                  )}
-                </View>
-              ))}
-            </ScrollView>
+                    </View>
+                  ))}
+                </ScrollView>
 
-            <View style={styles.reviewModalButtons}>
-              <TouchableOpacity
-                style={[styles.reviewButton, styles.reviewCancelButton]}
-                onPress={() => {
-                  Alert.alert(
-                    t('discardAll', language),
-                    t('discardAllMessage', language),
-                    [
-                      { text: t('cancel', language), style: 'cancel' },
-                      {
-                        text: t('discardAll', language),
-                        style: 'destructive',
-                        onPress: async () => {
-                          // Delete all items
-                          for (const item of detectedItems.items) {
-                            await deleteDetectedItem(item.id);
+                <View style={styles.reviewModalButtons}>
+                  <TouchableOpacity
+                    style={[styles.reviewButton, styles.reviewCancelButton]}
+                    onPress={() => {
+                      Alert.alert(
+                        t('discardAll', language),
+                        t('discardAllMessage', language),
+                        [
+                          { text: t('cancel', language), style: 'cancel' },
+                          {
+                            text: t('discardAll', language),
+                            style: 'destructive',
+                            onPress: async () => {
+                              // Delete all items
+                              for (const item of detectedItems.items) {
+                                await deleteDetectedItem(item.id);
+                              }
+                              scanAgain();
+                            }
                           }
-                          scanAgain();
-                        }
-                      }
-                    ]
-                  );
-                }}
-              >
-                <Text style={styles.reviewCancelButtonText}>{t('scanAgain', language)}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.reviewButton, styles.reviewConfirmButton]}
-                onPress={confirmReview}
-              >
-                <Text style={styles.reviewConfirmButtonText}>
-                  {t('confirm', language)} ({detectedItems?.items.length || 0})
-                </Text>
-              </TouchableOpacity>
-            </View>
+                        ]
+                      );
+                    }}
+                  >
+                    <Text style={styles.reviewCancelButtonText}>{t('scanAgain', language)}</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.reviewButton, styles.reviewConfirmButton]}
+                    onPress={confirmReview}
+                  >
+                    <Text style={styles.reviewConfirmButtonText}>
+                      {t('confirm', language)} ({detectedItems?.items.length || 0})
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </>
+            )}
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
     </View>
   );
@@ -1858,6 +2177,183 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: 25,
     zIndex: 20,
+  },
+  // Edit Item Modal Styles
+  editModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  editModalContent: {
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    padding: 24,
+    maxHeight: '85%',
+  },
+  editModalTitle: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#2C3E50',
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  editModalScroll: {
+    maxHeight: 400,
+  },
+  editModalLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#666',
+    marginBottom: 8,
+    marginTop: 12,
+  },
+  editModalInput: {
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    borderRadius: 12,
+    padding: 14,
+    fontSize: 16,
+    backgroundColor: '#F8F9FA',
+    color: '#2C3E50',
+  },
+  editCategoryScroll: {
+    flexGrow: 0,
+    marginBottom: 8,
+  },
+  editCategoryChip: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 20,
+    backgroundColor: '#F0F0F0',
+    marginRight: 8,
+    borderWidth: 1,
+    borderColor: 'transparent',
+  },
+  editCategoryChipSelected: {
+    backgroundColor: '#E8F5E9',
+    borderColor: '#4A7C59',
+  },
+  editCategoryChipText: {
+    fontSize: 14,
+    color: '#666',
+  },
+  editCategoryChipTextSelected: {
+    color: '#4A7C59',
+    fontWeight: '600',
+  },
+  editQuantityRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 16,
+    marginVertical: 8,
+  },
+  editQuantityButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#E8F5E9',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#4A7C59',
+  },
+  editQuantityInput: {
+    width: 80,
+    height: 44,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    borderRadius: 12,
+    fontSize: 18,
+    fontWeight: '600',
+    backgroundColor: '#F8F9FA',
+    color: '#2C3E50',
+  },
+  editUnitScroll: {
+    flexGrow: 0,
+    marginBottom: 8,
+  },
+  editUnitChip: {
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 20,
+    backgroundColor: '#F0F0F0',
+    marginRight: 8,
+    borderWidth: 1,
+    borderColor: 'transparent',
+  },
+  editUnitChipSelected: {
+    backgroundColor: '#E8F5E9',
+    borderColor: '#4A7C59',
+  },
+  editUnitChipText: {
+    fontSize: 14,
+    color: '#666',
+  },
+  editUnitChipTextSelected: {
+    color: '#4A7C59',
+    fontWeight: '600',
+  },
+  editDateContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  editDateButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    borderRadius: 12,
+    padding: 14,
+    backgroundColor: '#F8F9FA',
+    gap: 10,
+  },
+  clearDateButton: {
+    padding: 4,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  editDateButtonText: {
+    fontSize: 16,
+    color: '#2C3E50',
+  },
+  editModalButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 24,
+    gap: 12,
+  },
+  editModalButton: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  editModalCancelButton: {
+    backgroundColor: '#F5F5F5',
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+  },
+  editModalCancelButtonText: {
+    color: '#666',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  editModalSaveButton: {
+    backgroundColor: '#4A7C59',
+  },
+  editModalSaveButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  reviewItemQuantity: {
+    fontSize: 12,
+    color: '#888',
+    marginTop: 2,
   },
 });
 

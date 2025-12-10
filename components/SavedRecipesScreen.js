@@ -21,6 +21,7 @@ import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { config } from '../config';
 import { fetchWithTimeout } from '../utils/fetchWithTimeout';
 import { scaleIngredient } from '../utils/ingredientScaler';
+import { Ionicons } from '@expo/vector-icons';
 
 export default function SavedRecipesScreen() {
   const [savedRecipes, setSavedRecipes] = useState([]);
@@ -146,19 +147,23 @@ export default function SavedRecipesScreen() {
         headerLeft: () => (
           <TouchableOpacity 
             onPress={goBack}
-            style={{ marginLeft: 16, flexDirection: 'row', alignItems: 'center' }}
+            style={{ marginLeft: 16 }}
           >
-            <Text style={{ color: '#FFFFFF', fontSize: 18, marginRight: 4 }}>←</Text>
-            <Text style={{ color: '#FFFFFF', fontSize: 16, fontWeight: '600' }}>
-              {t('back', language) || 'Back'}
-            </Text>
+            <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
           </TouchableOpacity>
         ),
         title: '',
       });
     } else {
       navigation.setOptions({
-        headerLeft: undefined, // Use default back button if in stack, or null
+        headerLeft: () => (
+          <TouchableOpacity 
+            onPress={() => navigation.goBack()}
+            style={{ marginLeft: 16 }}
+          >
+            <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
+          </TouchableOpacity>
+        ),
         title: t('savedRecipes', language) || 'Saved Recipes',
       });
     }

@@ -6,6 +6,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import React, { useState, useEffect, Component, useRef } from 'react';
 import { StyleSheet, View, TouchableOpacity, Text, ActivityIndicator, Alert } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
+import { Ionicons } from '@expo/vector-icons';
 import { NavigationContainer, createNavigationContainerRef } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
@@ -13,6 +14,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import CameraScanner from './components/CameraScanner';
 import PantryList from './components/PantryList';
 import RecipeGenerator from './components/RecipeGenerator';
+import CustomRecipeGenerator from './components/CustomRecipeGenerator';
 import SavedRecipesScreen from './components/SavedRecipesScreen';
 import ManualEntry from './components/ManualEntry';
 import Profile from './components/Profile';
@@ -269,18 +271,34 @@ function PantryStack() {
       <Stack.Screen 
         name="ManualEntry" 
         component={ManualEntry}
-        options={{
+        options={({ navigation }) => ({
           title: t('addItemManually', language),
           ...UNIFIED_HEADER,
-        }}
+          headerLeft: () => (
+            <TouchableOpacity 
+              onPress={() => navigation.goBack()}
+              style={{ marginLeft: 16 }}
+            >
+              <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
+            </TouchableOpacity>
+          ),
+        })}
       />
       <Stack.Screen 
         name="ProfileScreen" 
         component={Profile}
-        options={{
+        options={({ navigation }) => ({
           title: t('account', language),
           ...UNIFIED_HEADER,
-        }}
+          headerLeft: () => (
+            <TouchableOpacity 
+              onPress={() => navigation.goBack()}
+              style={{ marginLeft: 16 }}
+            >
+              <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
+            </TouchableOpacity>
+          ),
+        })}
       />
       <Stack.Screen
         name="PremiumPlans"
@@ -302,9 +320,17 @@ function RecipesStack() {
     <Stack.Navigator>
       <Stack.Screen 
         name="RecipeGenerator" 
-        component={RecipeGenerator}
-        options={{
+        component={RecipeGenerator} 
+        options={{ 
           title: t('recipeIdeas', language),
+          ...UNIFIED_HEADER,
+        }}
+      />
+      <Stack.Screen 
+        name="CustomRecipeGenerator" 
+        component={CustomRecipeGenerator} 
+        options={{ 
+          title: t('chefsTable', language),
           ...UNIFIED_HEADER,
         }}
       />
@@ -318,9 +344,7 @@ function RecipesStack() {
       />
     </Stack.Navigator>
   );
-}
-
-// 2. Create the main App component
+}// 2. Create the main App component
 export default function App() {
   const [user, setUser] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
