@@ -2100,40 +2100,38 @@ exports.checkIngredients = onRequest({
     }
 
     const prompt = `
-      You are a smart kitchen assistant. Compare the required recipe ingredients
-      against the user's pantry items.
-      
-      Recipe Ingredients:
+      You are a precise kitchen assistant. Your task is to check if the user has the ingredients required for a recipe.
+
+      INPUT DATA:
+      1. REQUIRED INGREDIENTS (from recipe):
       ${JSON.stringify(recipeIngredients)}
-      
-      Pantry Items:
+
+      2. USER'S PANTRY (available items):
       ${JSON.stringify(pantryItems)}
+
+      3. TARGET LANGUAGE: ${targetLanguage}
+
+      INSTRUCTIONS:
+      Step 1: Normalize the "Required Ingredients". Remove quantities, units, and preparation methods (e.g., "2 cups chopped onions" -> "Onion").
+      Step 2: For EACH normalized required ingredient, check if a matching item exists in the "User's Pantry".
       
-      Target Language: ${targetLanguage}
-      
-      Rules:
-      1. Identify which recipe ingredients are MISSING from the pantry.
-      2. Be smart about synonyms (e.g., "EVOO" matches "Olive Oil").
-      3. Ignore quantities (e.g., "2 onions" vs "Onion" is a MATCH).
-      4. SIMPLIFY INGREDIENT NAMES:
-         - Remove "to taste", quantities, and preparation methods.
-         - Example: "Salt to taste" -> "Salt".
-         - Example: "2 cups of flour" -> "Flour".
-      5. IGNORE BASIC STAPLES:
-         - Do NOT list basic ingredients as "missing".
-         - Exclude: Salt, Sugar, Water, Oil, Pepper.
-         - Assume the user always has these.
-      6. Return a JSON object with two arrays:
-         - "missing": items that need to be bought (excluding staples).
-         - "available": items found in the pantry.
-      7. FORMATTING RULES (CRITICAL):
-         - All output text MUST be in the Target Language (${targetLanguage}).
-         - Clean up all ingredient names to be human-readable and pretty.
-         - Use Title Case for every item (e.g., "Olive Oil").
-         - Fix any spelling errors.
-         - Ensure proper spacing between words.
-         - Remove technical jargon or excessive punctuation.
-      8. Output ONLY valid JSON. No markdown formatting.
+      MATCHING RULES:
+      - EXACT MATCH: "Milk" matches "Milk".
+      - PARTIAL MATCH: "Diced Tomatoes" matches "Tomato".
+      - SYNONYM MATCH: "Cilantro" matches "Coriander".
+      - CATEGORY MATCH: If recipe asks for "Cheese" and pantry has "Cheddar", it is a MATCH.
+      - IGNORE QUANTITIES: If recipe needs "5 eggs" and pantry has "Eggs", it is a MATCH.
+
+      STAPLES POLICY:
+      - Assume the user ALWAYS has: Water, Salt, Black Pepper, Sugar, Vegetable Oil.
+      - Do NOT list these as missing.
+
+      OUTPUT REQUIREMENTS:
+      - Return a JSON object with two arrays: "available" and "missing".
+      - "available": List of ingredients found in the pantry (use the name from the Pantry list if possible, or the Recipe list).
+      - "missing": List of ingredients NOT found in the pantry (use the normalized name from the Recipe list).
+      - Translate all output ingredient names to ${targetLanguage}.
+      - Ensure the output is valid JSON.
     `;
 
     let result;
