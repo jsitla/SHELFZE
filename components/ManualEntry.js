@@ -16,45 +16,7 @@ import { app, auth } from '../firebase.config';
 import { useLanguage } from '../contexts/LanguageContext';
 import { t } from '../contexts/translations';
 import { formatDate } from '../utils/dateHelpers';
-
-const CATEGORIES = [
-  { id: 'Dairy', label: '🥛 Dairy', emoji: '🥛' },
-  { id: 'Meat & Poultry', label: '🥩 Meat & Poultry', emoji: '🥩' },
-  { id: 'Fruits', label: '🍎 Fruits', emoji: '🍎' },
-  { id: 'Vegetables', label: '🥬 Vegetables', emoji: '🥬' },
-  { id: 'Beverages', label: '🥤 Beverages', emoji: '🥤' },
-  { id: 'Packaged Food', label: '📦 Packaged Food', emoji: '📦' },
-  { id: 'Bakery', label: '🍞 Bakery', emoji: '🍞' },
-  { id: 'Condiments', label: '🧂 Condiments', emoji: '🧂' },
-  { id: 'Spices', label: '🌶️ Spices', emoji: '🌶️' },
-  { id: 'Other', label: '🏷️ Other', emoji: '🏷️' },
-];
-
-const UNITS = [
-  { id: 'pcs', label: 'pieces (pcs)' },
-  { id: 'kg', label: 'kilograms (kg)' },
-  { id: 'g', label: 'grams (g)' },
-  { id: 'l', label: 'liters (L)' },
-  { id: 'ml', label: 'milliliters (mL)' },
-  { id: 'oz', label: 'ounces (oz)' },
-  { id: 'lb', label: 'pounds (lb)' },
-  { id: 'cups', label: 'cups' },
-  { id: 'tbsp', label: 'tablespoons' },
-  { id: 'tsp', label: 'teaspoons' },
-];
-
-const categoryKeyMap = {
-  'Dairy': 'dairy',
-  'Meat & Poultry': 'meatPoultry',
-  'Fruits': 'fruits',
-  'Vegetables': 'vegetables',
-  'Beverages': 'beverages',
-  'Packaged Food': 'packagedFood',
-  'Bakery': 'bakery',
-  'Condiments': 'condiments',
-  'Spices': 'spices',
-  'Other': 'other'
-};
+import { CATEGORIES, UNITS, CATEGORY_KEY_MAP } from '../utils/constants';
 
 export default function ManualEntry({ navigation, onItemAdded }) {
   const { language } = useLanguage();
@@ -240,7 +202,7 @@ export default function ManualEntry({ navigation, onItemAdded }) {
                   selectedCategory === cat.id && styles.categoryLabelSelected,
                 ]}
               >
-                {t(categoryKeyMap[cat.id] || 'other', language)}
+                {t(CATEGORY_KEY_MAP[cat.id] || 'other', language)}
               </Text>
             </TouchableOpacity>
           ))}
@@ -290,7 +252,7 @@ export default function ManualEntry({ navigation, onItemAdded }) {
                       selectedUnit === unit.id && styles.unitTextSelected,
                     ]}
                   >
-                    {t(unit.id === 'l' ? 'L' : unit.id, language)}
+                    {t(unit.translationKey, language)}
                   </Text>
                 </TouchableOpacity>
               ))}

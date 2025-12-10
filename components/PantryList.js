@@ -24,6 +24,7 @@ import { app, auth } from '../firebase.config';
 import { useLanguage } from '../contexts/LanguageContext';
 import { t } from '../contexts/translations';
 import { parseDate, formatDate } from '../utils/dateHelpers';
+import { CATEGORIES, UNITS, CATEGORY_KEY_MAP, normalizeCategory } from '../utils/constants';
 
 export default function PantryList({ navigation }) {
   // 2. Use hooks to manage state for the list of items.
@@ -46,36 +47,13 @@ export default function PantryList({ navigation }) {
   const { language } = useLanguage();
 
   // Food categories for filtering
-  const categories = [
-    'All',
-    'Dairy',
-    'Meat & Poultry',
-    'Fruits',
-    'Vegetables',
-    'Beverages',
-    'Packaged Food',
-    'Bakery',
-    'Condiments',
-    'Spices',
-    'Other'
-  ];
+  const categories = ['All', ...CATEGORIES.map(c => c.id)];
 
   // Helper to get translated category name
   const getCategoryTranslation = (category) => {
-    const categoryKeyMap = {
-      'All': 'all',
-      'Dairy': 'dairy',
-      'Meat & Poultry': 'meatPoultry',
-      'Fruits': 'fruits',
-      'Vegetables': 'vegetables',
-      'Beverages': 'beverages',
-      'Packaged Food': 'packagedFood',
-      'Bakery': 'bakery',
-      'Condiments': 'condiments',
-      'Spices': 'spices',
-      'Other': 'other'
-    };
-    return t(categoryKeyMap[category] || 'other', language);
+    if (category === 'All') return t('all', language);
+    const normalized = normalizeCategory(category);
+    return t(CATEGORY_KEY_MAP[normalized] || 'other', language);
   };
 
   // 3. Import and configure your Firebase connection details for the client-side app.
@@ -375,7 +353,7 @@ export default function PantryList({ navigation }) {
   const openEditModal = (item) => {
     setEditingItem(item);
     setEditName(item.name || item.itemName || '');
-    setEditCategory(item.category || 'Other');
+    setEditCategory(normalizeCategory(item.category));
     setEditQuantity(item.quantity ? item.quantity.toString() : '1');
     setEditUnit(item.unit || 'pcs');
     setEditExpiryDate(parseDate(item.expiryDate));
@@ -714,20 +692,20 @@ export default function PantryList({ navigation }) {
                     showsHorizontalScrollIndicator={false}
                     style={styles.categoryScroll}
                   >
-                    {['Dairy', 'Meat & Poultry', 'Fruits', 'Vegetables', 'Beverages', 'Packaged Food', 'Bakery', 'Condiments', 'Spices', 'Other'].map((cat) => (
+                    {CATEGORIES.map((cat) => (
                       <TouchableOpacity
-                        key={cat}
+                        key={cat.id}
                         style={[
                           styles.categoryChip,
-                          editCategory === cat && styles.categoryChipSelected
+                          editCategory === cat.id && styles.categoryChipSelected
                         ]}
-                        onPress={() => setEditCategory(cat)}
+                        onPress={() => setEditCategory(cat.id)}
                       >
                         <Text style={[
                           styles.categoryChipText,
-                          editCategory === cat && styles.categoryChipTextSelected
+                          editCategory === cat.id && styles.categoryChipTextSelected
                         ]}>
-                          {getCategoryTranslation(cat)}
+                          {getCategoryTranslation(cat.id)}
                         </Text>
                       </TouchableOpacity>
                     ))}
@@ -750,20 +728,20 @@ export default function PantryList({ navigation }) {
                       showsHorizontalScrollIndicator={false}
                       style={styles.unitScroll}
                     >
-                      {['pcs', 'kg', 'g', 'L', 'ml', 'oz', 'lb'].map((unit) => (
+                      {UNITS.map((unitObj) => (
                         <TouchableOpacity
-                          key={unit}
+                          key={unitObj.id}
                           style={[
                             styles.unitChip,
-                            editUnit === unit && styles.unitChipSelected
+                            editUnit === unitObj.id && styles.unitChipSelected
                           ]}
-                          onPress={() => setEditUnit(unit)}
+                          onPress={() => setEditUnit(unitObj.id)}
                         >
                           <Text style={[
                             styles.unitChipText,
-                            editUnit === unit && styles.unitChipTextSelected
+                            editUnit === unitObj.id && styles.unitChipTextSelected
                           ]}>
-                            {t(unit, language)}
+                            {t(unitObj.translationKey, language)}
                           </Text>
                         </TouchableOpacity>
                       ))}

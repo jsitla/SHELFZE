@@ -29,6 +29,7 @@ import { getFirestore, doc, deleteDoc, updateDoc } from 'firebase/firestore';
 import { app, auth } from '../firebase.config';
 import { getUserUsage } from '../utils/usageTracking';
 import { parseDate, formatDate } from '../utils/dateHelpers';
+import { CATEGORIES, UNITS, CATEGORY_KEY_MAP, normalizeCategory } from '../utils/constants';
 import { config } from '../config';
 
 // 2. Create a functional component named CameraScanner.
@@ -49,7 +50,7 @@ export default function CameraScanner({ navigation }) {
   const [editItemName, setEditItemName] = useState('');
   const [editItemCategory, setEditItemCategory] = useState('');
   const [editItemQuantity, setEditItemQuantity] = useState('1');
-  const [editItemUnit, setEditItemUnit] = useState('pieces');
+  const [editItemUnit, setEditItemUnit] = useState('pcs');
   const [editItemExpiryDate, setEditItemExpiryDate] = useState(new Date());
   const [showEditDatePicker, setShowEditDatePicker] = useState(false);
   const [usageData, setUsageData] = useState(null);
@@ -303,8 +304,14 @@ export default function CameraScanner({ navigation }) {
     setScanResult(JSON.stringify(result, null, 2));
 
     if (result.saved && result.savedItems && result.savedItems.length > 0) {
+      // Normalize categories
+      const normalizedItems = result.savedItems.map(item => ({
+        ...item,
+        category: normalizeCategory(item.category)
+      }));
+
       setDetectedItems({
-        items: result.savedItems,
+        items: normalizedItems,
         expiryDate: result.expiryDate,
         detectionSource: result.detectionSource,
       });
@@ -779,9 +786,9 @@ export default function CameraScanner({ navigation }) {
     console.log('Starting edit for item:', item.id, item.name);
     setEditingItemId(item.id);
     setEditItemName(item.name);
-    setEditItemCategory(item.category || 'Other');
+    setEditItemCategory(normalizeCategory(item.category));
     setEditItemQuantity(item.quantity?.toString() || '1');
-    setEditItemUnit(item.unit || 'pieces');
+    setEditItemUnit(item.unit || 'pcs');
     setEditItemExpiryDate(parseDate(item.expiryDate));
   };
 
@@ -790,7 +797,7 @@ export default function CameraScanner({ navigation }) {
     setEditItemName('');
     setEditItemCategory('');
     setEditItemQuantity('1');
-    setEditItemUnit('pieces');
+    setEditItemUnit('pcs');
     setEditItemExpiryDate(null);
     setShowEditDatePicker(false);
   };
@@ -802,11 +809,10 @@ export default function CameraScanner({ navigation }) {
     }
   };
 
-  const editCategories = ['Dairy', 'Meat', 'Vegetables', 'Fruits', 'Beverages', 'Snacks', 'Condiments', 'Grains', 'Frozen', 'Other'];
+  const editCategories = CATEGORIES.map(c => c.id);
 
   const getEditCategoryTranslation = (category) => {
-    const categoryKey = category.toLowerCase();
-    return t(categoryKey, language) || category;
+    return t(CATEGORY_KEY_MAP[category] || 'other', language);
   };
 
   const saveEditItem = async () => {
@@ -1044,20 +1050,20 @@ export default function CameraScanner({ navigation }) {
                       style={styles.editUnitScroll}
                       keyboardShouldPersistTaps="handled"
                     >
-                      {['pieces', 'kg', 'g', 'l', 'ml', 'packs', 'bottles', 'cans', 'boxes'].map((unit) => (
+                      {UNITS.map((unitObj) => (
                         <TouchableOpacity
-                          key={unit}
+                          key={unitObj.id}
                           style={[
                             styles.editUnitChip,
-                            editItemUnit === unit && styles.editUnitChipSelected
+                            editItemUnit === unitObj.id && styles.editUnitChipSelected
                           ]}
-                          onPress={() => setEditItemUnit(unit)}
+                          onPress={() => setEditItemUnit(unitObj.id)}
                         >
                           <Text style={[
                             styles.editUnitChipText,
-                            editItemUnit === unit && styles.editUnitChipTextSelected
+                            editItemUnit === unitObj.id && styles.editUnitChipTextSelected
                           ]}>
-                            {t(unit, language) || unit}
+                            {t(unitObj.translationKey, language)}
                           </Text>
                         </TouchableOpacity>
                       ))}
@@ -1133,7 +1139,9 @@ export default function CameraScanner({ navigation }) {
                       <View key={item.id} style={styles.reviewItem}>
                         <View style={styles.reviewItemInfo}>
                           <Text style={styles.reviewItemName}>{item.name}</Text>
-                          <Text style={styles.reviewItemCategory}>{item.category}</Text>
+                          <Text style={styles.reviewItemCategory}>
+                            {t(CATEGORY_KEY_MAP[normalizeCategory(item.category)] || 'other', language)}
+                          </Text>
                           {item.expiryDate && (
                             <Text style={styles.reviewItemExpiry}>
                               📅 {new Date(item.expiryDate).toLocaleDateString()}
@@ -1493,20 +1501,20 @@ export default function CameraScanner({ navigation }) {
                     style={styles.editUnitScroll}
                     keyboardShouldPersistTaps="handled"
                   >
-                    {['pieces', 'kg', 'g', 'l', 'ml', 'packs', 'bottles', 'cans', 'boxes'].map((unit) => (
+                    {UNITS.map((unitObj) => (
                       <TouchableOpacity
-                        key={unit}
+                        key={unitObj.id}
                         style={[
                           styles.editUnitChip,
-                          editItemUnit === unit && styles.editUnitChipSelected
+                          editItemUnit === unitObj.id && styles.editUnitChipSelected
                         ]}
-                        onPress={() => setEditItemUnit(unit)}
+                        onPress={() => setEditItemUnit(unitObj.id)}
                       >
                         <Text style={[
                           styles.editUnitChipText,
-                          editItemUnit === unit && styles.editUnitChipTextSelected
+                          editItemUnit === unitObj.id && styles.editUnitChipTextSelected
                         ]}>
-                          {t(unit, language) || unit}
+                          {t(unitObj.translationKey, language)}
                         </Text>
                       </TouchableOpacity>
                     ))}
