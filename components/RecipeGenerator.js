@@ -967,21 +967,6 @@ ${t('sharedFromShelfze', language)}
         <View style={styles.section}>
           <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10}}>
             <Text style={[styles.sectionTitle, {marginBottom: 0}]}>📝 {t('ingredients', language)}</Text>
-            <TouchableOpacity 
-              style={{
-                backgroundColor: '#E8F5E9', 
-                paddingHorizontal: 12, 
-                paddingVertical: 6, 
-                borderRadius: 15,
-                borderWidth: 1,
-                borderColor: '#4A7C59'
-              }}
-              onPress={checkPantryForIngredients}
-            >
-              <Text style={{color: '#4A7C59', fontWeight: '600', fontSize: 12}}>
-                🔍 {t('checkPantry', language) || 'Check Pantry'}
-              </Text>
-            </TouchableOpacity>
           </View>
           {recipeDetails.ingredients && recipeDetails.ingredients.map((ingredient, index) => (
             <Text key={index} style={styles.ingredient}>

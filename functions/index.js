@@ -202,6 +202,7 @@ exports.analyzeImage = onRequest({
         confidence: item.confidence || 0.70,
         source: "Gemini AI",
         details: item.details || "",
+        expiryDate: item.expiryDate || null,
       }));
       console.log("Using Gemini detection for", foodItems.length, "items");
     } else if (geminiResult && geminiResult.productName) {
@@ -211,6 +212,7 @@ exports.analyzeImage = onRequest({
         confidence: geminiResult.confidence || 0.70,
         source: "Gemini AI",
         details: geminiResult.details || "",
+        expiryDate: geminiResult.expiryDate || null,
       }];
       console.log("Using Gemini detection (single item):", foodItems[0].name);
     } else {
@@ -219,11 +221,20 @@ exports.analyzeImage = onRequest({
       console.log("Using Vision API detection:", singleItem.name);
     }
 
+    // Filter out generic spice names
+    const genericTerms = ["spices", "spice", "seasoning", "seasonings", "herbs", "herb", "condiment", "condiments"];
+    foodItems = foodItems.filter((item) => {
+      const nameLower = item.name.toLowerCase();
+      return !genericTerms.includes(nameLower);
+    });
+
     const expiryDate = findExpiryDate(fullText);
     const formattedDate = expiryDate ? formatDate(expiryDate) : null;
 
     const savedItems = [];
     for (const foodItem of foodItems) {
+      const finalExpiryDate = foodItem.expiryDate || formattedDate || null;
+
       if (foodItem.name && foodItem.name !== "Unknown Item") {
         const docRef = await admin.firestore()
             .collection("users")
@@ -238,7 +249,7 @@ exports.analyzeImage = onRequest({
               geminiDetails: foodItem.details || null,
               detectedLabels: detectedLabels.slice(0, 5),
               detectedObjects: detectedObjects.slice(0, 5),
-              expiryDate: formattedDate || null,
+              expiryDate: finalExpiryDate,
               quantity: 1,
               unit: "pcs",
               fullText: fullText.substring(0, 500),
@@ -251,7 +262,7 @@ exports.analyzeImage = onRequest({
           confidence: foodItem.confidence,
           quantity: 1,
           unit: "pcs",
-          expiryDate: formattedDate || null,
+          expiryDate: finalExpiryDate,
         });
       }
     }
@@ -263,6 +274,9 @@ exports.analyzeImage = onRequest({
       });
     }
 
+    const responseExpiryDate = savedItems.length > 0 ?
+        savedItems[0].expiryDate : (formattedDate || null);
+
     res.status(200).json({
       fullText: fullText,
       foodItems: foodItems,
@@ -273,7 +287,7 @@ exports.analyzeImage = onRequest({
       geminiDetails: geminiResult || null,
       detectedLabels: detectedLabels.slice(0, 5),
       detectedObjects: detectedObjects,
-      expiryDate: formattedDate,
+      expiryDate: responseExpiryDate,
       saved: savedItems.length > 0,
     });
   } catch (error) {
@@ -333,8 +347,9 @@ CRITICAL GUIDELINES - FOOD AND INGREDIENTS:
      * "Sea Salt (Coarse)" vs "Table Salt (Fine)"
      * "Whole Cinnamon Sticks" vs "Ground Cinnamon"
 7. For SPICES and SEASONINGS:
-   - **NEVER use generic names** like "Spices", "Seasoning", "Herbs",
-     "Condiment".
+   - **STRICTLY FORBIDDEN**: Do NOT return "Spices", "Seasoning", "Herbs", "Condiment" as the product name.
+   - If you cannot identify the specific spice (e.g., "Cumin", "Paprika", "Oregano"), **DO NOT INCLUDE THE ITEM**.
+   - Better to return NOTHING than a generic "Spices" label.
    - **MUST identify the specific type** (e.g., "Ground Cumin",
      "Dried Oregano", "Paprika", "Curry Powder", "Chili Flakes").
    - Check if it's POWDER/GROUND, WHOLE, or FRESH
@@ -345,6 +360,10 @@ CRITICAL GUIDELINES - FOOD AND INGREDIENTS:
 8. Include the BRAND NAME if visible and relevant
 9. **TRANSLATE all product names to ${targetLanguageName}**
 10. Be specific about packaging type: jar, bottle, bag, fresh, etc.
+11. **DETECT EXPIRY DATES** - Look for text like "EXP", "BEST BEFORE", "BB", "USE BY" followed by a date.
+    - Format the date as YYYY-MM-DD.
+    - If only Month/Year is found, use the last day of the month.
+    - If no date is found, return null.
 
 VALID FOOD CATEGORIES ONLY:
 - dairy (milk, cheese, yogurt, butter, etc.)
@@ -365,6 +384,7 @@ JSON response:
       "category": "dairy|meat|fruit|vegetable|beverage|packaged|" +
         "spices|condiments|bakery",
       "form": "fresh|dried|ground|powder|whole|minced|frozen|canned|bottled",
+      "expiryDate": "YYYY-MM-DD",
       "confidence": 0.9
     }
   ],
