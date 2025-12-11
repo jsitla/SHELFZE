@@ -31,6 +31,7 @@
 - [Language Support](#-language-support)
 - [Configuration](#-configuration)
 - [Development](#-development)
+- [Publishing](#-publishing)
 
 ---
 
@@ -153,6 +154,32 @@
 - Sync across devices via Firestore
 - Add missing recipe ingredients directly
 - Clear completed items
+
+---
+
+### 👨‍👩‍👧‍👦 Household Sharing
+
+Share your pantry and credits with family members!
+
+**Features:**
+- 🏠 **Create Household** - Start a new household and become the owner
+- 🔗 **Invite Members** - Share a 6-character invite code
+- 📋 **Shared Pantry** - All members see the same food items
+- ⚡ **Shared Credits** - Pool scans and recipes across the household
+- 🔄 **Credit Management** - 7-day cooldown between households
+
+**Credit Pools:**
+| Tier | Scans/Month | Recipes/Month |
+|------|-------------|---------------|
+| Free Household | 30 | 30 |
+| Premium Household | 500 | 500 |
+
+**How It Works:**
+1. Owner creates household from Profile screen
+2. Members join using the invite code
+3. Everyone shares the same pantry
+4. Credits are deducted from household pool
+5. When leaving, personal credits are restored
 
 ---
 
@@ -751,7 +778,38 @@ eas submit --platform ios
 
 ---
 
-## 📄 License
+## � Publishing
+
+Ready to publish? See the comprehensive **[App Store Publishing Guide](APP-STORE-PUBLISHING.md)**.
+
+### Quick Checklist
+
+- [ ] Host Privacy Policy at public URL
+- [ ] Host Terms of Service at public URL
+- [ ] Replace Android RevenueCat API key in `config.js`
+- [ ] Create App Store screenshots
+- [ ] Create Google Play Feature Graphic (1024×500px)
+- [ ] Set up support email
+- [ ] Build with `eas build --platform all --profile production`
+- [ ] Submit to App Store Connect and Google Play Console
+
+### Build Commands
+
+```bash
+# iOS Production Build
+eas build --platform ios --profile production
+
+# Android Production Build
+eas build --platform android --profile production
+
+# Submit to Stores
+eas submit --platform ios
+eas submit --platform android
+```
+
+---
+
+## �📄 License
 
 This project is proprietary software. All rights reserved.
 
