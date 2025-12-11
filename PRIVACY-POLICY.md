@@ -1,5 +1,5 @@
 # Privacy Policy for Shelfze
-**Last Updated: November 22, 2025**
+**Last Updated: December 11, 2025**
 
 ## Introduction
 Welcome to Shelfze ("we," "our," or "us"). This Privacy Policy explains how we collect, use, store, and protect your information when you use our mobile application (the "App"). We are committed to protecting your privacy while helping you reduce food waste through intelligent inventory management.
@@ -15,6 +15,8 @@ By downloading or using Shelfze, you agree to the collection and use of informat
 **Images and Video:** Photos and video frames of food items/labels captured via the camera for analysis.
 
 **Preferences:** Language settings, app configuration, and dietary preferences (e.g., "Vegetarian," "Gluten-Free").
+
+**Household Data:** If you create or join a Household, we collect household membership information, including household name, member IDs, invite codes, and shared pantry data.
 
 **Note on Dietary Data:** By voluntarily providing dietary preferences, you consent to our processing of this data solely to filter recipes and organize your pantry.
 
@@ -42,6 +44,7 @@ We use your data to:
 - Generate relevant recipes based strictly on your available ingredients.
 - Manage your premium subscription status and entitlements via RevenueCat.
 - Send push notifications for expiring items (if enabled).
+- Enable Household sharing so family members can access a shared pantry and credits.
 
 ### 2.2 AI Improvement & Data Analysis
 We utilize Artificial Intelligence (AI) services provided by Google.
@@ -53,7 +56,18 @@ We utilize Artificial Intelligence (AI) services provided by Google.
 ### 2.3 Analytics
 We use tools like Firebase Analytics to understand how the App is used, detect crash patterns, and improve user experience.
 
-## 3. Third-Party Service Providers
+## 3. Data Sharing
+
+### 3.1 Household Sharing
+If you create or join a Household:
+- Your pantry items are shared with all household members.
+- Your usage credits (scans, recipes) are pooled with the household.
+- Other household members can see items you add to the shared pantry.
+- Household members cannot see your personal account details (email, password).
+
+When you leave a household, your personal credits are restored, and you no longer have access to the shared pantry data.
+
+### 3.2 Third-Party Service Providers
 We share data only with the specific third-party services required to operate the App.
 
 - **Google Firebase:** Authentication, Database, Hosting, Analytics (Google Privacy)

@@ -1,6 +1,6 @@
 # Terms of Service for Shelfze
 
-**Last Updated: November 22, 2025**
+**Last Updated: December 11, 2025**
 
 ## 1. Acceptance of Terms
 
@@ -14,6 +14,7 @@ Shelfze is a mobile application that uses artificial intelligence (AI) and image
 - Track food inventory and expiration dates
 - Generate recipe suggestions based on available ingredients
 - Manage pantry items
+- Share a pantry with household members (family sharing)
 
 ## 3. AI-Generated Content Disclaimer
 
@@ -141,6 +142,33 @@ The App supports both anonymous usage and registered accounts:
 - **Registered Accounts:** You may choose to create an account using Email, Google, or Apple Sign-In. This allows you to sync data across devices and recover your data if you reinstall the App.
 
 By creating an account, you agree to provide accurate information and keep your login credentials secure.
+
+### 6.3 Household Sharing
+
+Shelfze allows users to create or join a Household to share a pantry with family members.
+
+**Creating a Household:**
+- You become the Household Owner.
+- An invite code is generated for others to join.
+- Your personal pantry becomes the shared household pantry.
+
+**Joining a Household:**
+- You need an invite code from the Household Owner.
+- Your personal credits are archived while you use household credits.
+- You share pantry items with all household members.
+
+**Household Credits:**
+- Free households share 30 scans and 30 recipes per month.
+- Premium households share 500 scans and 500 recipes per month.
+- If any member has Premium, the entire household benefits.
+
+**Leaving a Household:**
+- Your personal credits are restored.
+- A 7-day cooldown applies before joining another household.
+- You lose access to the shared pantry data.
+
+**Data Sharing Warning:**
+By joining a Household, you consent to sharing your pantry items with other household members. Do not share sensitive information through pantry item names or notes.
 
 ## 7. Third-Party Services
 
