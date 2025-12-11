@@ -979,7 +979,7 @@ export default function Profile({ navigation }) {
                 {householdInfo.members?.map((member, index) => (
                   <View key={member.id || index} style={styles.memberItem}>
                     <Text style={styles.memberAvatar}>👤</Text>
-                    <Text style={styles.memberName}>{member.displayName || member.email || t('unnamed', language)}</Text>
+                    <Text style={styles.memberName}>{member.name || member.displayName || member.email || t('unnamed', language)}</Text>
                     {member.isPremium && <Text style={styles.memberPremium}>👑</Text>}
                   </View>
                 ))}
