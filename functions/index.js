@@ -72,8 +72,25 @@ exports.analyzeImage = onRequest({
     }
 
     const db = admin.firestore();
-    const usageRef = db.collection("users").doc(uid)
-        .collection("usage").doc("current");
+
+    // Check if user is in a household
+    const userDoc = await db.collection("users").doc(uid).get();
+    const userData = userDoc.exists ? userDoc.data() : null;
+    const householdId = userData?.householdId || null;
+
+    // Determine usage reference (household or personal)
+    let usageRef;
+    let pantryPath;
+    if (householdId) {
+      usageRef = db.collection("households").doc(householdId)
+          .collection("usage").doc("current");
+      pantryPath = `households/${householdId}/pantry`;
+    } else {
+      usageRef = db.collection("users").doc(uid)
+          .collection("usage").doc("current");
+      pantryPath = `users/${uid}/pantry`;
+    }
+
     const usageDoc = await usageRef.get();
 
     let usageData = usageDoc.exists ? usageDoc.data() : null;
@@ -236,25 +253,37 @@ exports.analyzeImage = onRequest({
       const finalExpiryDate = foodItem.expiryDate || formattedDate || null;
 
       if (foodItem.name && foodItem.name !== "Unknown Item") {
+        // Build item data with addedBy fields for household items
+        const itemData = {
+          name: foodItem.name,
+          itemName: foodItem.name,
+          category: foodItem.category,
+          confidence: foodItem.confidence,
+          detectionSource: foodItem.source || "Vision API",
+          geminiDetails: foodItem.details || null,
+          detectedLabels: detectedLabels.slice(0, 5),
+          detectedObjects: detectedObjects.slice(0, 5),
+          expiryDate: finalExpiryDate,
+          quantity: 1,
+          unit: "pcs",
+          fullText: fullText.substring(0, 500),
+          addedAt: admin.firestore.FieldValue.serverTimestamp(),
+        };
+
+        // Add addedBy fields for household items
+        if (householdId) {
+          itemData.addedBy = uid;
+          itemData.addedByName = userData?.displayName ||
+              userData?.email?.split("@")[0] || "Unknown";
+        }
+
+        // Use dynamic path for pantry (household or personal)
+        const pathParts = pantryPath.split("/");
         const docRef = await admin.firestore()
-            .collection("users")
-            .doc(userId)
-            .collection("pantry")
-            .add({
-              name: foodItem.name,
-              itemName: foodItem.name,
-              category: foodItem.category,
-              confidence: foodItem.confidence,
-              detectionSource: foodItem.source || "Vision API",
-              geminiDetails: foodItem.details || null,
-              detectedLabels: detectedLabels.slice(0, 5),
-              detectedObjects: detectedObjects.slice(0, 5),
-              expiryDate: finalExpiryDate,
-              quantity: 1,
-              unit: "pcs",
-              fullText: fullText.substring(0, 500),
-              addedAt: admin.firestore.FieldValue.serverTimestamp(),
-            });
+            .collection(pathParts[0])
+            .doc(pathParts[1])
+            .collection(pathParts[2])
+            .add(itemData);
         savedItems.push({
           id: docRef.id,
           name: foodItem.name,
@@ -711,8 +740,22 @@ exports.generateRecipes = onRequest({
     }
 
     const db = admin.firestore();
-    const usageRef = db.collection("users").doc(uid)
-        .collection("usage").doc("current");
+
+    // Check if user is in a household
+    const userDoc = await db.collection("users").doc(uid).get();
+    const userData = userDoc.exists ? userDoc.data() : null;
+    const householdId = userData?.householdId || null;
+
+    // Determine usage reference (household or personal)
+    let usageRef;
+    if (householdId) {
+      usageRef = db.collection("households").doc(householdId)
+          .collection("usage").doc("current");
+    } else {
+      usageRef = db.collection("users").doc(uid)
+          .collection("usage").doc("current");
+    }
+
     const usageDoc = await usageRef.get();
 
     let usageData = usageDoc.exists ? usageDoc.data() : null;
@@ -1317,6 +1360,22 @@ exports.upgradeTier = onRequest({cors: true}, async (req, res) => {
     }
 
     await usageRef.update(updates);
+
+    // Check if user is in a household and update household premium status
+    const userDoc = await db.collection("users").doc(uid).get();
+    const userData = userDoc.exists ? userDoc.data() : null;
+    if (userData && userData.householdId) {
+      const householdDoc = await db.collection("households")
+          .doc(userData.householdId).get();
+      if (householdDoc.exists) {
+        const householdData = householdDoc.data();
+        await updateHouseholdPremiumStatus(
+            userData.householdId,
+            householdData.memberIds || [],
+        );
+      }
+    }
+
     res.status(200).json({...usage, ...updates});
   } catch (error) {
     console.error("Error upgrading tier:", error);
@@ -1684,8 +1743,21 @@ exports.onRecipeRequestCreated = functions
 
       try {
         const db = admin.firestore();
-        const usageRef = db.collection("users").doc(userId)
-            .collection("usage").doc("current");
+
+        // Check if user is in a household
+        const userDoc = await db.collection("users").doc(userId).get();
+        const userData = userDoc.exists ? userDoc.data() : null;
+        const householdId = userData?.householdId || null;
+
+        // Determine usage reference (household or personal)
+        let usageRef;
+        if (householdId) {
+          usageRef = db.collection("households").doc(householdId)
+              .collection("usage").doc("current");
+        } else {
+          usageRef = db.collection("users").doc(userId)
+              .collection("usage").doc("current");
+        }
         
         // 1. Check Usage Quota
         const usageDoc = await usageRef.get();
@@ -2289,8 +2361,22 @@ exports.generateCustomRecipe = onRequest({
     }
 
     const db = admin.firestore();
-    const usageRef = db.collection("users").doc(uid)
-        .collection("usage").doc("current");
+
+    // Check if user is in a household
+    const userDoc = await db.collection("users").doc(uid).get();
+    const userData = userDoc.exists ? userDoc.data() : null;
+    const householdId = userData?.householdId || null;
+
+    // Determine usage reference (household or personal)
+    let usageRef;
+    if (householdId) {
+      usageRef = db.collection("households").doc(householdId)
+          .collection("usage").doc("current");
+    } else {
+      usageRef = db.collection("users").doc(uid)
+          .collection("usage").doc("current");
+    }
+
     const usageDoc = await usageRef.get();
 
     let usageData = usageDoc.exists ? usageDoc.data() : null;
@@ -2436,8 +2522,22 @@ exports.modifyRecipe = onRequest({
     }
 
     const db = admin.firestore();
-    const usageRef = db.collection("users").doc(uid)
-        .collection("usage").doc("current");
+
+    // Check if user is in a household
+    const userDoc = await db.collection("users").doc(uid).get();
+    const userData = userDoc.exists ? userDoc.data() : null;
+    const householdId = userData?.householdId || null;
+
+    // Determine usage reference (household or personal)
+    let usageRef;
+    if (householdId) {
+      usageRef = db.collection("households").doc(householdId)
+          .collection("usage").doc("current");
+    } else {
+      usageRef = db.collection("users").doc(uid)
+          .collection("usage").doc("current");
+    }
+
     const usageDoc = await usageRef.get();
     let usageData = usageDoc.exists ? usageDoc.data() : null;
 
@@ -2535,5 +2635,576 @@ Return the UPDATED recipe object matching the exact same schema:
       error: "Failed to modify recipe",
       details: error.message,
     });
+  }
+});
+
+// ============================================
+// HOUSEHOLD MANAGEMENT FUNCTIONS
+// ============================================
+
+/**
+ * Generate a random invite code for households
+ * @return {string} A 6-character alphanumeric code
+ */
+function generateInviteCode() {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // Removed confusing chars
+  let code = "";
+  for (let i = 0; i < 6; i++) {
+    code += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return code;
+}
+
+/**
+ * Check premium status for all household members via RevenueCat API
+ * @param {Array} memberIds - Array of user IDs
+ * @return {Promise<boolean>} True if any member has premium
+ */
+async function checkHouseholdPremiumStatus(memberIds) {
+  const REVENUECAT_API_KEY = process.env.REVENUECAT_SECRET_KEY;
+
+  if (!REVENUECAT_API_KEY) {
+    console.warn("RevenueCat API key not configured, skipping premium check");
+    return false;
+  }
+
+  for (const memberId of memberIds) {
+    try {
+      const response = await fetch(
+          `https://api.revenuecat.com/v1/subscribers/${memberId}`,
+          {
+            headers: {
+              "Authorization": `Bearer ${REVENUECAT_API_KEY}`,
+              "Content-Type": "application/json",
+            },
+          },
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        const entitlements = data.subscriber?.entitlements || {};
+        const activeEntitlements = Object.values(entitlements)
+            .filter((e) => e.expires_date === null ||
+                new Date(e.expires_date) > new Date());
+
+        if (activeEntitlements.length > 0) {
+          console.log(`Member ${memberId} has active premium entitlement`);
+          return true;
+        }
+      }
+    } catch (error) {
+      console.error(`Error checking premium for member ${memberId}:`, error);
+    }
+  }
+  return false;
+}
+
+/**
+ * Update household premium status and quotas
+ * @param {string} householdId - The household ID
+ * @param {Array} memberIds - Array of member user IDs
+ */
+async function updateHouseholdPremiumStatus(householdId, memberIds) {
+  const db = admin.firestore();
+  const hasPremium = await checkHouseholdPremiumStatus(memberIds);
+
+  const householdRef = db.collection("households").doc(householdId);
+  const usageRef = householdRef.collection("usage").doc("current");
+
+  await householdRef.update({hasPremium});
+
+  const tier = hasPremium ? "premium" : "free";
+  const quotaLimit = hasPremium ? 500 : 30;
+
+  const usageDoc = await usageRef.get();
+  if (usageDoc.exists) {
+    const currentUsage = usageDoc.data();
+    // Only update if upgrading to premium (don't decrease existing quotas)
+    if (hasPremium && currentUsage.tier !== "premium") {
+      await usageRef.update({
+        tier: "premium",
+        scansRemaining: quotaLimit,
+        recipesRemaining: quotaLimit,
+        resetDate: admin.firestore.FieldValue.serverTimestamp(),
+      });
+    } else if (!hasPremium && currentUsage.tier === "premium") {
+      // Downgrade from premium - set to free tier limits
+      await usageRef.update({
+        tier: "free",
+        scansRemaining: Math.min(currentUsage.scansRemaining, 30),
+        recipesRemaining: Math.min(currentUsage.recipesRemaining, 30),
+      });
+    }
+  }
+}
+
+exports.createHousehold = onRequest({cors: true}, async (req, res) => {
+  if (req.method !== "POST") {
+    res.status(405).json({error: "Method not allowed. Use POST."});
+    return;
+  }
+
+  try {
+    const uid = await verifyAuth(req);
+    if (!uid) {
+      res.status(401).json({error: "Unauthorized"});
+      return;
+    }
+
+    const {householdName} = req.body;
+    const db = admin.firestore();
+
+    // Check if user already in a household
+    const userDoc = await db.collection("users").doc(uid).get();
+    const userData = userDoc.exists ? userDoc.data() : {};
+
+    if (userData.householdId) {
+      res.status(400).json({
+        error: "Already in a household",
+        message: "You must leave your current household before creating a new one.",
+      });
+      return;
+    }
+
+    // Check 7-day cooldown period
+    if (userData.lastLeftHouseholdAt) {
+      const lastLeft = userData.lastLeftHouseholdAt.toDate();
+      const daysSinceLeft = (Date.now() - lastLeft.getTime()) / (1000 * 60 * 60 * 24);
+      if (daysSinceLeft < 7) {
+        const daysRemaining = Math.ceil(7 - daysSinceLeft);
+        res.status(400).json({
+          error: "Cooldown period active",
+          message: `You must wait ${daysRemaining} more day(s) before creating or joining a household.`,
+          daysRemaining,
+        });
+        return;
+      }
+    }
+
+    // Generate unique invite code
+    let inviteCode;
+    let codeExists = true;
+    while (codeExists) {
+      inviteCode = generateInviteCode();
+      const existingHousehold = await db.collection("households")
+          .where("inviteCode", "==", inviteCode)
+          .limit(1)
+          .get();
+      codeExists = !existingHousehold.empty;
+    }
+
+    // Get user's display name for member tracking
+    const authUser = await admin.auth().getUser(uid);
+    const displayName = authUser.displayName || authUser.email || "Unknown";
+
+    // Create household
+    const householdRef = await db.collection("households").add({
+      name: householdName || `${displayName}'s Household`,
+      createdBy: uid,
+      memberIds: [uid],
+      members: [{
+        id: uid,
+        name: displayName,
+        joinedAt: new Date().toISOString(),
+      }],
+      inviteCode,
+      hasPremium: false,
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+    });
+
+    const householdId = householdRef.id;
+
+    // Move user's pantry items to household
+    const userPantryRef = db.collection("users").doc(uid).collection("pantry");
+    const pantrySnapshot = await userPantryRef.get();
+
+    const batch = db.batch();
+    const householdPantryRef = db.collection("households")
+        .doc(householdId).collection("pantry");
+
+    pantrySnapshot.forEach((doc) => {
+      const itemData = doc.data();
+      const newItemRef = householdPantryRef.doc(doc.id);
+      batch.set(newItemRef, {
+        ...itemData,
+        addedBy: uid,
+        addedByName: displayName,
+        movedToHousehold: admin.firestore.FieldValue.serverTimestamp(),
+      });
+      // Delete from personal pantry
+      batch.delete(doc.ref);
+    });
+
+    // Archive user's personal credits before joining household
+    const userUsageRef = db.collection("users").doc(uid)
+        .collection("usage").doc("current");
+    const userUsageDoc = await userUsageRef.get();
+    const userUsage = userUsageDoc.exists ? userUsageDoc.data() : null;
+
+    // Update user document with householdId and archive credits
+    const userUpdate = {
+      householdId,
+    };
+    if (userUsage) {
+      userUpdate.archivedScansRemaining = userUsage.scansRemaining || 0;
+      userUpdate.archivedRecipesRemaining = userUsage.recipesRemaining || 0;
+      userUpdate.archivedTier = userUsage.tier || "free";
+    }
+    // Use set with merge to create user doc if it doesn't exist
+    batch.set(db.collection("users").doc(uid), userUpdate, {merge: true});
+
+    // Create household usage document with fresh 30/30 (free) or 500/500 (premium)
+    const householdUsageRef = db.collection("households")
+        .doc(householdId).collection("usage").doc("current");
+
+    // Check if creator has premium
+    const hasPremium = userUsage?.tier === "premium";
+    const quotaLimit = hasPremium ? 500 : 30;
+
+    const initialUsage = {
+      tier: hasPremium ? "premium" : "free",
+      scansRemaining: quotaLimit,
+      recipesRemaining: quotaLimit,
+      totalScansUsed: 0,
+      totalRecipesUsed: 0,
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      resetDate: null,
+    };
+
+    batch.set(householdUsageRef, initialUsage);
+
+    await batch.commit();
+
+    // Check premium status for the household
+    await updateHouseholdPremiumStatus(householdId, [uid]);
+
+    res.status(200).json({
+      success: true,
+      householdId,
+      inviteCode,
+      message: "Household created successfully",
+      itemsMoved: pantrySnapshot.size,
+    });
+  } catch (error) {
+    console.error("Error creating household:", error);
+    res.status(500).json({error: "Internal server error", details: error.message});
+  }
+});
+
+exports.joinHousehold = onRequest({cors: true}, async (req, res) => {
+  if (req.method !== "POST") {
+    res.status(405).json({error: "Method not allowed. Use POST."});
+    return;
+  }
+
+  try {
+    const uid = await verifyAuth(req);
+    if (!uid) {
+      res.status(401).json({error: "Unauthorized"});
+      return;
+    }
+
+    const {inviteCode} = req.body;
+    if (!inviteCode) {
+      res.status(400).json({error: "Missing invite code"});
+      return;
+    }
+
+    const db = admin.firestore();
+
+    // Check if user already in a household
+    const userDoc = await db.collection("users").doc(uid).get();
+    const userData = userDoc.exists ? userDoc.data() : {};
+
+    if (userData.householdId) {
+      res.status(400).json({
+        error: "Already in a household",
+        message: "You must leave your current household before joining another.",
+      });
+      return;
+    }
+
+    // Check 7-day cooldown period
+    if (userData.lastLeftHouseholdAt) {
+      const lastLeft = userData.lastLeftHouseholdAt.toDate();
+      const daysSinceLeft = (Date.now() - lastLeft.getTime()) / (1000 * 60 * 60 * 24);
+      if (daysSinceLeft < 7) {
+        const daysRemaining = Math.ceil(7 - daysSinceLeft);
+        res.status(400).json({
+          error: "Cooldown period active",
+          message: `You must wait ${daysRemaining} more day(s) before creating or joining a household.`,
+          daysRemaining,
+        });
+        return;
+      }
+    }
+
+    // Find household by invite code
+    const householdQuery = await db.collection("households")
+        .where("inviteCode", "==", inviteCode.toUpperCase())
+        .limit(1)
+        .get();
+
+    if (householdQuery.empty) {
+      res.status(404).json({error: "Invalid invite code"});
+      return;
+    }
+
+    const householdDoc = householdQuery.docs[0];
+    const householdId = householdDoc.id;
+    const householdData = householdDoc.data();
+
+    // Check member limit (10 max)
+    if (householdData.memberIds.length >= 10) {
+      res.status(400).json({
+        error: "Household full",
+        message: "This household has reached the maximum of 10 members.",
+      });
+      return;
+    }
+
+    // Get user's display name
+    const authUser = await admin.auth().getUser(uid);
+    const displayName = authUser.displayName || authUser.email || "Unknown";
+
+    // Get user's current usage to archive
+    const userUsageRef = db.collection("users").doc(uid)
+        .collection("usage").doc("current");
+    const userUsageDoc = await userUsageRef.get();
+    const userUsage = userUsageDoc.exists ? userUsageDoc.data() : null;
+
+    const batch = db.batch();
+
+    // Delete user's personal pantry items (they're joining a shared pantry)
+    const userPantryRef = db.collection("users").doc(uid).collection("pantry");
+    const pantrySnapshot = await userPantryRef.get();
+    pantrySnapshot.forEach((doc) => {
+      batch.delete(doc.ref);
+    });
+
+    // Add user to household
+    batch.update(householdDoc.ref, {
+      memberIds: admin.firestore.FieldValue.arrayUnion(uid),
+      members: admin.firestore.FieldValue.arrayUnion({
+        id: uid,
+        name: displayName,
+        joinedAt: new Date().toISOString(),
+      }),
+    });
+
+    // Update user document with householdId and archive credits
+    const userUpdate = {
+      householdId,
+    };
+    if (userUsage) {
+      userUpdate.archivedScansRemaining = userUsage.scansRemaining || 0;
+      userUpdate.archivedRecipesRemaining = userUsage.recipesRemaining || 0;
+      userUpdate.archivedTier = userUsage.tier || "free";
+    }
+    // Use set with merge to create user doc if it doesn't exist
+    batch.set(db.collection("users").doc(uid), userUpdate, {merge: true});
+
+    await batch.commit();
+
+    // Check premium status for the updated household
+    const updatedMemberIds = [...householdData.memberIds, uid];
+    await updateHouseholdPremiumStatus(householdId, updatedMemberIds);
+
+    res.status(200).json({
+      success: true,
+      householdId,
+      householdName: householdData.name,
+      message: "Successfully joined household",
+      itemsDeleted: pantrySnapshot.size,
+    });
+  } catch (error) {
+    console.error("Error joining household:", error);
+    res.status(500).json({error: "Internal server error", details: error.message});
+  }
+});
+
+exports.leaveHousehold = onRequest({cors: true}, async (req, res) => {
+  if (req.method !== "POST") {
+    res.status(405).json({error: "Method not allowed. Use POST."});
+    return;
+  }
+
+  try {
+    const uid = await verifyAuth(req);
+    if (!uid) {
+      res.status(401).json({error: "Unauthorized"});
+      return;
+    }
+
+    const db = admin.firestore();
+
+    // Get user's household
+    const userDoc = await db.collection("users").doc(uid).get();
+    const userData = userDoc.exists ? userDoc.data() : {};
+
+    if (!userData.householdId) {
+      res.status(400).json({
+        error: "Not in a household",
+        message: "You are not currently in a household.",
+      });
+      return;
+    }
+
+    const householdId = userData.householdId;
+    const householdRef = db.collection("households").doc(householdId);
+    const householdDoc = await householdRef.get();
+
+    if (!householdDoc.exists) {
+      // Household doesn't exist, just clean up user
+      await db.collection("users").doc(uid).update({
+        householdId: admin.firestore.FieldValue.delete(),
+      });
+      res.status(200).json({success: true, message: "Left household"});
+      return;
+    }
+
+    const householdData = householdDoc.data();
+    const remainingMembers = householdData.memberIds.filter((id) => id !== uid);
+
+    const batch = db.batch();
+
+    if (remainingMembers.length === 0) {
+      // Last member leaving - delete household and all its data
+      const householdPantryRef = householdRef.collection("pantry");
+      const pantrySnapshot = await householdPantryRef.get();
+      pantrySnapshot.forEach((doc) => {
+        batch.delete(doc.ref);
+      });
+
+      const usageRef = householdRef.collection("usage").doc("current");
+      batch.delete(usageRef);
+      batch.delete(householdRef);
+    } else {
+      // Remove user from household
+      const updatedMembers = (householdData.members || [])
+          .filter((m) => m.id !== uid);
+
+      batch.update(householdRef, {
+        memberIds: remainingMembers,
+        members: updatedMembers,
+      });
+    }
+
+    // Remove householdId from user and set cooldown timestamp
+    // Also restore archived credits if available
+    const userUpdateData = {
+      householdId: admin.firestore.FieldValue.delete(),
+      lastLeftHouseholdAt: admin.firestore.FieldValue.serverTimestamp(),
+      // Clean up archived fields after restoring
+      archivedScansRemaining: admin.firestore.FieldValue.delete(),
+      archivedRecipesRemaining: admin.firestore.FieldValue.delete(),
+      archivedTier: admin.firestore.FieldValue.delete(),
+    };
+    batch.update(db.collection("users").doc(uid), userUpdateData);
+
+    // Restore user's personal usage from archived credits or create new
+    const userUsageRef = db.collection("users").doc(uid)
+        .collection("usage").doc("current");
+    
+    // Determine credits to restore
+    const archivedScans = userData.archivedScansRemaining;
+    const archivedRecipes = userData.archivedRecipesRemaining;
+    const archivedTier = userData.archivedTier || "free";
+    
+    // If user had archived credits, restore them; otherwise give fresh 30/30
+    const scansToRestore = (archivedScans !== undefined && archivedScans !== null) 
+        ? archivedScans : 30;
+    const recipesToRestore = (archivedRecipes !== undefined && archivedRecipes !== null) 
+        ? archivedRecipes : 30;
+    
+    batch.set(userUsageRef, {
+      tier: archivedTier,
+      scansRemaining: scansToRestore,
+      recipesRemaining: recipesToRestore,
+      totalScansUsed: 0,
+      totalRecipesUsed: 0,
+      lastMonthlyBonusDate: admin.firestore.FieldValue.serverTimestamp(),
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      resetDate: null,
+      restoredFromHousehold: true,
+    });
+
+    await batch.commit();
+
+    // Update premium status for remaining members
+    if (remainingMembers.length > 0) {
+      await updateHouseholdPremiumStatus(householdId, remainingMembers);
+    }
+
+    res.status(200).json({
+      success: true,
+      message: remainingMembers.length === 0 ?
+          "Left and deleted household" : "Left household",
+      householdDeleted: remainingMembers.length === 0,
+    });
+  } catch (error) {
+    console.error("Error leaving household:", error);
+    res.status(500).json({error: "Internal server error", details: error.message});
+  }
+});
+
+exports.getHouseholdInfo = onRequest({cors: true}, async (req, res) => {
+  if (req.method !== "GET") {
+    res.status(405).json({error: "Method not allowed. Use GET."});
+    return;
+  }
+
+  try {
+    const uid = await verifyAuth(req);
+    if (!uid) {
+      res.status(401).json({error: "Unauthorized"});
+      return;
+    }
+
+    const db = admin.firestore();
+
+    // Get user's household
+    const userDoc = await db.collection("users").doc(uid).get();
+    const userData = userDoc.exists ? userDoc.data() : {};
+
+    if (!userData.householdId) {
+      res.status(200).json({inHousehold: false});
+      return;
+    }
+
+    const householdId = userData.householdId;
+    const householdDoc = await db.collection("households")
+        .doc(householdId).get();
+
+    if (!householdDoc.exists) {
+      // Clean up stale reference
+      await db.collection("users").doc(uid).update({
+        householdId: admin.firestore.FieldValue.delete(),
+      });
+      res.status(200).json({inHousehold: false});
+      return;
+    }
+
+    const householdData = householdDoc.data();
+
+    // Get usage data
+    const usageDoc = await db.collection("households")
+        .doc(householdId).collection("usage").doc("current").get();
+    const usageData = usageDoc.exists ? usageDoc.data() : null;
+
+    res.status(200).json({
+      inHousehold: true,
+      householdId,
+      name: householdData.name,
+      inviteCode: householdData.inviteCode,
+      members: householdData.members || [],
+      memberCount: householdData.memberIds.length,
+      hasPremium: householdData.hasPremium || false,
+      usage: usageData,
+      createdAt: householdData.createdAt,
+    });
+  } catch (error) {
+    console.error("Error getting household info:", error);
+    res.status(500).json({error: "Internal server error", details: error.message});
   }
 });

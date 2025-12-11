@@ -16,6 +16,12 @@ export const config = {
   generateCustomRecipe: 'https://us-central1-pantryai-3d396.cloudfunctions.net/generateCustomRecipe',
   modifyRecipe: 'https://us-central1-pantryai-3d396.cloudfunctions.net/modifyRecipe',
   
+  // Household Functions
+  createHousehold: 'https://createhousehold-awiyk42b4q-uc.a.run.app',
+  joinHousehold: 'https://joinhousehold-awiyk42b4q-uc.a.run.app',
+  leaveHousehold: 'https://leavehousehold-awiyk42b4q-uc.a.run.app',
+  getHouseholdInfo: 'https://gethouseholdinfo-awiyk42b4q-uc.a.run.app',
+  
   // RevenueCat API Keys
   revenueCat: {
     ios: 'appl_mhVIozZXkZvAnHbOlkAvqbyJrbq',

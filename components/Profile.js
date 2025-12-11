@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -11,6 +11,8 @@ import {
   KeyboardAvoidingView,
   Platform,
   Linking,
+  Share,
+  Modal,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { 
@@ -29,6 +31,7 @@ import { t } from '../contexts/translations';
 import LanguageSelector from './LanguageSelector';
 import PremiumPlansScreen from './PremiumPlansScreen';
 import { getUserUsage, redeemGiftCode, checkAndApplyMonthlyBonus } from '../utils/usageTracking';
+import { config } from '../config';
 
 export default function Profile({ navigation }) {
   const [user, setUser] = useState(null);
@@ -45,6 +48,12 @@ export default function Profile({ navigation }) {
   const [showGiftCode, setShowGiftCode] = useState(false);
   const [usageData, setUsageData] = useState(null);
   const [loadingUsage, setLoadingUsage] = useState(false);
+  // Household state
+  const [householdInfo, setHouseholdInfo] = useState(null);
+  const [loadingHousehold, setLoadingHousehold] = useState(false);
+  const [showJoinModal, setShowJoinModal] = useState(false);
+  const [joinCode, setJoinCode] = useState('');
+  const [householdAction, setHouseholdAction] = useState(null); // 'creating', 'joining', 'leaving'
   const { language, getLanguageBadge } = useLanguage();
 
   useEffect(() => {
@@ -56,6 +65,7 @@ export default function Profile({ navigation }) {
       if (currentUser) {
         loadUsageData(currentUser.uid);
         checkMonthlyBonus(currentUser.uid);
+        loadHouseholdInfo();
       }
     });
     return unsubscribe;
@@ -63,9 +73,10 @@ export default function Profile({ navigation }) {
 
   // Reload usage data when screen comes into focus
   useFocusEffect(
-    React.useCallback(() => {
+    useCallback(() => {
       if (user) {
         loadUsageData(user.uid);
+        loadHouseholdInfo();
       }
     }, [user])
   );
@@ -79,6 +90,209 @@ export default function Profile({ navigation }) {
       console.error('Error loading usage data:', error);
     } finally {
       setLoadingUsage(false);
+    }
+  };
+
+  // Load household info
+  const loadHouseholdInfo = async () => {
+    try {
+      setLoadingHousehold(true);
+      const token = await auth.currentUser?.getIdToken();
+      if (!token) {
+        setHouseholdInfo(null);
+        return;
+      }
+
+      const response = await fetch(config.getHouseholdInfo, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      const data = await response.json();
+      
+      if (response.ok) {
+        // Check if user is actually in a household
+        if (data.inHousehold) {
+          setHouseholdInfo(data);
+        } else {
+          setHouseholdInfo(null);
+        }
+      } else if (response.status === 404) {
+        // Not in a household
+        setHouseholdInfo(null);
+      } else {
+        console.error('Error loading household info:', data.error);
+        setHouseholdInfo(null);
+      }
+    } catch (error) {
+      console.error('Error loading household info:', error);
+      setHouseholdInfo(null);
+    } finally {
+      setLoadingHousehold(false);
+    }
+  };
+
+  // Create household
+  const handleCreateHousehold = async () => {
+    if (householdAction) return;
+    
+    try {
+      setHouseholdAction('creating');
+      const token = await auth.currentUser?.getIdToken();
+      
+      const response = await fetch(config.createHousehold, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      const data = await response.json();
+      
+      if (response.ok) {
+        // Small delay to ensure Firestore has written the data
+        await new Promise(resolve => setTimeout(resolve, 500));
+        // Reload full household info to get proper structure
+        await loadHouseholdInfo();
+        Alert.alert(
+          t('success', language),
+          t('householdCreated', language) || 'Household created successfully!'
+        );
+      } else {
+        Alert.alert(t('error', language), data.error || t('failedToCreate', language));
+      }
+    } catch (error) {
+      console.error('Error creating household:', error);
+      // Check if household was actually created despite the error
+      await loadHouseholdInfo();
+      Alert.alert(t('error', language), t('networkError', language));
+    } finally {
+      setHouseholdAction(null);
+    }
+  };
+
+  // Join household
+  const handleJoinHousehold = async () => {
+    if (!joinCode.trim()) {
+      Alert.alert(t('error', language), t('enterInviteCode', language) || 'Please enter an invite code');
+      return;
+    }
+
+    try {
+      setHouseholdAction('joining');
+      const token = await auth.currentUser?.getIdToken();
+      
+      const response = await fetch(config.joinHousehold, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ inviteCode: joinCode.trim().toUpperCase() }),
+      });
+
+      const data = await response.json();
+      
+      if (response.ok) {
+        // Reload full household info to get proper structure
+        await loadHouseholdInfo();
+        setShowJoinModal(false);
+        setJoinCode('');
+        Alert.alert(
+          t('success', language),
+          t('joinedHousehold', language) || 'Joined household successfully!'
+        );
+      } else {
+        Alert.alert(t('error', language), data.error || t('invalidInviteCode', language));
+      }
+    } catch (error) {
+      console.error('Error joining household:', error);
+      Alert.alert(t('error', language), t('networkError', language));
+    } finally {
+      setHouseholdAction(null);
+    }
+  };
+
+  // Leave household
+  const handleLeaveHousehold = async () => {
+    const memberCount = householdInfo?.members?.length || 0;
+    const isLastMember = memberCount <= 1;
+    
+    const message = isLastMember
+      ? (t('lastMemberWarning', language) || 'You are the last member. Leaving will delete the household and all shared items.')
+      : (t('leaveWarning', language) || 'Are you sure you want to leave this household?');
+
+    Alert.alert(
+      t('leaveHousehold', language) || 'Leave Household',
+      message,
+      [
+        { text: t('cancel', language), style: 'cancel' },
+        {
+          text: t('leave', language) || 'Leave',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              setHouseholdAction('leaving');
+              const token = await auth.currentUser?.getIdToken();
+              
+              const response = await fetch(config.leaveHousehold, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${token}`,
+                },
+              });
+
+              const data = await response.json();
+              
+              if (response.ok) {
+                setHouseholdInfo(null);
+                Alert.alert(
+                  t('success', language),
+                  t('leftHousehold', language) || 'You have left the household.'
+                );
+              } else {
+                Alert.alert(t('error', language), data.error);
+              }
+            } catch (error) {
+              console.error('Error leaving household:', error);
+              Alert.alert(t('error', language), t('networkError', language));
+            } finally {
+              setHouseholdAction(null);
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  // Copy invite code (uses Share API since Clipboard needs native build)
+  const handleCopyInviteCode = async () => {
+    if (householdInfo?.inviteCode) {
+      try {
+        await Share.share({
+          message: householdInfo.inviteCode,
+        });
+      } catch (error) {
+        // User cancelled or error - show the code in alert as fallback
+        Alert.alert(t('inviteCode', language), householdInfo.inviteCode);
+      }
+    }
+  };
+
+  // Share invite code
+  const handleShareInviteCode = async () => {
+    if (householdInfo?.inviteCode) {
+      try {
+        await Share.share({
+          message: `${t('joinMyHousehold', language) || 'Join my Shelfze household!'} ${t('useCode', language) || 'Use code:'} ${householdInfo.inviteCode}`,
+        });
+      } catch (error) {
+        console.error('Error sharing:', error);
+      }
     }
   };
 
@@ -621,6 +835,151 @@ export default function Profile({ navigation }) {
           </TouchableOpacity>
         )}
       </View>
+
+      {/* Household Section */}
+      <View style={styles.householdCard}>
+        <View style={styles.householdHeader}>
+          <Text style={styles.householdIcon}>🏠</Text>
+          <Text style={styles.householdTitle}>{t('household', language) || 'Household'}</Text>
+          {loadingHousehold && <ActivityIndicator size="small" color="#4A7C59" style={{ marginLeft: 8 }} />}
+        </View>
+
+        {householdInfo ? (
+          // User is in a household
+          <View style={styles.householdContent}>
+            {/* Members */}
+            <View style={styles.membersSection}>
+              <Text style={styles.membersLabel}>{t('members', language) || 'Members'} ({householdInfo.members?.length || 0}/10)</Text>
+              <View style={styles.membersList}>
+                {householdInfo.members?.map((member, index) => (
+                  <View key={member.id || index} style={styles.memberItem}>
+                    <Text style={styles.memberAvatar}>👤</Text>
+                    <Text style={styles.memberName}>{member.displayName || member.email || t('unnamed', language)}</Text>
+                    {member.isPremium && <Text style={styles.memberPremium}>👑</Text>}
+                  </View>
+                ))}
+              </View>
+            </View>
+
+            {/* Premium Status */}
+            {householdInfo.hasPremium && (
+              <View style={styles.householdPremiumBanner}>
+                <Text style={styles.householdPremiumText}>👑 {t('householdPremium', language) || 'Premium Household'}</Text>
+              </View>
+            )}
+
+            {/* Invite Code */}
+            <View style={styles.inviteCodeSection}>
+              <Text style={styles.inviteCodeLabel}>{t('inviteCode', language) || 'Invite Code'}</Text>
+              <View style={styles.inviteCodeContainer}>
+                <Text style={styles.inviteCodeText}>{householdInfo.inviteCode}</Text>
+                <TouchableOpacity style={styles.copyButton} onPress={handleCopyInviteCode}>
+                  <Text style={styles.copyButtonText}>📋</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.shareButton} onPress={handleShareInviteCode}>
+                  <Text style={styles.shareButtonText}>📤</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            {/* Leave Button */}
+            <TouchableOpacity 
+              style={styles.leaveHouseholdButton}
+              onPress={handleLeaveHousehold}
+              disabled={householdAction === 'leaving'}
+            >
+              {householdAction === 'leaving' ? (
+                <ActivityIndicator size="small" color="#E07A5F" />
+              ) : (
+                <Text style={styles.leaveHouseholdText}>🚪 {t('leaveHousehold', language) || 'Leave Household'}</Text>
+              )}
+            </TouchableOpacity>
+          </View>
+        ) : (
+          // User is not in a household
+          <View style={styles.householdContent}>
+            <Text style={styles.householdDescription}>
+              {t('householdDescription', language) || 'Share your pantry with family members. One premium subscription covers everyone!'}
+            </Text>
+
+            <View style={styles.householdActions}>
+              <TouchableOpacity 
+                style={styles.createHouseholdButton}
+                onPress={handleCreateHousehold}
+                disabled={householdAction === 'creating'}
+              >
+                {householdAction === 'creating' ? (
+                  <ActivityIndicator size="small" color="#fff" />
+                ) : (
+                  <Text style={styles.createHouseholdText}>🏠 {t('createHousehold', language) || 'Create Household'}</Text>
+                )}
+              </TouchableOpacity>
+
+              <TouchableOpacity 
+                style={styles.joinHouseholdButton}
+                onPress={() => setShowJoinModal(true)}
+                disabled={householdAction === 'joining'}
+              >
+                {householdAction === 'joining' ? (
+                  <ActivityIndicator size="small" color="#4A7C59" />
+                ) : (
+                  <Text style={styles.joinHouseholdText}>🔗 {t('joinHousehold', language) || 'Join Household'}</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
+      </View>
+
+      {/* Join Household Modal */}
+      <Modal
+        visible={showJoinModal}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowJoinModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.joinModalContent}>
+            <Text style={styles.joinModalTitle}>{t('joinHousehold', language) || 'Join Household'}</Text>
+            <Text style={styles.joinModalDescription}>
+              {t('enterInviteCodeDesc', language) || 'Enter the invite code shared by a household member.'}
+            </Text>
+            
+            <TextInput
+              style={styles.joinCodeInput}
+              placeholder={t('inviteCodePlaceholder', language) || 'Enter 6-character code'}
+              value={joinCode}
+              onChangeText={(text) => setJoinCode(text.toUpperCase())}
+              autoCapitalize="characters"
+              maxLength={6}
+            />
+
+            <View style={styles.joinModalButtons}>
+              <TouchableOpacity 
+                style={styles.joinModalCancelButton}
+                onPress={() => {
+                  setShowJoinModal(false);
+                  setJoinCode('');
+                }}
+              >
+                <Text style={styles.joinModalCancelText}>{t('cancel', language)}</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                style={styles.joinModalConfirmButton}
+                onPress={handleJoinHousehold}
+                disabled={householdAction === 'joining' || joinCode.length < 6}
+              >
+                {householdAction === 'joining' ? (
+                  <ActivityIndicator size="small" color="#fff" />
+                ) : (
+                  <Text style={styles.joinModalConfirmText}>{t('join', language) || 'Join'}</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
 
       {/* Gift Code Section - HIDDEN FOR APP STORE COMPLIANCE */}
       {false && (
@@ -1305,5 +1664,227 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: '#999',
     fontStyle: 'italic',
+  },
+  // Household Styles
+  householdCard: {
+    backgroundColor: '#fff',
+    borderRadius: 22,
+    padding: 22,
+    marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  householdHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 15,
+  },
+  householdIcon: {
+    fontSize: 24,
+    marginRight: 10,
+  },
+  householdTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#3D405B',
+  },
+  householdContent: {
+    marginTop: 5,
+  },
+  householdDescription: {
+    fontSize: 14,
+    color: '#666',
+    lineHeight: 20,
+    marginBottom: 20,
+  },
+  membersSection: {
+    marginBottom: 15,
+  },
+  membersLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#3D405B',
+    marginBottom: 10,
+  },
+  membersList: {
+    gap: 8,
+  },
+  memberItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f9f9f9',
+    padding: 12,
+    borderRadius: 10,
+  },
+  memberAvatar: {
+    fontSize: 20,
+    marginRight: 10,
+  },
+  memberName: {
+    flex: 1,
+    fontSize: 14,
+    color: '#3D405B',
+  },
+  memberPremium: {
+    fontSize: 16,
+  },
+  householdPremiumBanner: {
+    backgroundColor: '#FFF3E0',
+    borderWidth: 2,
+    borderColor: '#FFB74D',
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 15,
+    alignItems: 'center',
+  },
+  householdPremiumText: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#E07A5F',
+  },
+  inviteCodeSection: {
+    marginBottom: 15,
+  },
+  inviteCodeLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#3D405B',
+    marginBottom: 8,
+  },
+  inviteCodeContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f0f0f0',
+    borderRadius: 12,
+    padding: 12,
+  },
+  inviteCodeText: {
+    flex: 1,
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#4A7C59',
+    letterSpacing: 4,
+    textAlign: 'center',
+  },
+  copyButton: {
+    padding: 8,
+    marginLeft: 8,
+  },
+  copyButtonText: {
+    fontSize: 20,
+  },
+  shareButton: {
+    padding: 8,
+  },
+  shareButtonText: {
+    fontSize: 20,
+  },
+  leaveHouseholdButton: {
+    backgroundColor: '#fff',
+    borderWidth: 2,
+    borderColor: '#E07A5F',
+    borderRadius: 12,
+    padding: 14,
+    alignItems: 'center',
+  },
+  leaveHouseholdText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#E07A5F',
+  },
+  householdActions: {
+    gap: 12,
+  },
+  createHouseholdButton: {
+    backgroundColor: '#4A7C59',
+    borderRadius: 12,
+    padding: 16,
+    alignItems: 'center',
+  },
+  createHouseholdText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#fff',
+  },
+  joinHouseholdButton: {
+    backgroundColor: '#fff',
+    borderWidth: 2,
+    borderColor: '#4A7C59',
+    borderRadius: 12,
+    padding: 16,
+    alignItems: 'center',
+  },
+  joinHouseholdText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#4A7C59',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  joinModalContent: {
+    backgroundColor: '#fff',
+    borderRadius: 22,
+    padding: 24,
+    width: '100%',
+    maxWidth: 400,
+  },
+  joinModalTitle: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#3D405B',
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  joinModalDescription: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  joinCodeInput: {
+    backgroundColor: '#f0f0f0',
+    borderRadius: 12,
+    padding: 16,
+    fontSize: 24,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    letterSpacing: 4,
+    marginBottom: 20,
+  },
+  joinModalButtons: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  joinModalCancelButton: {
+    flex: 1,
+    backgroundColor: '#f0f0f0',
+    borderRadius: 12,
+    padding: 14,
+    alignItems: 'center',
+  },
+  joinModalCancelText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#666',
+  },
+  joinModalConfirmButton: {
+    flex: 1,
+    backgroundColor: '#4A7C59',
+    borderRadius: 12,
+    padding: 14,
+    alignItems: 'center',
+  },
+  joinModalConfirmText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#fff',
   },
 });

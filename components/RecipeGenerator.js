@@ -14,7 +14,7 @@ import {
   Share,
   Modal
 } from 'react-native';
-import { getFirestore, collection, query, onSnapshot, addDoc, doc } from 'firebase/firestore';
+import { getFirestore, collection, query, onSnapshot, addDoc, doc, getDoc } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
 import { app, auth } from '../firebase.config';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -144,7 +144,7 @@ export default function RecipeGenerator() {
     let unsubscribeSnapshot = null;
     
     // Wait for authentication
-    const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
+    const unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
       // Cleanup previous snapshot listener if it exists
       if (unsubscribeSnapshot) {
         unsubscribeSnapshot();
@@ -164,7 +164,22 @@ export default function RecipeGenerator() {
         console.log('Loading pantry items for user:', userId);
       }
 
-      const q = query(collection(db, `users/${userId}/pantry`));
+      // Check if user is in a household
+      let pantryPath = `users/${userId}/pantry`;
+      try {
+        const userDoc = await getDoc(doc(db, 'users', userId));
+        const userData = userDoc.exists() ? userDoc.data() : null;
+        if (userData?.householdId) {
+          pantryPath = `households/${userData.householdId}/pantry`;
+          if (__DEV__) {
+            console.log('Using household pantry:', pantryPath);
+          }
+        }
+      } catch (error) {
+        console.error('Error checking household:', error);
+      }
+
+      const q = query(collection(db, pantryPath));
 
       unsubscribeSnapshot = onSnapshot(
         q,

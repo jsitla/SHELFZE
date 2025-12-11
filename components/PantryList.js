@@ -16,7 +16,7 @@ import {
   ScrollView,
   Keyboard,
 } from 'react-native';
-import { getFirestore, collection, query, orderBy, onSnapshot, deleteDoc, doc, updateDoc } from 'firebase/firestore';
+import { getFirestore, collection, query, orderBy, onSnapshot, deleteDoc, doc, updateDoc, getDoc } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useFocusEffect } from '@react-navigation/native';
@@ -44,6 +44,8 @@ export default function PantryList({ navigation }) {
   const [showSearch, setShowSearch] = useState(false);
   const [sortOption, setSortOption] = useState('expiryAsc');
   const [sortModalVisible, setSortModalVisible] = useState(false);
+  const [householdId, setHouseholdId] = useState(null);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
   const { language } = useLanguage();
 
   // Food categories for filtering
@@ -59,14 +61,46 @@ export default function PantryList({ navigation }) {
   // 3. Import and configure your Firebase connection details for the client-side app.
   const db = getFirestore(app);
 
-  // Add focus effect to log when screen is focused
+  // Helper to get the pantry path based on household membership
+  const getPantryPath = (userId, hId) => {
+    if (hId) {
+      return `households/${hId}/pantry`;
+    }
+    return `users/${userId}/pantry`;
+  };
+
+  // Add focus effect to check for household changes when screen is focused
   useFocusEffect(
     React.useCallback(() => {
       console.log('📱 PantryList screen focused');
+      
+      // Check if household status changed
+      const checkHouseholdStatus = async () => {
+        const user = auth.currentUser;
+        if (user) {
+          try {
+            const userDoc = await getDoc(doc(db, 'users', user.uid));
+            const userData = userDoc.exists() ? userDoc.data() : null;
+            const currentHouseholdId = userData?.householdId || null;
+            
+            // If household status changed, trigger a refresh
+            if (currentHouseholdId !== householdId) {
+              console.log('🏠 Household status changed, refreshing...');
+              setHouseholdId(currentHouseholdId);
+              setRefreshTrigger(prev => prev + 1);
+            }
+          } catch (error) {
+            console.error('Error checking household status:', error);
+          }
+        }
+      };
+      
+      checkHouseholdStatus();
+      
       return () => {
         console.log('📱 PantryList screen unfocused');
       };
-    }, [])
+    }, [householdId])
   );
 
   // 4. Write a useEffect hook that sets up a real-time listener to the 'pantry' collection in Firestore.
@@ -78,7 +112,7 @@ export default function PantryList({ navigation }) {
     let unsubscribeSnapshot = null;
     
     // Wait for authentication state to be ready
-    const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
+    const unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
       // Cleanup previous snapshot listener if it exists
       if (unsubscribeSnapshot) {
         unsubscribeSnapshot();
@@ -98,68 +132,83 @@ export default function PantryList({ navigation }) {
         console.log('👤 Loading pantry for user:', userId);
       }
       
-      // The query should order items by 'expiryDate' in ascending order.
-      // NOW USING USER-SPECIFIC PATH: users/{userId}/pantry
-      // REMOVED orderBy('expiryDate') to ensure items without expiry date are also fetched
-      const q = query(
-        collection(db, `users/${userId}/pantry`)
-      );
-
-      // Use the onSnapshot() method.
-      unsubscribeSnapshot = onSnapshot(
-        q,
-        (querySnapshot) => {
-          if (__DEV__) {
-            console.log('📦 Received pantry snapshot, items count:', querySnapshot.size);
-          }
-          
-          // In the callback, map the query snapshot to an array of objects and update the 'items' state.
-          const pantryItems = [];
-          querySnapshot.forEach((doc) => {
-            pantryItems.push({
-              id: doc.id,
-              ...doc.data()
-            });
-          });
-
-          // Sort items client-side: items with expiry date first (asc), then items without
-          pantryItems.sort((a, b) => {
-            if (a.expiryDate && b.expiryDate) {
-              return new Date(a.expiryDate) - new Date(b.expiryDate);
-            }
-            if (a.expiryDate) return -1; // a has date, b doesn't -> a comes first
-            if (b.expiryDate) return 1;  // b has date, a doesn't -> b comes first
-            return 0; // neither has date
-          });
-          
-          if (__DEV__) {
-            console.log('✅ Pantry items updated:', pantryItems.length);
-            
-            // Log unique categories for debugging
-            const uniqueCategories = [...new Set(pantryItems.map(item => item.category))];
-            console.log('📊 Unique categories in data:', uniqueCategories);
-          }
-          
-          setItems(pantryItems);
-          setFilteredItems(pantryItems);
-          setLoading(false);
-        },
-        (error) => {
-          // Silently handle permission errors during auth transitions
-          if (error.code === 'permission-denied') {
-            if (__DEV__) {
-              console.log('Permission denied - user may be signing out');
-            }
-            setItems([]);
-            setFilteredItems([]);
-            setLoading(false);
-            return;
-          }
-          console.error('❌ Error fetching pantry items:', error);
-          Alert.alert('Error', 'Failed to load pantry items');
-          setLoading(false);
+      // Check if user is in a household
+      try {
+        const userDoc = await getDoc(doc(db, 'users', userId));
+        const userData = userDoc.exists() ? userDoc.data() : null;
+        const hId = userData?.householdId || null;
+        setHouseholdId(hId);
+        
+        if (__DEV__) {
+          console.log('🏠 Household ID:', hId || 'None (personal pantry)');
         }
-      );
+        
+        // Determine pantry path based on household membership
+        const pantryPath = getPantryPath(userId, hId);
+        
+        // The query should order items by 'expiryDate' in ascending order.
+        // NOW USING USER-SPECIFIC PATH: users/{userId}/pantry OR households/{householdId}/pantry
+        const q = query(collection(db, pantryPath));
+
+        // Use the onSnapshot() method.
+        unsubscribeSnapshot = onSnapshot(
+          q,
+          (querySnapshot) => {
+            if (__DEV__) {
+              console.log('📦 Received pantry snapshot, items count:', querySnapshot.size);
+            }
+            
+            // In the callback, map the query snapshot to an array of objects and update the 'items' state.
+            const pantryItems = [];
+            querySnapshot.forEach((doc) => {
+              pantryItems.push({
+                id: doc.id,
+                ...doc.data()
+              });
+            });
+
+            // Sort items client-side: items with expiry date first (asc), then items without
+            pantryItems.sort((a, b) => {
+              if (a.expiryDate && b.expiryDate) {
+                return new Date(a.expiryDate) - new Date(b.expiryDate);
+              }
+              if (a.expiryDate) return -1; // a has date, b doesn't -> a comes first
+              if (b.expiryDate) return 1;  // b has date, a doesn't -> b comes first
+              return 0; // neither has date
+            });
+            
+            if (__DEV__) {
+              console.log('✅ Pantry items updated:', pantryItems.length);
+              
+              // Log unique categories for debugging
+              const uniqueCategories = [...new Set(pantryItems.map(item => item.category))];
+              console.log('📊 Unique categories in data:', uniqueCategories);
+            }
+            
+            setItems(pantryItems);
+            setFilteredItems(pantryItems);
+            setLoading(false);
+          },
+          (error) => {
+            // Silently handle permission errors during auth transitions
+            if (error.code === 'permission-denied') {
+              if (__DEV__) {
+                console.log('Permission denied - user may be signing out');
+              }
+              setItems([]);
+              setFilteredItems([]);
+              setLoading(false);
+              return;
+            }
+            console.error('❌ Error fetching pantry items:', error);
+            Alert.alert('Error', 'Failed to load pantry items');
+            setLoading(false);
+          }
+        );
+      } catch (error) {
+        console.error('❌ Error setting up pantry listener:', error);
+        setLoading(false);
+      }
     });
 
     // Remember to return the unsubscribe function from useEffect to prevent memory leaks.
@@ -169,7 +218,7 @@ export default function PantryList({ navigation }) {
         unsubscribeSnapshot();
       }
     };
-  }, []);
+  }, [refreshTrigger]);
 
   // Filter and Sort items
   useEffect(() => {
@@ -266,7 +315,8 @@ export default function PantryList({ navigation }) {
         return;
       }
       
-      await deleteDoc(doc(db, `users/${userId}/pantry`, itemId));
+      const pantryPath = getPantryPath(userId, householdId);
+      await deleteDoc(doc(db, pantryPath, itemId));
       // Success feedback is shown in UI update
     } catch (error) {
       console.error('Error deleting item:', error);
@@ -305,6 +355,8 @@ export default function PantryList({ navigation }) {
       return;
     }
     
+    const pantryPath = getPantryPath(userId, householdId);
+    
     if (Platform.OS === 'web') {
       if (!window.confirm(t('clearAllMessage', language))) {
         return;
@@ -320,9 +372,9 @@ export default function PantryList({ navigation }) {
             style: 'destructive', 
             onPress: async () => {
               try {
-                // Delete all items from user-specific collection
+                // Delete all items from pantry collection (household or personal)
                 const deletePromises = items.map(item => 
-                  deleteDoc(doc(db, `users/${userId}/pantry`, item.id))
+                  deleteDoc(doc(db, pantryPath, item.id))
                 );
                 await Promise.all(deletePromises);
                 Alert.alert(t('success', language), t('inventoryCleared', language));
@@ -340,7 +392,7 @@ export default function PantryList({ navigation }) {
     // Web path
     try {
       const deletePromises = items.map(item => 
-        deleteDoc(doc(db, `users/${userId}/pantry`, item.id))
+        deleteDoc(doc(db, pantryPath, item.id))
       );
       await Promise.all(deletePromises);
       alert(t('inventoryCleared', language));
@@ -382,7 +434,8 @@ export default function PantryList({ navigation }) {
         return;
       }
       
-      const itemRef = doc(db, `users/${userId}/pantry`, editingItem.id);
+      const pantryPath = getPantryPath(userId, householdId);
+      const itemRef = doc(db, pantryPath, editingItem.id);
       await updateDoc(itemRef, {
         name: editName.trim(),
         itemName: editName.trim(),
@@ -673,6 +726,16 @@ export default function PantryList({ navigation }) {
             
             {editingItem && (
               <ScrollView showsVerticalScrollIndicator={false}>
+                {/* Added By - Only show for household items */}
+                {householdId && editingItem.addedByName && (
+                  <View style={styles.editSection}>
+                    <Text style={styles.editLabel}>{t('addedBy', language)}</Text>
+                    <View style={styles.addedByContainer}>
+                      <Text style={styles.addedByText}>👤 {editingItem.addedByName}</Text>
+                    </View>
+                  </View>
+                )}
+
                 {/* Item Name */}
                 <View style={styles.editSection}>
                   <Text style={styles.editLabel}>{t('itemName', language)} *</Text>
@@ -1178,6 +1241,18 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#3D405B',
     marginBottom: 8,
+  },
+  addedByContainer: {
+    backgroundColor: '#E8F4EC',
+    borderRadius: 12,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: '#4A7C59',
+  },
+  addedByText: {
+    fontSize: 15,
+    color: '#4A7C59',
+    fontWeight: '500',
   },
   editInput: {
     backgroundColor: '#F1F5F9',

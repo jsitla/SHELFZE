@@ -25,7 +25,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { t } from '../contexts/translations';
 import { useFocusEffect, useIsFocused } from '@react-navigation/native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import { getFirestore, doc, deleteDoc, updateDoc } from 'firebase/firestore';
+import { getFirestore, doc, deleteDoc, updateDoc, getDoc } from 'firebase/firestore';
 import { app, auth } from '../firebase.config';
 import { getUserUsage } from '../utils/usageTracking';
 import { parseDate, formatDate } from '../utils/dateHelpers';
@@ -57,6 +57,7 @@ export default function CameraScanner({ navigation }) {
   const [loadingUsage, setLoadingUsage] = useState(true);
   const [processingMode, setProcessingMode] = useState('photo'); // 'photo' or 'video'
   const [torchEnabled, setTorchEnabled] = useState(false);
+  const [householdId, setHouseholdId] = useState(null);
   const cameraRef = useRef(null);
   const fileInputRef = useRef(null);
   const recordingIntervalRef = useRef(null);
@@ -71,6 +72,14 @@ export default function CameraScanner({ navigation }) {
   const { language } = useLanguage(); // Get current language
   const isFocused = useIsFocused();
   const db = getFirestore(app);
+
+  // Helper to get the pantry path based on household membership
+  const getPantryPath = (userId, hId) => {
+    if (hId) {
+      return `households/${hId}/pantry`;
+    }
+    return `users/${userId}/pantry`;
+  };
   
   // Auto-scroll to date picker when opened
   useEffect(() => {
@@ -184,9 +193,23 @@ export default function CameraScanner({ navigation }) {
     useCallback(() => {
       if (auth.currentUser) {
         loadUsageData(auth.currentUser.uid);
+        // Load household info
+        loadHouseholdInfo(auth.currentUser.uid);
       }
     }, [])
   );
+
+  // Load household ID for the current user
+  const loadHouseholdInfo = async (userId) => {
+    try {
+      const userDoc = await getDoc(doc(db, 'users', userId));
+      const userData = userDoc.exists() ? userDoc.data() : null;
+      setHouseholdId(userData?.householdId || null);
+    } catch (error) {
+      console.error('Error loading household info:', error);
+      setHouseholdId(null);
+    }
+  };
 
   const loadUsageData = async (userId) => {
     try {
@@ -770,7 +793,8 @@ export default function CameraScanner({ navigation }) {
         return;
       }
 
-      await deleteDoc(doc(db, `users/${userId}/pantry`, itemId));
+      const pantryPath = getPantryPath(userId, householdId);
+      await deleteDoc(doc(db, pantryPath, itemId));
       // Remove from local state
       setDetectedItems(prev => ({
         ...prev,
@@ -830,8 +854,9 @@ export default function CameraScanner({ navigation }) {
         return;
       }
 
-      console.log('Updating Firestore doc:', `users/${userId}/pantry/${editingItemId}`);
-      const itemRef = doc(db, `users/${userId}/pantry`, editingItemId);
+      const pantryPath = getPantryPath(userId, householdId);
+      console.log('Updating Firestore doc:', `${pantryPath}/${editingItemId}`);
+      const itemRef = doc(db, pantryPath, editingItemId);
       await updateDoc(itemRef, {
         name: editItemName.trim(),
         itemName: editItemName.trim(),

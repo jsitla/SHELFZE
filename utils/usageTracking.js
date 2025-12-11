@@ -133,20 +133,43 @@ export async function initializeUsageTracking(userId, tier = 'anonymous') {
 }
 
 /**
- * Get usage data for a user
+ * Get usage data for a user (checks household membership)
  * @param {string} userId - The user's Firebase UID
  * @returns {Object} Usage data
  */
 export async function getUserUsage(userId) {
-  const usageRef = doc(db, `users/${userId}/usage/current`);
-  
   try {
+    // First check if user is in a household
+    const userRef = doc(db, `users/${userId}`);
+    const userDoc = await getDoc(userRef);
+    const userData = userDoc.exists() ? userDoc.data() : null;
+    const householdId = userData?.householdId || null;
+
+    // Determine which usage to fetch
+    let usageRef;
+    if (householdId) {
+      usageRef = doc(db, `households/${householdId}/usage/current`);
+      console.log('📊 Loading household usage for:', householdId);
+    } else {
+      usageRef = doc(db, `users/${userId}/usage/current`);
+    }
+    
     const usageDoc = await getDoc(usageRef);
     
     if (!usageDoc.exists()) {
-      // Initialize if doesn't exist
-      console.log('No usage data found, initializing...');
-      return await initializeUsageTracking(userId, 'anonymous');
+      // Initialize if doesn't exist (only for personal usage)
+      if (!householdId) {
+        console.log('No usage data found, initializing...');
+        return await initializeUsageTracking(userId, 'anonymous');
+      }
+      // For household, return default values
+      return {
+        tier: 'free',
+        scansRemaining: 30,
+        recipesRemaining: 30,
+        totalScansUsed: 0,
+        totalRecipesUsed: 0,
+      };
     }
     
     return usageDoc.data();

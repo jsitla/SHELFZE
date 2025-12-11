@@ -55,5 +55,24 @@ service cloud.firestore {
       allow read: if request.auth != null;
       allow write: if false; // Prevent client-side writes
     }
+
+    // Households: Members can read household data
+    match /households/{householdId} {
+      allow read: if request.auth.uid in resource.data.memberIds;
+      allow write: if false; // Only cloud functions can write
+    }
+
+    // Household pantry items: Members can read/write/delete
+    match /households/{householdId}/pantry/{itemId} {
+      allow read, write, delete: if request.auth.uid in 
+        get(/databases/$(database)/documents/households/$(householdId)).data.memberIds;
+    }
+
+    // Household usage quota: Members can read, only cloud functions can write
+    match /households/{householdId}/usage/current {
+      allow read: if request.auth.uid in 
+        get(/databases/$(database)/documents/households/$(householdId)).data.memberIds;
+      allow write: if false; // Cloud functions only
+    }
   }
 }
