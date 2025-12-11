@@ -535,6 +535,14 @@ const baseTranslation = {
 	unnamed: 'Unnamed',
 	cooldownPeriodActive: 'You must wait {days} more day(s) before creating or joining a household.',
 	creditsRestored: 'Your personal credits have been restored.',
+	// Nickname
+	nickname: 'Nickname',
+	enterNickname: 'Enter nickname',
+	notSet: 'Not set',
+	nicknameHint: 'Displayed to household members',
+	nicknameRequired: 'Nickname cannot be empty',
+	nicknameTooLong: 'Nickname must be 20 characters or less',
+	nicknameSaved: 'Nickname saved!',
 };
 
 const withOverrides = (overrides) => ({
@@ -1030,6 +1038,14 @@ export const translations = {
 		unnamed: 'Sin nombre',
 		cooldownPeriodActive: 'Debes esperar {days} día(s) más antes de crear o unirte a un hogar.',
 		creditsRestored: 'Tus créditos personales han sido restaurados.',
+		// Nickname
+		nickname: 'Apodo',
+		enterNickname: 'Ingresa un apodo',
+		notSet: 'No establecido',
+		nicknameHint: 'Mostrado a los miembros del hogar',
+		nicknameRequired: 'El apodo no puede estar vacío',
+		nicknameTooLong: 'El apodo debe tener 20 caracteres o menos',
+		nicknameSaved: '¡Apodo guardado!',
 	}),
 	fr: withOverrides({
 		whatAreYouCraving: 'De quoi avez-vous envie ?',
@@ -1517,6 +1533,14 @@ export const translations = {
 		unnamed: 'Sans nom',
 		cooldownPeriodActive: 'Vous devez attendre {days} jour(s) de plus avant de créer ou rejoindre un foyer.',
 		creditsRestored: 'Vos crédits personnels ont été restaurés.',
+		// Nickname
+		nickname: 'Surnom',
+		enterNickname: 'Entrez un surnom',
+		notSet: 'Non défini',
+		nicknameHint: 'Affiché aux membres du foyer',
+		nicknameRequired: 'Le surnom ne peut pas être vide',
+		nicknameTooLong: 'Le surnom doit contenir 20 caractères ou moins',
+		nicknameSaved: 'Surnom enregistré!',
 	}),
 	de: withOverrides({
 		whatAreYouCraving: 'Worauf hast du Lust?',
@@ -2020,8 +2044,16 @@ export const translations = {
 		unnamed: 'Unbenannt',
 		cooldownPeriodActive: 'Sie müssen noch {days} Tag(e) warten, bevor Sie einem Haushalt beitreten oder einen erstellen können.',
 		creditsRestored: 'Ihre persönlichen Credits wurden wiederhergestellt.',
+		// Nickname
+		nickname: 'Spitzname',
+		enterNickname: 'Spitznamen eingeben',
+		notSet: 'Nicht festgelegt',
+		nicknameHint: 'Wird Haushaltsmitgliedern angezeigt',
+		nicknameRequired: 'Spitzname darf nicht leer sein',
+		nicknameTooLong: 'Spitzname darf maximal 20 Zeichen haben',
+		nicknameSaved: 'Spitzname gespeichert!',
 	}),
-		it: withOverrides({
+	it: withOverrides({
 		whatAreYouCraving: 'Di cosa hai voglia?',
 		askForAnyDish: 'Chiedi qualsiasi piatto...',
 		suggestion_tacos: 'Tacos piccanti',
@@ -2522,8 +2554,16 @@ export const translations = {
 		unnamed: 'Senza nome',
 		cooldownPeriodActive: 'Devi attendere ancora {days} giorno/i prima di creare o unirti a una famiglia.',
 		creditsRestored: 'I tuoi crediti personali sono stati ripristinati.',
+		// Nickname
+		nickname: 'Soprannome',
+		enterNickname: 'Inserisci un soprannome',
+		notSet: 'Non impostato',
+		nicknameHint: 'Mostrato ai membri della famiglia',
+		nicknameRequired: 'Il soprannome non può essere vuoto',
+		nicknameTooLong: 'Il soprannome deve avere massimo 20 caratteri',
+		nicknameSaved: 'Soprannome salvato!',
 	}),
-		sl: withOverrides({
+	sl: withOverrides({
 		whatAreYouCraving: 'Kaj vam diši?',
 		askForAnyDish: 'Vprašajte za katero koli jed...',
 		suggestion_tacos: 'Pikantni takosi',
@@ -3025,6 +3065,14 @@ export const translations = {
 		unnamed: 'Neimenovan',
 		cooldownPeriodActive: 'Počakati morate še {days} dan(dni), preden lahko ustvarite ali se pridružite gospodinjstvu.',
 		creditsRestored: 'Vaši osebni krediti so bili obnovljeni.',
+		// Nickname
+		nickname: 'Vzdevek',
+		enterNickname: 'Vnesite vzdevek',
+		notSet: 'Ni nastavljeno',
+		nicknameHint: 'Prikazano članom gospodinjstva',
+		nicknameRequired: 'Vzdevek ne sme biti prazen',
+		nicknameTooLong: 'Vzdevek mora imeti največ 20 znakov',
+		nicknameSaved: 'Vzdevek shranjen!',
 	}),
 };
 

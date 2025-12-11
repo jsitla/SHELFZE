@@ -2700,6 +2700,39 @@ async function checkHouseholdPremiumStatus(memberIds) {
 }
 
 /**
+ * Generate a random 4-digit number for default nickname
+ * @return {string} Random 4 digits
+ */
+function generateRandomDigits() {
+  return Math.floor(1000 + Math.random() * 9000).toString();
+}
+
+/**
+ * Get user's nickname, creating a default one if not set
+ * @param {string} uid - User ID
+ * @return {Promise<string>} User's nickname
+ */
+async function getUserNickname(uid) {
+  const db = admin.firestore();
+  const userDoc = await db.collection("users").doc(uid).get();
+  const userData = userDoc.exists ? userDoc.data() : {};
+
+  if (userData.nickname) {
+    return userData.nickname;
+  }
+
+  // Generate default nickname: User + 4 random digits
+  const defaultNickname = `User${generateRandomDigits()}`;
+
+  // Save the default nickname to user doc
+  await db.collection("users").doc(uid).set({
+    nickname: defaultNickname,
+  }, {merge: true});
+
+  return defaultNickname;
+}
+
+/**
  * Update household premium status and quotas
  * @param {string} householdId - The household ID
  * @param {Array} memberIds - Array of member user IDs
@@ -2793,18 +2826,17 @@ exports.createHousehold = onRequest({cors: true}, async (req, res) => {
       codeExists = !existingHousehold.empty;
     }
 
-    // Get user's display name for member tracking
-    const authUser = await admin.auth().getUser(uid);
-    const displayName = authUser.displayName || authUser.email || "Unknown";
+    // Get user's nickname for member tracking
+    const nickname = await getUserNickname(uid);
 
     // Create household
     const householdRef = await db.collection("households").add({
-      name: householdName || `${displayName}'s Household`,
+      name: householdName || `${nickname}'s Household`,
       createdBy: uid,
       memberIds: [uid],
       members: [{
         id: uid,
-        name: displayName,
+        name: nickname,
         joinedAt: new Date().toISOString(),
       }],
       inviteCode,
@@ -2963,9 +2995,8 @@ exports.joinHousehold = onRequest({cors: true}, async (req, res) => {
       return;
     }
 
-    // Get user's display name
-    const authUser = await admin.auth().getUser(uid);
-    const displayName = authUser.displayName || authUser.email || "Unknown";
+    // Get user's nickname
+    const nickname = await getUserNickname(uid);
 
     // Get user's current usage to archive
     const userUsageRef = db.collection("users").doc(uid)
@@ -2987,7 +3018,7 @@ exports.joinHousehold = onRequest({cors: true}, async (req, res) => {
       memberIds: admin.firestore.FieldValue.arrayUnion(uid),
       members: admin.firestore.FieldValue.arrayUnion({
         id: uid,
-        name: displayName,
+        name: nickname,
         joinedAt: new Date().toISOString(),
       }),
     });
@@ -3205,6 +3236,85 @@ exports.getHouseholdInfo = onRequest({cors: true}, async (req, res) => {
     });
   } catch (error) {
     console.error("Error getting household info:", error);
+    res.status(500).json({error: "Internal server error", details: error.message});
+  }
+});
+
+/**
+ * Update user nickname
+ * Also updates the name in household members array if user is in a household
+ */
+exports.updateNickname = onRequest({
+  cors: true,
+  region: "us-central1",
+}, async (req, res) => {
+  try {
+    // Verify authentication
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      res.status(401).json({error: "Unauthorized"});
+      return;
+    }
+
+    const idToken = authHeader.split("Bearer ")[1];
+    const decodedToken = await admin.auth().verifyIdToken(idToken);
+    const uid = decodedToken.uid;
+
+    const {nickname} = req.body;
+
+    // Validate nickname
+    if (!nickname || typeof nickname !== "string") {
+      res.status(400).json({error: "Nickname is required"});
+      return;
+    }
+
+    const trimmedNickname = nickname.trim();
+
+    if (trimmedNickname.length === 0) {
+      res.status(400).json({error: "Nickname cannot be empty"});
+      return;
+    }
+
+    if (trimmedNickname.length > 20) {
+      res.status(400).json({error: "Nickname must be 20 characters or less"});
+      return;
+    }
+
+    const db = admin.firestore();
+
+    // Update user document with new nickname
+    await db.collection("users").doc(uid).set({
+      nickname: trimmedNickname,
+    }, {merge: true});
+
+    // Check if user is in a household
+    const userDoc = await db.collection("users").doc(uid).get();
+    const userData = userDoc.data();
+
+    if (userData.householdId) {
+      // Update the member name in the household members array
+      const householdRef = db.collection("households").doc(userData.householdId);
+      const householdDoc = await householdRef.get();
+
+      if (householdDoc.exists) {
+        const householdData = householdDoc.data();
+        const updatedMembers = (householdData.members || []).map((member) => {
+          if (member.id === uid) {
+            return {...member, name: trimmedNickname};
+          }
+          return member;
+        });
+
+        await householdRef.update({members: updatedMembers});
+      }
+    }
+
+    res.status(200).json({
+      success: true,
+      nickname: trimmedNickname,
+    });
+  } catch (error) {
+    console.error("Error updating nickname:", error);
     res.status(500).json({error: "Internal server error", details: error.message});
   }
 });

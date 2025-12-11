@@ -25,7 +25,8 @@ import {
   sendPasswordResetEmail,
 } from 'firebase/auth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { auth } from '../firebase.config';
+import { auth, db } from '../firebase.config';
+import { doc, getDoc } from 'firebase/firestore';
 import { useLanguage } from '../contexts/LanguageContext';
 import { t } from '../contexts/translations';
 import LanguageSelector from './LanguageSelector';
@@ -54,6 +55,11 @@ export default function Profile({ navigation }) {
   const [showJoinModal, setShowJoinModal] = useState(false);
   const [joinCode, setJoinCode] = useState('');
   const [householdAction, setHouseholdAction] = useState(null); // 'creating', 'joining', 'leaving'
+  // Nickname state
+  const [nickname, setNickname] = useState('');
+  const [editingNickname, setEditingNickname] = useState(false);
+  const [nicknameInput, setNicknameInput] = useState('');
+  const [savingNickname, setSavingNickname] = useState(false);
   const { language, getLanguageBadge } = useLanguage();
 
   useEffect(() => {
@@ -66,6 +72,7 @@ export default function Profile({ navigation }) {
         loadUsageData(currentUser.uid);
         checkMonthlyBonus(currentUser.uid);
         loadHouseholdInfo();
+        loadNickname();
       }
     });
     return unsubscribe;
@@ -77,6 +84,7 @@ export default function Profile({ navigation }) {
       if (user) {
         loadUsageData(user.uid);
         loadHouseholdInfo();
+        loadNickname();
       }
     }, [user])
   );
@@ -90,6 +98,71 @@ export default function Profile({ navigation }) {
       console.error('Error loading usage data:', error);
     } finally {
       setLoadingUsage(false);
+    }
+  };
+
+  // Load nickname from Firestore
+  const loadNickname = async () => {
+    try {
+      const userId = auth.currentUser?.uid;
+      if (!userId) return;
+
+      const userDoc = await getDoc(doc(db, 'users', userId));
+      if (userDoc.exists() && userDoc.data().nickname) {
+        setNickname(userDoc.data().nickname);
+        setNicknameInput(userDoc.data().nickname);
+      }
+    } catch (error) {
+      console.error('Error loading nickname:', error);
+    }
+  };
+
+  // Save nickname
+  const handleSaveNickname = async () => {
+    const trimmed = nicknameInput.trim();
+    
+    if (!trimmed) {
+      Alert.alert(t('error', language), t('nicknameRequired', language) || 'Nickname cannot be empty');
+      return;
+    }
+    
+    if (trimmed.length > 20) {
+      Alert.alert(t('error', language), t('nicknameTooLong', language) || 'Nickname must be 20 characters or less');
+      return;
+    }
+
+    try {
+      setSavingNickname(true);
+      const token = await auth.currentUser?.getIdToken();
+
+      const response = await fetch(config.updateNickname, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ nickname: trimmed }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setNickname(data.nickname);
+        setNicknameInput(data.nickname);
+        setEditingNickname(false);
+        // Reload household info to see updated name in members list
+        if (householdInfo) {
+          await loadHouseholdInfo();
+        }
+        Alert.alert(t('success', language), t('nicknameSaved', language) || 'Nickname saved!');
+      } else {
+        Alert.alert(t('error', language), data.error || t('failedToSave', language));
+      }
+    } catch (error) {
+      console.error('Error saving nickname:', error);
+      Alert.alert(t('error', language), t('networkError', language));
+    } finally {
+      setSavingNickname(false);
     }
   };
 
@@ -759,6 +832,58 @@ export default function Profile({ navigation }) {
         <Text style={styles.userId}>
           {t('userId', language)}: {user.uid}
         </Text>
+
+        {/* Nickname Section */}
+        <View style={styles.nicknameSection}>
+          <Text style={styles.nicknameLabel}>
+            {t('nickname', language) || 'Nickname'}
+          </Text>
+          {editingNickname ? (
+            <View style={styles.nicknameEditRow}>
+              <TextInput
+                style={styles.nicknameInput}
+                value={nicknameInput}
+                onChangeText={setNicknameInput}
+                placeholder={t('enterNickname', language) || 'Enter nickname'}
+                maxLength={20}
+                autoFocus
+              />
+              <TouchableOpacity
+                style={styles.nicknameSaveButton}
+                onPress={handleSaveNickname}
+                disabled={savingNickname}
+              >
+                {savingNickname ? (
+                  <ActivityIndicator size="small" color="#fff" />
+                ) : (
+                  <Text style={styles.nicknameSaveText}>✓</Text>
+                )}
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.nicknameCancelButton}
+                onPress={() => {
+                  setEditingNickname(false);
+                  setNicknameInput(nickname);
+                }}
+              >
+                <Text style={styles.nicknameCancelText}>✕</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <TouchableOpacity
+              style={styles.nicknameDisplayRow}
+              onPress={() => setEditingNickname(true)}
+            >
+              <Text style={styles.nicknameValue}>
+                {nickname || (t('notSet', language) || 'Not set')}
+              </Text>
+              <Text style={styles.nicknameEditIcon}>✏️</Text>
+            </TouchableOpacity>
+          )}
+          <Text style={styles.nicknameHint}>
+            {t('nicknameHint', language) || 'Displayed to household members'}
+          </Text>
+        </View>
       </View>
 
       {/* Usage & Tier Info */}
@@ -1279,6 +1404,82 @@ const styles = StyleSheet.create({
   userId: {
     fontSize: 12,
     color: '#999',
+  },
+  // Nickname styles
+  nicknameSection: {
+    marginTop: 15,
+    paddingTop: 15,
+    borderTopWidth: 1,
+    borderTopColor: '#eee',
+  },
+  nicknameLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#3D405B',
+    marginBottom: 8,
+  },
+  nicknameEditRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  nicknameInput: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: '#4A7C59',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    fontSize: 16,
+    backgroundColor: '#fff',
+  },
+  nicknameSaveButton: {
+    backgroundColor: '#4A7C59',
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 8,
+  },
+  nicknameSaveText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  nicknameCancelButton: {
+    backgroundColor: '#ccc',
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 8,
+  },
+  nicknameCancelText: {
+    color: '#666',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  nicknameDisplayRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#f8f9fa',
+    padding: 12,
+    borderRadius: 8,
+  },
+  nicknameValue: {
+    fontSize: 16,
+    color: '#3D405B',
+  },
+  nicknameEditIcon: {
+    fontSize: 14,
+  },
+  nicknameHint: {
+    fontSize: 12,
+    color: '#999',
+    marginTop: 6,
+    fontStyle: 'italic',
   },
   upgradeSection: {
     backgroundColor: '#fff',
