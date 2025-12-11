@@ -53,9 +53,10 @@ When you first open Shelfze, you'll be automatically signed in anonymously. No a
 
 ### Step 5: Share with Family (Optional)
 1. Go to **Profile** (top-right icon in Pantry)
-2. Scroll to **Household** section
-3. Create a household or join with an invite code
-4. Everyone shares the same pantry!
+2. Set a **Nickname** so family members can identify you
+3. Scroll to **Household** section
+4. Create a household or join with an invite code
+5. Everyone shares the same pantry!
 
 📸 **Screenshot 7:** Household section in Profile screen
 

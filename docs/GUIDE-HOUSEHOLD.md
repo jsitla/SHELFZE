@@ -60,6 +60,24 @@ If **any** member has Premium, the whole household gets Premium credits!
 
 ---
 
+## Setting Your Nickname
+
+Set a display name so household members can identify you:
+
+### Steps
+1. Go to **Profile**
+2. Find the **Nickname** field in your profile card
+3. Tap to edit (default is "User" + random digits)
+4. Enter your name (max 20 characters)
+5. Tap **Save**
+
+### Why Set a Nickname?
+- Household members see your nickname in the members list
+- Without a nickname, you appear as "Unnamed"
+- Your nickname syncs to all household members
+
+---
+
 ## Viewing Household Info
 
 In Profile → Household section, you can see:
@@ -135,6 +153,9 @@ Your archived personal credits are restored, so you don't lose anything!
 
 **Q: Can I be in multiple households?**  
 A: No, you can only be in one household at a time.
+
+**Q: How do I change my display name in the household?**  
+A: Go to Profile and tap your Nickname to edit it. Other members will see your updated name.
 
 **Q: What happens to my items when I join?**  
 A: Your personal pantry is paused. When you leave, it's restored.

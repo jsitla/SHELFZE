@@ -62,10 +62,19 @@ Shelfze supports 6 languages:
 
 ## Profile Information
 
-View your profile details:
+View and edit your profile details:
+- **Nickname** - Tap to edit your display name (visible to household members)
 - Email address (if signed in)
 - Account type
 - Member since date
+
+### Setting Your Nickname
+1. Go to Profile
+2. Tap the **Nickname** field
+3. Enter your name (max 20 characters)
+4. Tap **Save**
+
+Your nickname is shown to other household members instead of "Unnamed".
 
 ---
 

@@ -18,6 +18,8 @@ By downloading or using Shelfze, you agree to the collection and use of informat
 
 **Household Data:** If you create or join a Household, we collect household membership information, including household name, member IDs, invite codes, and shared pantry data.
 
+**Nickname:** You may set a display nickname (up to 20 characters) to identify yourself to other household members. This nickname is stored with your account and visible to household members.
+
 **Note on Dietary Data:** By voluntarily providing dietary preferences, you consent to our processing of this data solely to filter recipes and organize your pantry.
 
 ### 1.2 Automatically Collected Information
@@ -63,6 +65,7 @@ If you create or join a Household:
 - Your pantry items are shared with all household members.
 - Your usage credits (scans, recipes) are pooled with the household.
 - Other household members can see items you add to the shared pantry.
+- Your nickname is visible to other household members.
 - Household members cannot see your personal account details (email, password).
 
 When you leave a household, your personal credits are restored, and you no longer have access to the shared pantry data.

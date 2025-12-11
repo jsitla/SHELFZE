@@ -166,7 +166,8 @@ Share your pantry and credits with family members!
 - 🔗 **Invite Members** - Share a 6-character invite code
 - 📋 **Shared Pantry** - All members see the same food items
 - ⚡ **Shared Credits** - Pool scans and recipes across the household
-- 🔄 **Credit Management** - 7-day cooldown between households
+- � **Nicknames** - Set a display name visible to household members
+- �🔄 **Credit Management** - 7-day cooldown between households
 
 **Credit Pools:**
 | Tier | Scans/Month | Recipes/Month |
