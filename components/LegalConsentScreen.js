@@ -7,6 +7,7 @@ import {
   ScrollView,
   SafeAreaView,
   Platform,
+  ActivityIndicator,
 } from 'react-native';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -40,6 +41,7 @@ export async function storeLegalConsent(date = new Date()) {
 
 export default function LegalConsentScreen({ onAccepted }) {
   const [checked, setChecked] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const openUrl = useCallback(async (url) => {
     try {
@@ -53,12 +55,18 @@ export default function LegalConsentScreen({ onAccepted }) {
   }, []);
 
   const handleContinue = useCallback(async () => {
-    if (!checked) return;
-    await storeLegalConsent();
-    if (onAccepted) {
-      onAccepted();
+    if (!checked || isLoading) return;
+    setIsLoading(true);
+    try {
+      await storeLegalConsent();
+      if (onAccepted) {
+        onAccepted();
+      }
+    } catch (error) {
+      console.error('Error storing legal consent:', error);
+      setIsLoading(false);
     }
-  }, [checked, onAccepted]);
+  }, [checked, isLoading, onAccepted]);
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -98,11 +106,20 @@ export default function LegalConsentScreen({ onAccepted }) {
           </View>
 
           <TouchableOpacity
-            style={[styles.continueButton, !checked && styles.continueButtonDisabled]}
+            style={[
+              styles.continueButton, 
+              !checked && styles.continueButtonDisabled,
+              isLoading && styles.continueButtonLoading
+            ]}
             onPress={handleContinue}
-            disabled={!checked}
+            disabled={!checked || isLoading}
+            activeOpacity={0.7}
           >
-            <Text style={styles.continueButtonText}>Continue</Text>
+            {isLoading ? (
+              <ActivityIndicator color="#FFFFFF" size="small" />
+            ) : (
+              <Text style={styles.continueButtonText}>Continue</Text>
+            )}
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -213,6 +230,9 @@ const styles = StyleSheet.create({
   },
   continueButtonDisabled: {
     backgroundColor: '#999',
+  },
+  continueButtonLoading: {
+    backgroundColor: '#3A6247',
   },
   continueButtonText: {
     color: '#FFFFFF',
