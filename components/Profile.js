@@ -1066,9 +1066,6 @@ export default function Profile({ navigation }) {
         <View style={styles.modalOverlay}>
           <View style={styles.joinModalContent}>
             <Text style={styles.joinModalTitle}>{t('joinHousehold', language) || 'Join Household'}</Text>
-            <Text style={styles.joinModalDescription}>
-              {t('enterInviteCodeDesc', language) || 'Enter the invite code shared by a household member.'}
-            </Text>
             
             <View style={styles.joinWarningBox}>
               <Text style={styles.joinWarningTitle}>⚠️ {t('importantNote', language) || 'Important'}</Text>
@@ -1076,6 +1073,10 @@ export default function Profile({ navigation }) {
                 {t('joinHouseholdWarning', language) || 'Your personal pantry, shopping list, and saved recipes will be removed. You will see the data already in the household you are joining.'}
               </Text>
             </View>
+            
+            <Text style={styles.joinModalDescription}>
+              {t('enterInviteCodeDesc', language) || 'Enter the invite code shared by a household member.'}
+            </Text>
             
             <TextInput
               style={styles.joinCodeInput}
