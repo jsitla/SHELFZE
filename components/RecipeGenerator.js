@@ -47,6 +47,7 @@ export default function RecipeGenerator() {
   const [showIngredientSelector, setShowIngredientSelector] = useState(false);
   const [userGuidance, setUserGuidance] = useState('');
   const [showGuidanceInput, setShowGuidanceInput] = useState(false);
+  const [householdId, setHouseholdId] = useState(null);
   
   const [usageData, setUsageData] = useState(null);
   const [loadingUsage, setLoadingUsage] = useState(false);
@@ -170,10 +171,13 @@ export default function RecipeGenerator() {
         const userDoc = await getDoc(doc(db, 'users', userId));
         const userData = userDoc.exists() ? userDoc.data() : null;
         if (userData?.householdId) {
+          setHouseholdId(userData.householdId);
           pantryPath = `households/${userData.householdId}/pantry`;
           if (__DEV__) {
             console.log('Using household pantry:', pantryPath);
           }
+        } else {
+          setHouseholdId(null);
         }
       } catch (error) {
         console.error('Error checking household:', error);
@@ -602,6 +606,7 @@ export default function RecipeGenerator() {
         recipeName: selectedRecipe.name,
         collectionType: collectionType, // 'favorite', 'cooked', 'wantToTry'
         timestamp: new Date().toISOString(),
+        addedBy: userId,
         recipeData: {
           emoji: selectedRecipe.emoji,
           description: selectedRecipe.description,
@@ -618,7 +623,13 @@ export default function RecipeGenerator() {
         }
       };
 
-      await addDoc(collection(db, `users/${userId}/recipeCollections`), collectionData);
+      // Use household path if in a household, otherwise personal path
+      const recipesPath = householdId 
+        ? `households/${householdId}/recipeCollections`
+        : `users/${userId}/recipeCollections`;
+      console.log('📚 Saving recipe to path:', recipesPath, 'householdId:', householdId);
+      await addDoc(collection(db, recipesPath), collectionData);
+      console.log('✅ Recipe saved successfully');
       
       // Update local state
       if (collectionType === 'favorite') setIsFavorite(!isFavorite);
@@ -640,6 +651,7 @@ export default function RecipeGenerator() {
       );
     } catch (error) {
       console.error('Error updating collection:', error);
+      console.error('Error details:', error.code, error.message);
       Alert.alert(t('error', language), t('failedToUpdateCollection', language) || 'Failed to update collection');
     }
   };
@@ -860,8 +872,13 @@ ${t('sharedFromShelfze', language)}
       const userId = auth.currentUser?.uid;
       if (!userId) return;
 
+      // Use household path if in a household
+      const shoppingListPath = householdId 
+        ? `households/${householdId}/shoppingList`
+        : `users/${userId}/shoppingList`;
+
       const batchPromises = itemsToShop.map(item => 
-        addDoc(collection(db, `users/${userId}/shoppingList`), {
+        addDoc(collection(db, shoppingListPath), {
           name: item,
           checked: false,
           createdAt: new Date()

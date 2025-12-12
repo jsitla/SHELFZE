@@ -1878,14 +1878,16 @@ exports.onRecipeRequestCreated = functions
         )].slice(0, 10);
 
         // 2. Define Parallel Tasks
-        const generateNewTask = async () => {
+        const generateNewTask = async (retryCount = 0) => {
           const genCount = Math.min(maxRecipeCount, 3);
           const prompt = `
-You are an experienced professional chef. Create ${genCount} recipes ` +
+You are an experienced professional chef. Create EXACTLY ${genCount} recipes ` +
 `based on these ingredients: ${filteredIngredients.join(", ")}.
 
 TARGET LANGUAGE: ${targetLanguageName} (ALL output must be in this language).
 DISH TYPE: ${dishTypeDescription}
+
+IMPORTANT: You MUST return at least 1 recipe. The user has ${ingredientCount} ingredients available.
 
 STRICT GUIDELINES:
 1. USE PROVIDED INGREDIENTS that are appropriate for the requested ` +
@@ -1905,8 +1907,8 @@ STRICT GUIDELINES:
 8. Provide accurate nutrition estimates per serving.
 
 RESPONSE FORMAT:
-Return a raw JSON object with a "recipes" array. Each recipe object must ` +
-`match this schema:
+Return a raw JSON object with a "recipes" array containing ${genCount} recipes.
+Each recipe object must match this schema:
 {
   "name": "Recipe Name",
   "emoji": "🍲",
@@ -1932,29 +1934,48 @@ ${userGuidance && userGuidance.trim() ?
     `USER REQUEST: ${userGuidance.trim()}` : ""}
 `;
 
-          const result = await recipeModel.generateContent({
-            contents: [{role: "user", parts: [{text: prompt}]}],
-            generationConfig: {responseMimeType: "application/json"},
-          });
-
-          const response = await result.response;
-          let text = "";
-          if (response.candidates && response.candidates[0] &&
-              response.candidates[0].content &&
-              response.candidates[0].content.parts &&
-              response.candidates[0].content.parts[0]) {
-            text = response.candidates[0].content.parts[0].text || "";
-          }
-
           try {
+            console.log(`Generation Task: Attempt ${retryCount + 1}, ` +
+                `requesting ${genCount} recipes for ${ingredientCount} ingredients`);
+
+            const result = await recipeModel.generateContent({
+              contents: [{role: "user", parts: [{text: prompt}]}],
+              generationConfig: {responseMimeType: "application/json"},
+            });
+
+            const response = await result.response;
+            let text = "";
+            if (response.candidates && response.candidates[0] &&
+                response.candidates[0].content &&
+                response.candidates[0].content.parts &&
+                response.candidates[0].content.parts[0]) {
+              text = response.candidates[0].content.parts[0].text || "";
+            }
+
             // Extract JSON from potential Markdown code blocks
             const jsonMatch = text.match(/\{[\s\S]*\}/);
             const jsonString = jsonMatch ? jsonMatch[0] : text;
             const parsed = JSON.parse(jsonString);
-            return Array.isArray(parsed.recipes) ? parsed.recipes : [];
+            const recipes = Array.isArray(parsed.recipes) ? parsed.recipes : [];
+
+            console.log(`Generation Task: Got ${recipes.length} recipes`);
+
+            // Retry once if we got 0 recipes but have valid ingredients
+            if (recipes.length === 0 && retryCount < 1 && ingredientCount >= 3) {
+              console.log("Generation Task: No recipes returned, retrying...");
+              return generateNewTask(retryCount + 1);
+            }
+
+            return recipes;
           } catch (e) {
-            console.error("Failed to parse generated recipes:", e);
-            console.error("Raw text was:", text);
+            console.error("Failed to generate/parse recipes:", e);
+
+            // Retry once on error if we have valid ingredients
+            if (retryCount < 1 && ingredientCount >= 3) {
+              console.log("Generation Task: Error occurred, retrying...");
+              return generateNewTask(retryCount + 1);
+            }
+
             return [];
           }
         };
@@ -2117,13 +2138,21 @@ Example:
 
         const finalRecipes = uniqueRecipes.slice(0, maxRecipeCount);
 
+        console.log(`Final recipe count: ${finalRecipes.length} ` +
+            `(from ${newRecipes.length} generated + ${existingRecipes.length} retrieved)`);
+
         const payload = {
           status: "completed",
           recipes: finalRecipes,
           completedAt: admin.firestore.FieldValue.serverTimestamp(),
         };
 
-        if (ingredientCount <= 3) {
+        // Provide helpful feedback based on results
+        if (finalRecipes.length === 0 && ingredientCount >= 3) {
+          // Had enough ingredients but still got 0 recipes - temporary AI issue
+          payload.note = "Recipe generation had a temporary issue. Please try again.";
+          payload.noteCode = "generation_retry";
+        } else if (ingredientCount <= 3) {
           payload.note =
             "Pantry ingredient count is low, so recipe variety is limited.";
           payload.noteCode = "limited_pantry_low";

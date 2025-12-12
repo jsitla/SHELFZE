@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -11,7 +11,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { getFirestore, collection, addDoc } from 'firebase/firestore';
+import { getFirestore, collection, addDoc, doc, getDoc } from 'firebase/firestore';
 import { app, auth } from '../firebase.config';
 import { useLanguage } from '../contexts/LanguageContext';
 import { t } from '../contexts/translations';
@@ -27,9 +27,31 @@ export default function ManualEntry({ navigation, onItemAdded }) {
   const [expiryDate, setExpiryDate] = useState(null);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [householdId, setHouseholdId] = useState(null);
 
   const MAX_NAME_LENGTH = 100;
   const MAX_QUANTITY = 10000;
+
+  // Check for household membership on mount
+  useEffect(() => {
+    const checkHousehold = async () => {
+      const userId = auth.currentUser?.uid;
+      if (!userId) return;
+      
+      try {
+        const db = getFirestore(app);
+        const userDoc = await getDoc(doc(db, 'users', userId));
+        const userData = userDoc.exists() ? userDoc.data() : null;
+        if (userData?.householdId) {
+          setHouseholdId(userData.householdId);
+        }
+      } catch (error) {
+        console.error('Error checking household:', error);
+      }
+    };
+    
+    checkHousehold();
+  }, []);
 
   const handleDateChange = (event, selectedDate) => {
     // On Android, hide picker after selection
@@ -81,7 +103,13 @@ export default function ManualEntry({ navigation, onItemAdded }) {
 
       if (__DEV__) console.log('🔵 Getting Firestore instance for user:', userId);
       const db = getFirestore(app);
-      const pantryRef = collection(db, `users/${userId}/pantry`);
+      
+      // Use household path if in a household
+      const pantryPath = householdId 
+        ? `households/${householdId}/pantry`
+        : `users/${userId}/pantry`;
+      if (__DEV__) console.log('📂 Using pantry path:', pantryPath);
+      const pantryRef = collection(db, pantryPath);
 
       const newItem = {
         name: foodName.trim(),

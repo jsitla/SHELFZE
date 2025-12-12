@@ -56,7 +56,7 @@ When you first open Shelfze, you'll be automatically signed in anonymously. No a
 2. Set a **Nickname** so family members can identify you
 3. Scroll to **Household** section
 4. Create a household or join with an invite code
-5. Everyone shares the same pantry!
+5. Everyone shares the same pantry, shopping list, and saved recipes!
 
 📸 **Screenshot 7:** Household section in Profile screen
 

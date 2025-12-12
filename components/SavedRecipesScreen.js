@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
   View, 
   Text, 
@@ -11,7 +11,7 @@ import {
   Share,
   Modal
 } from 'react-native';
-import { getFirestore, collection, query, onSnapshot, addDoc, doc, deleteDoc } from 'firebase/firestore';
+import { getFirestore, collection, query, onSnapshot, addDoc, doc, deleteDoc, getDoc, getDocs, writeBatch } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
 import { app, auth } from '../firebase.config';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -28,6 +28,9 @@ export default function SavedRecipesScreen() {
   const [userRatings, setUserRatings] = useState({});
   const [loading, setLoading] = useState(true);
   const [pantryItems, setPantryItems] = useState([]);
+  const [householdId, setHouseholdId] = useState(null);
+  const [householdChecked, setHouseholdChecked] = useState(false);
+  const [migrationDone, setMigrationDone] = useState(false);
   
   // Detail View State
   const [selectedRecipe, setSelectedRecipe] = useState(null);
@@ -63,27 +66,119 @@ export default function SavedRecipesScreen() {
   const navigation = useNavigation();
   const db = getFirestore(app);
 
+  // Get the correct path based on household membership
+  const getRecipeCollectionsPath = useCallback(() => {
+    if (householdId) {
+      return `households/${householdId}/recipeCollections`;
+    }
+    return `users/${auth.currentUser?.uid}/recipeCollections`;
+  }, [householdId]);
+
+  // Check for household membership when screen is focused
+  useFocusEffect(
+    useCallback(() => {
+      const checkHousehold = async () => {
+        const user = auth.currentUser;
+        if (!user) return;
+        
+        try {
+          const userDoc = await getDoc(doc(db, 'users', user.uid));
+          const userData = userDoc.data();
+          const newHouseholdId = userData?.householdId || null;
+          console.log('🏠 SavedRecipes - Household check:', newHouseholdId);
+          setHouseholdId(newHouseholdId);
+          setHouseholdChecked(true);
+        } catch (error) {
+          console.error('Error checking household:', error);
+          setHouseholdChecked(true);
+        }
+      };
+      
+      checkHousehold();
+    }, [])
+  );
+
+  // Migrate personal recipes to household (one-time migration)
+  useEffect(() => {
+    const migrateRecipesToHousehold = async () => {
+      if (!householdChecked || !householdId || migrationDone) return;
+      
+      const user = auth.currentUser;
+      if (!user) return;
+
+      try {
+        // Check if user has personal recipes that need migration
+        const personalRecipesRef = collection(db, `users/${user.uid}/recipeCollections`);
+        const personalRecipesSnapshot = await getDocs(personalRecipesRef);
+        
+        if (personalRecipesSnapshot.empty) {
+          console.log('📚 No personal recipes to migrate');
+          setMigrationDone(true);
+          return;
+        }
+
+        console.log(`📚 Migrating ${personalRecipesSnapshot.size} personal recipes to household...`);
+        
+        const batch = writeBatch(db);
+        const householdRecipesRef = collection(db, `households/${householdId}/recipeCollections`);
+        
+        personalRecipesSnapshot.forEach((docSnapshot) => {
+          const recipeData = docSnapshot.data();
+          // Add to household collection
+          const newRecipeRef = doc(householdRecipesRef);
+          batch.set(newRecipeRef, {
+            ...recipeData,
+            migratedFrom: user.uid,
+            migratedAt: new Date().toISOString(),
+          });
+          // Delete from personal collection
+          batch.delete(docSnapshot.ref);
+        });
+
+        await batch.commit();
+        console.log('✅ Recipe migration complete!');
+        setMigrationDone(true);
+      } catch (error) {
+        console.error('❌ Error migrating recipes:', error);
+        setMigrationDone(true); // Don't retry on error
+      }
+    };
+
+    migrateRecipesToHousehold();
+  }, [householdChecked, householdId, migrationDone]);
+
   // Fetch saved recipes, ratings, and pantry items
   useEffect(() => {
+    console.log('📚 SavedRecipes useEffect - householdChecked:', householdChecked, 'householdId:', householdId);
+    if (!householdChecked) {
+      console.log('📚 SavedRecipes - Waiting for household check...');
+      return;
+    }
+    
     let unsubscribeSnapshot = null;
     let unsubscribeRatings = null;
     let unsubscribePantry = null;
     
     const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
+      console.log('📚 SavedRecipes - onAuthStateChanged, user:', user?.uid);
       if (unsubscribeSnapshot) unsubscribeSnapshot();
       if (unsubscribeRatings) unsubscribeRatings();
       if (unsubscribePantry) unsubscribePantry();
       
       if (!user) {
+        console.log('📚 SavedRecipes - No user, setting loading false');
         setLoading(false);
         return;
       }
       
       const userId = user.uid;
 
-      // Fetch saved recipes
-      const q = query(collection(db, `users/${userId}/recipeCollections`));
+      // Fetch saved recipes (using household path if in household)
+      const recipesPath = getRecipeCollectionsPath();
+      console.log('📚 SavedRecipes - Fetching from path:', recipesPath);
+      const q = query(collection(db, recipesPath));
       unsubscribeSnapshot = onSnapshot(q, (snapshot) => {
+        console.log('📚 SavedRecipes - Got', snapshot.docs.length, 'recipes');
         const recipes = snapshot.docs.map(doc => ({
           id: doc.id,
           ...doc.data()
@@ -91,7 +186,7 @@ export default function SavedRecipesScreen() {
         setSavedRecipes(recipes);
         setLoading(false);
       }, (error) => {
-        console.error('Error fetching saved recipes:', error);
+        console.error('❌ Error fetching saved recipes:', error.code, error.message);
         setLoading(false);
       });
 
@@ -110,8 +205,9 @@ export default function SavedRecipesScreen() {
         console.error('Error fetching user ratings:', error);
       });
 
-      // Fetch pantry items (for cookable filter)
-      const pantryQuery = query(collection(db, `users/${userId}/pantry`));
+      // Fetch pantry items (for cookable filter) - use household path if in household
+      const pantryPath = householdId ? `households/${householdId}/pantry` : `users/${userId}/pantry`;
+      const pantryQuery = query(collection(db, pantryPath));
       unsubscribePantry = onSnapshot(pantryQuery, (snapshot) => {
         const items = [];
         snapshot.forEach((doc) => {
@@ -130,7 +226,7 @@ export default function SavedRecipesScreen() {
       if (unsubscribeRatings) unsubscribeRatings();
       if (unsubscribePantry) unsubscribePantry();
     };
-  }, []);
+  }, [householdChecked, householdId, getRecipeCollectionsPath]);
 
   // Update header when recipe is selected
   useEffect(() => {
@@ -207,7 +303,8 @@ export default function SavedRecipesScreen() {
       const userId = auth.currentUser?.uid;
       if (!userId) return;
 
-      await deleteDoc(doc(db, `users/${userId}/recipeCollections`, recipeId));
+      const recipesPath = getRecipeCollectionsPath();
+      await deleteDoc(doc(db, recipesPath, recipeId));
       // If currently viewing this recipe, go back
       if (selectedRecipe && selectedRecipe.id === recipeId) {
         goBack();
@@ -230,6 +327,7 @@ export default function SavedRecipesScreen() {
         recipeName: selectedRecipe.name,
         collectionType: collectionType,
         timestamp: new Date().toISOString(),
+        addedBy: userId,
         recipeData: {
           emoji: selectedRecipe.emoji,
           description: selectedRecipe.description,
@@ -245,7 +343,10 @@ export default function SavedRecipesScreen() {
         }
       };
 
-      await addDoc(collection(db, `users/${userId}/recipeCollections`), collectionData);
+      const recipesPath = getRecipeCollectionsPath();
+      console.log('📚 SavedRecipes - Saving to path:', recipesPath, 'householdId:', householdId);
+      await addDoc(collection(db, recipesPath), collectionData);
+      console.log('✅ SavedRecipes - Recipe saved successfully');
       
       if (collectionType === 'favorite') setIsFavorite(!isFavorite);
       if (collectionType === 'cooked') setIsCooked(!isCooked);
@@ -255,6 +356,7 @@ export default function SavedRecipesScreen() {
       Alert.alert(t('collectionUpdated', language), t('success', language));
     } catch (error) {
       console.error('Error updating collection:', error);
+      console.error('Error code:', error.code, 'Message:', error.message);
       Alert.alert(t('error', language), t('failedToUpdateCollection', language));
     }
   };
@@ -373,8 +475,13 @@ ${t('sharedFromShelfze', language)}
       const userId = auth.currentUser?.uid;
       if (!userId) return;
 
+      // Use household path if in a household
+      const shoppingListPath = householdId 
+        ? `households/${householdId}/shoppingList`
+        : `users/${userId}/shoppingList`;
+
       const batchPromises = itemsToShop.map(item => 
-        addDoc(collection(db, `users/${userId}/shoppingList`), {
+        addDoc(collection(db, shoppingListPath), {
           name: item,
           checked: false,
           createdAt: new Date()
@@ -1108,7 +1215,7 @@ ${t('sharedFromShelfze', language)}
             {savedRecipes.length === 0 && (
               <View style={styles.emptyState}>
                 <Text style={styles.emptyText}>{t('noSavedRecipes', language) || 'No saved recipes yet'}</Text>
-                <Text style={styles.emptySubText}>{t('saveRecipesToSeeThemHere', language) || 'Generate and save recipes to see them here!'}</Text>
+                <Text style={styles.emptySubText}>{t('saveRecipesToSeeThemHere', language) || 'Save recipes from the Recipes tab to see them here!'}</Text>
               </View>
             )}
           </View>

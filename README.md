@@ -165,9 +165,20 @@ Share your pantry and credits with family members!
 - 🏠 **Create Household** - Start a new household and become the owner
 - 🔗 **Invite Members** - Share a 6-character invite code
 - 📋 **Shared Pantry** - All members see the same food items
+- 🛒 **Shared Shopping List** - Coordinate grocery shopping together
+- 📚 **Shared Saved Recipes** - Share your favorite recipes with the household
 - ⚡ **Shared Credits** - Pool scans and recipes across the household
-- � **Nicknames** - Set a display name visible to household members
-- �🔄 **Credit Management** - 7-day cooldown between households
+- 👤 **Nicknames** - Set a display name visible to household members
+- 🔄 **Credit Management** - 7-day cooldown between households
+
+**What's Shared vs Personal:**
+| Feature | Shared? |
+|---------|--------|
+| Pantry Items | ✅ Shared |
+| Shopping List | ✅ Shared |
+| Saved Recipes | ✅ Shared |
+| Scan/Recipe Credits | ✅ Pooled |
+| Recipe Ratings | ❌ Personal |
 
 **Credit Pools:**
 | Tier | Scans/Month | Recipes/Month |

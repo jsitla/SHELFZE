@@ -14,7 +14,7 @@ import {
   KeyboardAvoidingView,
   Keyboard
 } from 'react-native';
-import { getFirestore, collection, query, onSnapshot, addDoc, doc } from 'firebase/firestore';
+import { getFirestore, collection, query, onSnapshot, addDoc, doc, getDoc } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
 import { app, auth } from '../firebase.config';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -36,6 +36,7 @@ export default function CustomRecipeGenerator() {
   const [selectedRecipe, setSelectedRecipe] = useState(null);
   const [recipeDetails, setRecipeDetails] = useState(null);
   const [loadingDetails, setLoadingDetails] = useState(false);
+  const [householdId, setHouseholdId] = useState(null);
   
   // Rating & Collection State
   const [userRating, setUserRating] = useState(0);
@@ -102,7 +103,7 @@ export default function CustomRecipeGenerator() {
   // Fetch pantry items (Background - for "Check Pantry" feature)
   useEffect(() => {
     let unsubscribeSnapshot = null;
-    const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
+    const unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
       if (unsubscribeSnapshot) unsubscribeSnapshot();
       
       if (!user) {
@@ -110,7 +111,22 @@ export default function CustomRecipeGenerator() {
         return;
       }
       
-      const q = query(collection(db, `users/${user.uid}/pantry`));
+      // Check if user is in a household
+      let pantryPath = `users/${user.uid}/pantry`;
+      try {
+        const userDoc = await getDoc(doc(db, 'users', user.uid));
+        const userData = userDoc.exists() ? userDoc.data() : null;
+        if (userData?.householdId) {
+          setHouseholdId(userData.householdId);
+          pantryPath = `households/${userData.householdId}/pantry`;
+        } else {
+          setHouseholdId(null);
+        }
+      } catch (error) {
+        console.error('Error checking household:', error);
+      }
+
+      const q = query(collection(db, pantryPath));
       unsubscribeSnapshot = onSnapshot(q, (querySnapshot) => {
         const items = [];
         querySnapshot.forEach((doc) => {
@@ -364,8 +380,15 @@ export default function CustomRecipeGenerator() {
     }
     try {
       const userId = auth.currentUser?.uid;
+      if (!userId) return;
+
+      // Use household path if in a household
+      const shoppingListPath = householdId 
+        ? `households/${householdId}/shoppingList`
+        : `users/${userId}/shoppingList`;
+
       const batchPromises = itemsToShop.map(item => 
-        addDoc(collection(db, `users/${userId}/shoppingList`), { name: item, checked: false, createdAt: new Date() })
+        addDoc(collection(db, shoppingListPath), { name: item, checked: false, createdAt: new Date() })
       );
       await Promise.all(batchPromises);
       Alert.alert(t('success', language), `${itemsToShop.length} ${t('itemsAddedToShoppingList', language)}`, [{ text: 'OK', onPress: () => setShowPantryCheckModal(false) }]);

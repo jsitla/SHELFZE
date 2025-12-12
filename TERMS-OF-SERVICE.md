@@ -155,7 +155,18 @@ Shelfze allows users to create or join a Household to share a pantry with family
 **Joining a Household:**
 - You need an invite code from the Household Owner.
 - Your personal credits are archived while you use household credits.
-- You share pantry items with all household members.
+- You share pantry items, shopping list, and saved recipes with all household members.
+
+**What is Shared in a Household:**
+
+| Data | Shared? |
+|------|---------|
+| Pantry Items | ✅ Yes |
+| Shopping List | ✅ Yes |
+| Saved Recipes | ✅ Yes |
+| Usage Credits | ✅ Yes |
+| Recipe Ratings | ❌ No (Personal) |
+| Email/Password | ❌ No (Private) |
 
 **Household Credits:**
 - Free households share 30 scans and 30 recipes per month.
@@ -165,10 +176,10 @@ Shelfze allows users to create or join a Household to share a pantry with family
 **Leaving a Household:**
 - Your personal credits are restored.
 - A 7-day cooldown applies before joining another household.
-- You lose access to the shared pantry data.
+- You lose access to the shared pantry data, shopping list, and saved recipes.
 
 **Data Sharing Warning:**
-By joining a Household, you consent to sharing your pantry items with other household members. Do not share sensitive information through pantry item names or notes.
+By joining a Household, you consent to sharing your pantry items, shopping list, and saved recipes with other household members. Do not share sensitive information through pantry item names or notes.
 
 ## 7. Third-Party Services
 

@@ -63,12 +63,26 @@ We use tools like Firebase Analytics to understand how the App is used, detect c
 ### 3.1 Household Sharing
 If you create or join a Household:
 - Your pantry items are shared with all household members.
+- Your shopping list is shared with all household members.
+- Your saved recipes are shared with all household members.
 - Your usage credits (scans, recipes) are pooled with the household.
-- Other household members can see items you add to the shared pantry.
+- Other household members can see items you add to the shared pantry, shopping list, and saved recipes.
 - Your nickname is visible to other household members.
 - Household members cannot see your personal account details (email, password).
 
-When you leave a household, your personal credits are restored, and you no longer have access to the shared pantry data.
+**What is Shared Within a Household:**
+
+| Data Type | Shared? | Description |
+|-----------|---------|-------------|
+| Pantry Items | ✅ Yes | All food items, expiry dates, quantities |
+| Shopping List | ✅ Yes | Items to buy, checked status |
+| Saved Recipes | ✅ Yes | Favorited recipes, want-to-try, cooked recipes |
+| Usage Credits | ✅ Yes | Scans and recipe generation credits pooled |
+| Nickname | ✅ Yes | Your display name visible to members |
+| Recipe Ratings | ❌ No | Your personal ratings are private |
+| Email/Password | ❌ No | Your login details are never shared |
+
+When you leave a household, your personal credits are restored, and you no longer have access to the shared pantry data, shopping list, or saved recipes.
 
 ### 3.2 Third-Party Service Providers
 We share data only with the specific third-party services required to operate the App.

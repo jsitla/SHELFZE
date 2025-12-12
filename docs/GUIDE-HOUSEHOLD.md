@@ -7,9 +7,27 @@ Share your pantry with family members using Shelfze Households.
 ## What is a Household?
 
 A Household lets multiple people:
-- 📋 **Share one pantry** - Everyone sees the same items
+- 📋 **Share one pantry** - Everyone sees the same food items
+- 🛒 **Share one shopping list** - Coordinate grocery shopping together
+- 📚 **Share saved recipes** - Everyone can access favorited recipes
 - ⚡ **Share credits** - Pool scans and recipes together
 - 👨‍👩‍👧‍👦 **Collaborate** - Family members can add/edit items
+
+---
+
+## What Gets Shared?
+
+When you join a Household, the following data is shared with all members:
+
+| Data | Shared? | Description |
+|------|---------|-------------|
+| 📋 Pantry Items | ✅ Yes | All food items, expiry dates, quantities |
+| 🛒 Shopping List | ✅ Yes | Items to buy, checked status |
+| 📚 Saved Recipes | ✅ Yes | Favorites, cooked, want-to-try recipes |
+| ⚡ Credits | ✅ Yes | Scans and recipes pooled together |
+| 👤 Nickname | ✅ Yes | Your display name visible to members |
+| ⭐ Ratings | ❌ No | Your recipe ratings are private |
+| 📧 Email/Account | ❌ No | Your login details are never shared |
 
 ---
 
