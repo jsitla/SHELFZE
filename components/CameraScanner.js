@@ -422,6 +422,9 @@ export default function CameraScanner({ navigation }) {
           stopVideoRecording();
         }
         
+        // Turn off torch when leaving screen
+        setTorchEnabled(false);
+        
         // Clean up blob URL if on web
         const latestPhotoUri = latestPhotoUriRef.current;
         if (Platform.OS === 'web' && latestPhotoUri && latestPhotoUri.startsWith('blob:')) {
