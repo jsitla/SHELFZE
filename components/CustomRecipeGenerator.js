@@ -27,6 +27,16 @@ import { fetchWithTimeout } from '../utils/fetchWithTimeout';
 import { scaleIngredient } from '../utils/ingredientScaler';
 import { Ionicons } from '@expo/vector-icons';
 
+// Helper function to validate emoji - returns default if not a valid emoji
+const getValidEmoji = (emoji) => {
+  if (!emoji || typeof emoji !== 'string') return '🍽️';
+  const emojiRegex = /^[\u{1F300}-\u{1F9FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]/u;
+  if (emojiRegex.test(emoji) && emoji.length <= 4) {
+    return emoji;
+  }
+  return '🍽️';
+};
+
 export default function CustomRecipeGenerator() {
   // --- State from RecipeGenerator ---
   const [pantryItems, setPantryItems] = useState([]); // Needed for "Check Pantry" feature
@@ -341,7 +351,7 @@ export default function CustomRecipeGenerator() {
     try {
       const ingredientsText = recipeDetails.ingredients.map((ing) => `• ${ing}`).join('\n');
       const instructionsText = recipeDetails.instructions.map((step, i) => `${i + 1}. ${step}`).join('\n');
-      const message = `${t('checkOutThisRecipe', language)}: ${recipeDetails.name} ${recipeDetails.emoji || ''}\n\n📝 *${t('ingredients', language)}:*\n${ingredientsText}\n\n👨‍🍳 *${t('instructions', language)}:*\n${instructionsText}\n\n${t('sharedFromShelfze', language)}`;
+      const message = `${t('checkOutThisRecipe', language)}: ${recipeDetails.name} ${getValidEmoji(recipeDetails.emoji)}\n\n📝 *${t('ingredients', language)}:*\n${ingredientsText}\n\n👨‍🍳 *${t('instructions', language)}:*\n${instructionsText}\n\n${t('sharedFromShelfze', language)}`;
       await Share.share({ message, title: recipeDetails.name });
     } catch (error) {
       Alert.alert(t('error', language), t('failedToShare', language));
@@ -404,7 +414,7 @@ export default function CustomRecipeGenerator() {
       <View style={styles.richRecipeContainer}>
         <View style={styles.recipeHeader}>
           <Text style={styles.recipeTitle}>{recipeDetails.name}</Text>
-          <Text style={styles.recipeEmoji}>{recipeDetails.emoji || '🍽️'}</Text>
+          <Text style={styles.recipeEmoji}>{getValidEmoji(recipeDetails.emoji)}</Text>
           
           {/* Meta Row */}
           <View style={styles.recipeMetaRow}>

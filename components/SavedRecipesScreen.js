@@ -23,6 +23,16 @@ import { fetchWithTimeout } from '../utils/fetchWithTimeout';
 import { scaleIngredient } from '../utils/ingredientScaler';
 import { Ionicons } from '@expo/vector-icons';
 
+// Helper function to validate emoji - returns default if not a valid emoji
+const getValidEmoji = (emoji) => {
+  if (!emoji || typeof emoji !== 'string') return '🍽️';
+  const emojiRegex = /^[\u{1F300}-\u{1F9FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]/u;
+  if (emojiRegex.test(emoji) && emoji.length <= 4) {
+    return emoji;
+  }
+  return '🍽️';
+};
+
 export default function SavedRecipesScreen() {
   const [savedRecipes, setSavedRecipes] = useState([]);
   const [userRatings, setUserRatings] = useState({});
@@ -404,7 +414,7 @@ export default function SavedRecipesScreen() {
       }).join('\n');
 
       const message = `
-${t('checkOutThisRecipe', language)}: ${recipeDetails.name} ${recipeDetails.emoji || ''}
+${t('checkOutThisRecipe', language)}: ${recipeDetails.name} ${getValidEmoji(recipeDetails.emoji)}
 
 📝 *${t('ingredients', language)}:*
 ${ingredientsText}
@@ -1145,7 +1155,7 @@ ${t('sharedFromShelfze', language)}
                 >
                   <View style={styles.savedRecipeCardContent}>
                     <Text style={styles.savedRecipeEmoji}>
-                      {recipe.recipeData?.emoji || '🍽️'}
+                      {getValidEmoji(recipe.recipeData?.emoji)}
                     </Text>
                     <View style={styles.savedRecipeInfo}>
                       <View style={styles.savedRecipeNameRow}>

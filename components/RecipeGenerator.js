@@ -26,6 +26,18 @@ import { config } from '../config';
 import { fetchWithTimeout } from '../utils/fetchWithTimeout';
 import { scaleIngredient } from '../utils/ingredientScaler';
 
+// Helper function to validate emoji - returns default if not a valid emoji
+const getValidEmoji = (emoji) => {
+  if (!emoji || typeof emoji !== 'string') return '🍽️';
+  // Emoji regex - matches most common food emojis and other emojis
+  const emojiRegex = /^[\u{1F300}-\u{1F9FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]/u;
+  // Check if it starts with an emoji (allow emoji followed by other chars)
+  if (emojiRegex.test(emoji) && emoji.length <= 4) {
+    return emoji;
+  }
+  return '🍽️';
+};
+
 export default function RecipeGenerator() {
   const [pantryItems, setPantryItems] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -780,7 +792,7 @@ export default function RecipeGenerator() {
       }).join('\n');
 
       const message = `
-${t('checkOutThisRecipe', language)}: ${recipeDetails.name} ${recipeDetails.emoji || ''}
+${t('checkOutThisRecipe', language)}: ${recipeDetails.name} ${getValidEmoji(recipeDetails.emoji)}
 
 📝 *${t('ingredients', language)}:*
 ${ingredientsText}
@@ -921,7 +933,7 @@ ${t('sharedFromShelfze', language)}
         <ScrollView style={styles.detailScroll} contentContainerStyle={styles.detailScrollContent}>
         <View style={styles.recipeHeader}>
           <Text style={styles.recipeTitle}>{recipeDetails.name}</Text>
-          <Text style={styles.recipeEmoji}>{recipeDetails.emoji || '🍽️'}</Text>
+          <Text style={styles.recipeEmoji}>{getValidEmoji(recipeDetails.emoji)}</Text>
           {recipeDetails.nutrition && (
             <View style={styles.nutritionCard}>
               <Text style={styles.nutritionTitle}>🔥 {t('nutrition', language)}</Text>
@@ -1530,7 +1542,7 @@ ${t('sharedFromShelfze', language)}
                 style={styles.recipeCard}
                 onPress={() => selectRecipe(item)}
               >
-                <Text style={styles.recipeCardEmoji}>{item.emoji || '🍽️'}</Text>
+                <Text style={styles.recipeCardEmoji}>{getValidEmoji(item.emoji)}</Text>
                 <View style={styles.recipeCardContent}>
                   <Text style={styles.recipeCardTitle}>{item.name}</Text>
                   <Text style={styles.recipeCardDescription}>
