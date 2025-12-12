@@ -1070,6 +1070,13 @@ export default function Profile({ navigation }) {
               {t('enterInviteCodeDesc', language) || 'Enter the invite code shared by a household member.'}
             </Text>
             
+            <View style={styles.joinWarningBox}>
+              <Text style={styles.joinWarningTitle}>⚠️ {t('importantNote', language) || 'Important'}</Text>
+              <Text style={styles.joinWarningText}>
+                {t('joinHouseholdWarning', language) || 'Your personal pantry, shopping list, and saved recipes will be removed. You will see the data already in the household you are joining.'}
+              </Text>
+            </View>
+            
             <TextInput
               style={styles.joinCodeInput}
               placeholder={t('inviteCodePlaceholder', language) || 'Enter 6-character code'}
@@ -2047,8 +2054,27 @@ const styles = StyleSheet.create({
   joinModalDescription: {
     fontSize: 14,
     color: '#666',
-    marginBottom: 20,
+    marginBottom: 15,
     textAlign: 'center',
+  },
+  joinWarningBox: {
+    backgroundColor: '#FFF3CD',
+    borderRadius: 10,
+    padding: 12,
+    marginBottom: 15,
+    borderWidth: 1,
+    borderColor: '#FFECB5',
+  },
+  joinWarningTitle: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#856404',
+    marginBottom: 5,
+  },
+  joinWarningText: {
+    fontSize: 13,
+    color: '#856404',
+    lineHeight: 18,
   },
   joinCodeInput: {
     backgroundColor: '#f0f0f0',
