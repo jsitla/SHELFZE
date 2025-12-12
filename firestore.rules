@@ -68,6 +68,12 @@ service cloud.firestore {
         get(/databases/$(database)/documents/households/$(householdId)).data.memberIds;
     }
 
+    // Household shopping list: Members can read/write/delete
+    match /households/{householdId}/shoppingList/{itemId} {
+      allow read, write, delete: if request.auth.uid in 
+        get(/databases/$(database)/documents/households/$(householdId)).data.memberIds;
+    }
+
     // Household usage quota: Members can read, only cloud functions can write
     match /households/{householdId}/usage/current {
       allow read: if request.auth.uid in 

@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, TextInput, TouchableOpacity, FlatList, StyleSheet, Alert } from 'react-native';
-import { getFirestore, collection, onSnapshot, addDoc, doc, updateDoc, deleteDoc } from 'firebase/firestore';
+import { getFirestore, collection, onSnapshot, addDoc, doc, updateDoc, deleteDoc, getDoc } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
+import { useFocusEffect } from '@react-navigation/native';
 import { useLanguage } from '../contexts/LanguageContext';
 import { t } from '../contexts/translations';
 
@@ -10,30 +11,68 @@ const ShoppingList = () => {
     const [list, setList] = useState([]);
     const [newItem, setNewItem] = useState('');
     const [loading, setLoading] = useState(true);
+    const [householdId, setHouseholdId] = useState(null);
+    const [householdChecked, setHouseholdChecked] = useState(false);
 
     const auth = getAuth();
     const user = auth.currentUser;
     const db = getFirestore();
 
-    useEffect(() => {
-        if (user) {
-            const shoppingListCollection = collection(db, `users/${user.uid}/shoppingList`);
-            const unsubscribe = onSnapshot(shoppingListCollection, (snapshot) => {
-                const items = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                setList(items);
-                setLoading(false);
-            }, (error) => {
-                console.error("Error fetching shopping list:", error);
-                Alert.alert(t('error', language), t('errorLoadingShoppingList', language));
-                setLoading(false);
-            });
-            return () => unsubscribe();
+    // Get the correct path based on household membership
+    const getShoppingListPath = useCallback(() => {
+        if (householdId) {
+            return `households/${householdId}/shoppingList`;
         }
-    }, [user]);
+        return `users/${user?.uid}/shoppingList`;
+    }, [householdId, user?.uid]);
+
+    // Check for household membership when screen is focused
+    useFocusEffect(
+        useCallback(() => {
+            const checkHousehold = async () => {
+                if (!user) return;
+                
+                try {
+                    const userDoc = await getDoc(doc(db, 'users', user.uid));
+                    const userData = userDoc.data();
+                    const newHouseholdId = userData?.householdId || null;
+                    setHouseholdId(newHouseholdId);
+                    setHouseholdChecked(true);
+                } catch (error) {
+                    console.error('Error checking household:', error);
+                    setHouseholdChecked(true);
+                }
+            };
+            
+            checkHousehold();
+        }, [user])
+    );
+
+    // Set up listener for shopping list - runs when householdId changes
+    useEffect(() => {
+        if (!user || !householdChecked) return;
+
+        const path = getShoppingListPath();
+        console.log('🛒 Shopping list path:', path);
+        
+        const shoppingListCollection = collection(db, path);
+        const unsubscribe = onSnapshot(shoppingListCollection, (snapshot) => {
+            const items = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            setList(items);
+            setLoading(false);
+        }, (error) => {
+            console.error("Error fetching shopping list:", error);
+            Alert.alert(t('error', language), t('errorLoadingShoppingList', language));
+            setLoading(false);
+        });
+        
+        return () => unsubscribe();
+    }, [user, householdId, householdChecked, getShoppingListPath]);
 
     const addItem = async () => {
         if (newItem.trim() === '') return;
-        await addDoc(collection(db, `users/${user.uid}/shoppingList`), {
+        const path = getShoppingListPath();
+        await addDoc(collection(db, path), {
             name: newItem,
             checked: false,
         });
@@ -41,7 +80,8 @@ const ShoppingList = () => {
     };
 
     const toggleItemChecked = async (item) => {
-        const itemRef = doc(db, `users/${user.uid}/shoppingList`, item.id);
+        const path = getShoppingListPath();
+        const itemRef = doc(db, path, item.id);
         await updateDoc(itemRef, { checked: !item.checked });
     };
 
@@ -55,8 +95,9 @@ const ShoppingList = () => {
                     text: t('clear', language),
                     style: 'destructive',
                     onPress: async () => {
+                        const path = getShoppingListPath();
                         list.forEach(async (item) => {
-                            await deleteDoc(doc(db, `users/${user.uid}/shoppingList`, item.id));
+                            await deleteDoc(doc(db, path, item.id));
                         });
                     },
                 },
@@ -78,6 +119,12 @@ const ShoppingList = () => {
 
     return (
         <View style={styles.container}>
+            {/* Show household indicator if in a household */}
+            {householdId && (
+                <View style={styles.householdBanner}>
+                    <Text style={styles.householdBannerText}>🏠 {t('sharedShoppingList', language)}</Text>
+                </View>
+            )}
             <View style={styles.inputContainer}>
                 <TextInput
                     style={styles.input}
@@ -109,6 +156,19 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: '#F4F1DE', // Alabaster
+    },
+    householdBanner: {
+        backgroundColor: '#E8F4EC',
+        paddingVertical: 8,
+        paddingHorizontal: 16,
+        borderBottomWidth: 1,
+        borderBottomColor: '#4A7C59',
+    },
+    householdBannerText: {
+        color: '#4A7C59',
+        fontSize: 13,
+        fontWeight: '600',
+        textAlign: 'center',
     },
     inputContainer: {
         flexDirection: 'row',
