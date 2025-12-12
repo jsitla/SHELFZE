@@ -726,16 +726,6 @@ export default function PantryList({ navigation }) {
             
             {editingItem && (
               <ScrollView showsVerticalScrollIndicator={false}>
-                {/* Added By - Only show for household items */}
-                {householdId && editingItem.addedByName && (
-                  <View style={styles.editSection}>
-                    <Text style={styles.editLabel}>{t('addedBy', language)}</Text>
-                    <View style={styles.addedByContainer}>
-                      <Text style={styles.addedByText}>👤 {editingItem.addedByName}</Text>
-                    </View>
-                  </View>
-                )}
-
                 {/* Item Name */}
                 <View style={styles.editSection}>
                   <Text style={styles.editLabel}>{t('itemName', language)} *</Text>
@@ -850,6 +840,13 @@ export default function PantryList({ navigation }) {
                     />
                   )}
                 </View>
+
+                {/* Added By - Subtle footer for household items */}
+                {householdId && editingItem.addedByName && (
+                  <Text style={styles.addedByFooter}>
+                    {t('addedBy', language)}: {editingItem.addedByName}
+                  </Text>
+                )}
 
                 <View style={styles.modalButtons}>
                   <TouchableOpacity
@@ -1242,17 +1239,13 @@ const styles = StyleSheet.create({
     color: '#3D405B',
     marginBottom: 8,
   },
-  addedByContainer: {
-    backgroundColor: '#E8F4EC',
-    borderRadius: 12,
-    padding: 12,
-    borderWidth: 1,
-    borderColor: '#4A7C59',
-  },
-  addedByText: {
-    fontSize: 15,
-    color: '#4A7C59',
-    fontWeight: '500',
+  addedByFooter: {
+    fontSize: 11,
+    color: '#94A3B8',
+    textAlign: 'center',
+    marginTop: 12,
+    marginBottom: 4,
+    fontStyle: 'italic',
   },
   editInput: {
     backgroundColor: '#F1F5F9',

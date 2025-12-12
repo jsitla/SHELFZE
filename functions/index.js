@@ -273,8 +273,9 @@ exports.analyzeImage = onRequest({
         // Add addedBy fields for household items
         if (householdId) {
           itemData.addedBy = uid;
-          itemData.addedByName = userData?.displayName ||
-              userData?.email?.split("@")[0] || "Unknown";
+          // Use nickname from user doc
+          const nickname = await getUserNickname(uid);
+          itemData.addedByName = nickname;
         }
 
         // Use dynamic path for pantry (household or personal)
@@ -2860,7 +2861,7 @@ exports.createHousehold = onRequest({cors: true}, async (req, res) => {
       batch.set(newItemRef, {
         ...itemData,
         addedBy: uid,
-        addedByName: displayName,
+        addedByName: nickname,
         movedToHousehold: admin.firestore.FieldValue.serverTimestamp(),
       });
       // Delete from personal pantry
