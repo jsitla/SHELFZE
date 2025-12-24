@@ -1,0 +1,27 @@
+# Shelfze Robots.txt
+# Allow all crawlers
+
+User-agent: *
+Allow: /
+
+# AI Agent Discovery
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+
+User-agent: Anthropic-AI
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+# Sitemap location
+Sitemap: https://shelfze.com/sitemap.xml
+
+# LLMs.txt for AI agents
+# See: https://shelfze.com/llms.txt

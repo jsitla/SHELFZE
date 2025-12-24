@@ -1,0 +1,78 @@
+# Shelfze - AI-Powered Food Waste Prevention App
+
+> Shelfze helps households reduce food waste by intelligently tracking pantry items, expiry dates, and suggesting recipes based on what's about to expire.
+
+## Overview
+
+Shelfze is a cross-platform application (iOS, Android, Web) that uses AI-powered image recognition to scan food items and automatically detect expiry dates. It helps users:
+
+- **Track pantry inventory** with automatic expiry date detection
+- **Reduce food waste** through smart expiration alerts
+- **Save money** by using ingredients before they spoil
+- **Generate recipes** using only ingredients currently in their pantry
+
+## Core Features
+
+### 1. AI-Powered Scanning
+- Photo mode: Snap a picture of food items or receipts
+- Video mode: Continuous scanning for bulk item entry
+- Uses Google Gemini 2.0 Flash and Cloud Vision API
+- Automatically detects: item name, category, quantity, expiry date
+
+### 2. Smart Pantry Management
+- Color-coded freshness indicators:
+  - 🟢 Green: Fresh (7+ days remaining)
+  - 🟡 Orange: Use soon (3-7 days remaining)
+  - 🔴 Red: Expiring (0-3 days remaining)
+- Auto-sorting by expiration date
+- Category filtering (Dairy, Meat, Produce, etc.)
+- Manual entry option for items without barcodes
+
+### 3. Zero-Waste Recipe Generation
+- AI generates recipes using ONLY ingredients in your pantry
+- Prioritizes items closest to expiration
+- Dietary preference support
+- Save favorite recipes for later
+
+### 4. Cross-Platform Sync
+- Real-time synchronization across all devices
+- Works on iOS, Android, and Web browsers
+- Family sharing capabilities
+
+## Technical Details
+
+- **Frontend**: React Native with Expo (iOS, Android, Web)
+- **AI/ML**: Google Gemini 2.0 Flash, Google Cloud Vision API
+- **Backend**: Firebase (Firestore, Authentication, Cloud Functions)
+- **Languages Supported**: English, German, Italian, Slovenian, Spanish, French
+
+## Use Cases
+
+1. **Weekly Grocery Planning**: Scan receipts after shopping to auto-populate pantry
+2. **Daily Meal Planning**: Get recipe suggestions based on what needs to be used
+3. **Reducing Household Waste**: Track and minimize expired food over time
+4. **Budget Management**: Understand and reduce food spending waste
+
+## Getting Started
+
+1. Download Shelfze from App Store or Google Play
+2. Create an account or sign in with Google/Apple
+3. Scan your first food item using the camera
+4. View your pantry and get recipe suggestions
+
+## Links
+
+- Website: https://shelfze.com
+- App Store: [Coming Soon]
+- Google Play: [Coming Soon]
+- Privacy Policy: https://shelfze.com/privacy
+- Terms of Service: https://shelfze.com/terms
+
+## Contact
+
+- Support: support@shelfze.com
+- Business: hello@shelfze.com
+
+---
+
+*Last updated: December 2025*

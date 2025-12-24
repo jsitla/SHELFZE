@@ -467,7 +467,18 @@ export default function Profile({ navigation }) {
   };
 
   const handleSignOut = async () => {
-    if (user?.isAnonymous) {
+    const isWeb = Platform.OS === 'web';
+    
+    if (isWeb) {
+      // Use browser confirm on web since Alert.alert doesn't work
+      const message = user?.isAnonymous 
+        ? t('guestSignOutWarning', language)
+        : t('signOutConfirm', language);
+      
+      if (window.confirm(message)) {
+        await performSignOut();
+      }
+    } else if (user?.isAnonymous) {
       Alert.alert(
         t('warning', language),
         t('guestSignOutWarning', language),
@@ -935,7 +946,7 @@ export default function Profile({ navigation }) {
           </View>
         )}
 
-        {usageData?.tier !== 'premium' ? (
+        {usageData?.tier !== 'premium' && Platform.OS !== 'web' ? (
           <TouchableOpacity 
             style={styles.upgradePremiumButton}
             onPress={() => {
@@ -951,14 +962,20 @@ export default function Profile({ navigation }) {
           >
             <Text style={styles.upgradePremiumText}>⬆️ {t('upgradeToPremium', language)}</Text>
           </TouchableOpacity>
-        ) : (
+        ) : usageData?.tier === 'premium' ? (
           <TouchableOpacity 
             style={styles.manageSubscriptionButton}
             onPress={handleManageSubscription}
           >
             <Text style={styles.manageSubscriptionText}>⚙️ {t('manageSubscription', language) || 'Manage Subscription'}</Text>
           </TouchableOpacity>
-        )}
+        ) : Platform.OS === 'web' ? (
+          <View style={styles.webPurchaseNotice}>
+            <Text style={styles.webPurchaseNoticeText}>
+              📱 {t('upgradeInApp', language) || 'To upgrade to Premium, please use the iOS or Android app'}
+            </Text>
+          </View>
+        ) : null}
       </View>
 
       {/* Household Section */}
@@ -1716,6 +1733,20 @@ const styles = StyleSheet.create({
     color: '#3D405B',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  webPurchaseNotice: {
+    backgroundColor: '#F0FDF4',
+    padding: 15,
+    borderRadius: 8,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#BBF7D0',
+  },
+  webPurchaseNoticeText: {
+    color: '#166534',
+    fontSize: 14,
+    fontWeight: '500',
+    textAlign: 'center',
   },
   giftCodeSection: {
     backgroundColor: '#fff',

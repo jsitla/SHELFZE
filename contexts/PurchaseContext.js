@@ -9,13 +9,22 @@ const PurchaseContext = createContext();
 
 export const usePurchase = () => useContext(PurchaseContext);
 
+// Check if we're on web platform
+const isWeb = Platform.OS === 'web';
+
 export const PurchaseProvider = ({ children }) => {
-  const [isReady, setIsReady] = useState(false);
+  const [isReady, setIsReady] = useState(isWeb); // Web is ready immediately (no RevenueCat)
   const [offerings, setOfferings] = useState(null);
   const [customerInfo, setCustomerInfo] = useState(null);
   const [isPremium, setIsPremium] = useState(false);
 
   useEffect(() => {
+    // Skip RevenueCat initialization on web - purchases not supported
+    if (isWeb) {
+      console.log('Web platform detected - RevenueCat disabled, purchases not available');
+      return;
+    }
+
     const initRevenueCat = async () => {
       try {
         if (Platform.OS === 'ios') {
@@ -138,6 +147,12 @@ export const PurchaseProvider = ({ children }) => {
   };
 
   const purchasePackage = async (pack) => {
+    // Purchases not available on web
+    if (isWeb) {
+      Alert.alert('Not Available', 'Purchases are only available in the mobile app. Please download the iOS or Android app to upgrade to Premium.');
+      return { success: false, error: { message: 'Web purchases not supported' } };
+    }
+    
     try {
       const { customerInfo } = await Purchases.purchasePackage(pack);
       checkEntitlements(customerInfo);
@@ -151,6 +166,12 @@ export const PurchaseProvider = ({ children }) => {
   };
 
   const restorePurchases = async () => {
+    // Purchases not available on web
+    if (isWeb) {
+      Alert.alert('Not Available', 'Restore purchases is only available in the mobile app.');
+      return;
+    }
+    
     try {
       const info = await Purchases.restorePurchases();
       checkEntitlements(info);

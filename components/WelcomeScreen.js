@@ -12,6 +12,8 @@ import {
 import { StatusBar } from 'expo-status-bar';
 
 const WelcomeScreen = ({ onContinueAsGuest, onCreateAccount, onLogin }) => {
+  const isWeb = Platform.OS === 'web';
+  
   const guestBenefits = [
     { icon: '⚡', text: 'Start scanning immediately' },
     { icon: '📸', text: '10 free scans' },
@@ -52,32 +54,39 @@ const WelcomeScreen = ({ onContinueAsGuest, onCreateAccount, onLogin }) => {
 
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Choose how to begin</Text>
-          <Text style={styles.sectionCaption}>Pick a starting mode now—you can switch later without losing tracked items.</Text>
+          <Text style={styles.sectionCaption}>
+            {isWeb 
+              ? 'Create an account to sync across all your devices.'
+              : 'Pick a starting mode now—you can switch later without losing tracked items.'}
+          </Text>
         </View>
 
-        <TouchableOpacity
-          style={[styles.planCard, styles.guestPlan]}
-          activeOpacity={0.9}
-          onPress={onContinueAsGuest}
-        >
-          <View style={styles.planHeader}>
-            <Text style={styles.planIcon}>🚀</Text>
-            <View style={styles.planTitleWrap}>
-              <Text style={styles.planTitle}>Try it first</Text>
-              <Text style={styles.planBadge}>No account needed</Text>
+        {/* Guest option - only show on mobile apps */}
+        {!isWeb && (
+          <TouchableOpacity
+            style={[styles.planCard, styles.guestPlan]}
+            activeOpacity={0.9}
+            onPress={onContinueAsGuest}
+          >
+            <View style={styles.planHeader}>
+              <Text style={styles.planIcon}>🚀</Text>
+              <View style={styles.planTitleWrap}>
+                <Text style={styles.planTitle}>Try it first</Text>
+                <Text style={styles.planBadge}>No account needed</Text>
+              </View>
             </View>
-          </View>
 
-          <View style={styles.planBenefits}>
-            {guestBenefits.map((item) => (
-              <BenefitRow key={item.text} icon={item.icon} text={item.text} />
-            ))}
-          </View>
+            <View style={styles.planBenefits}>
+              {guestBenefits.map((item) => (
+                <BenefitRow key={item.text} icon={item.icon} text={item.text} />
+              ))}
+            </View>
 
-          <View style={styles.planCTA}>
-            <Text style={styles.planCTAText}>Continue as guest</Text>
-          </View>
-        </TouchableOpacity>
+            <View style={styles.planCTA}>
+              <Text style={styles.planCTAText}>Continue as guest</Text>
+            </View>
+          </TouchableOpacity>
+        )}
 
         <TouchableOpacity
           style={[styles.planCard, styles.accountPlan]}
@@ -103,29 +112,32 @@ const WelcomeScreen = ({ onContinueAsGuest, onCreateAccount, onLogin }) => {
           </View>
         </TouchableOpacity>
 
-        <TouchableOpacity
-          style={[styles.planCard, styles.premiumPlan]}
-          activeOpacity={0.9}
-          onPress={() => onCreateAccount(true)}
-        >
-          <View style={styles.planHeader}>
-            <Text style={styles.planIcon}>👑</Text>
-            <View style={styles.planTitleWrap}>
-              <Text style={styles.planTitle}>Premium</Text>
-              <Text style={[styles.planBadge, styles.premiumBadge]}>Best Value</Text>
+        {/* Premium option - only show on mobile apps where purchases are available */}
+        {!isWeb && (
+          <TouchableOpacity
+            style={[styles.planCard, styles.premiumPlan]}
+            activeOpacity={0.9}
+            onPress={() => onCreateAccount(true)}
+          >
+            <View style={styles.planHeader}>
+              <Text style={styles.planIcon}>👑</Text>
+              <View style={styles.planTitleWrap}>
+                <Text style={styles.planTitle}>Premium</Text>
+                <Text style={[styles.planBadge, styles.premiumBadge]}>Best Value</Text>
+              </View>
             </View>
-          </View>
 
-          <View style={styles.planBenefits}>
-            {premiumBenefits.map((item) => (
-              <BenefitRow key={item.text} icon={item.icon} text={item.text} />
-            ))}
-          </View>
+            <View style={styles.planBenefits}>
+              {premiumBenefits.map((item) => (
+                <BenefitRow key={item.text} icon={item.icon} text={item.text} />
+              ))}
+            </View>
 
-          <View style={[styles.planCTA, styles.premiumCTA]}>
-            <Text style={[styles.planCTAText, styles.premiumCTAText]}>Go Premium</Text>
-          </View>
-        </TouchableOpacity>
+            <View style={[styles.planCTA, styles.premiumCTA]}>
+              <Text style={[styles.planCTAText, styles.premiumCTAText]}>Go Premium</Text>
+            </View>
+          </TouchableOpacity>
+        )}
 
         <TouchableOpacity style={styles.loginButton} onPress={onLogin} activeOpacity={0.85}>
           <Text style={styles.loginButtonLabel}>Already have an account?</Text>

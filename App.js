@@ -4,7 +4,10 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 // 1. Import necessary components from React, React Native, and Expo
 import React, { useState, useEffect, Component, useRef } from 'react';
-import { StyleSheet, View, TouchableOpacity, Text, ActivityIndicator, Alert } from 'react-native';
+import { StyleSheet, View, TouchableOpacity, Text, ActivityIndicator, Alert, Platform } from 'react-native';
+import WebLandingScreen from './screens/WebLandingScreen';
+import PrivacyPolicyScreen from './screens/PrivacyPolicyScreen';
+import TermsOfServiceScreen from './screens/TermsOfServiceScreen';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import { NavigationContainer, createNavigationContainerRef } from '@react-navigation/native';
@@ -356,7 +359,40 @@ export default function App() {
   const [authMode, setAuthMode] = useState('login'); // 'login' or 'signup'
   const [checkingFirstLaunch, setCheckingFirstLaunch] = useState(true);
   const [hasLegalConsent, setHasLegalConsent] = useState(false);
+  const [showWebLanding, setShowWebLanding] = useState(Platform.OS === 'web'); // Show landing page for web
+  const [webPage, setWebPage] = useState(null); // 'privacy', 'terms', or null for landing
   const justAgreedRef = useRef(false);
+
+  // Check URL path for web routing
+  useEffect(() => {
+    if (Platform.OS === 'web' && typeof window !== 'undefined') {
+      const path = window.location.pathname.toLowerCase();
+      if (path === '/privacy' || path === '/privacy-policy') {
+        setWebPage('privacy');
+      } else if (path === '/terms' || path === '/terms-of-service') {
+        setWebPage('terms');
+      } else {
+        setWebPage(null);
+      }
+      
+      // Listen for popstate (browser back/forward)
+      const handlePopState = () => {
+        const newPath = window.location.pathname.toLowerCase();
+        if (newPath === '/privacy' || newPath === '/privacy-policy') {
+          setWebPage('privacy');
+          setShowWebLanding(true);
+        } else if (newPath === '/terms' || newPath === '/terms-of-service') {
+          setWebPage('terms');
+          setShowWebLanding(true);
+        } else {
+          setWebPage(null);
+        }
+      };
+      
+      window.addEventListener('popstate', handlePopState);
+      return () => window.removeEventListener('popstate', handlePopState);
+    }
+  }, []);
 
   // Check if this is first launch
   useEffect(() => {
@@ -364,8 +400,13 @@ export default function App() {
       try {
         const hasLaunched = await AsyncStorage.getItem('hasLaunchedBefore');
         if (hasLaunched === null) {
-          // First launch - show welcome screen
-          setShowWelcome(true);
+          // First launch - show welcome screen (or landing page on web)
+          if (Platform.OS === 'web') {
+            setShowWebLanding(true);
+            setShowWelcome(false);
+          } else {
+            setShowWelcome(true);
+          }
         }
       } catch (error) {
         console.error('Error checking first launch:', error);
@@ -526,7 +567,15 @@ export default function App() {
         // Always show welcome screen to let user choose their auth method
         // instead of auto-creating anonymous accounts
         console.log('No user found, showing welcome screen');
-        setShowWelcome(true);
+        
+        // On web, show the landing page again
+        if (Platform.OS === 'web') {
+          setShowWebLanding(true);
+          setShowWelcome(false);
+        } else {
+          setShowWelcome(true);
+        }
+        
         // Reset legal consent state so next guest session requires agreement
         setHasLegalConsent(false);
         justAgreedRef.current = false; // Ensure ref is reset
@@ -555,6 +604,57 @@ export default function App() {
   }, [user, pendingPremiumRedirect, showAuth, showWelcome, showLegalConsent, hasLegalConsent]);
 
   let content = null;
+
+  // Web Landing Page - show for web visitors who aren't logged in yet
+  if (Platform.OS === 'web' && showWebLanding && !user) {
+    const handleWebGetStarted = () => {
+      setShowWebLanding(false);
+      setShowWelcome(true);
+    };
+    
+    const handleWebBack = () => {
+      setWebPage(null);
+      if (typeof window !== 'undefined') {
+        window.history.pushState({}, '', '/');
+      }
+    };
+    
+    // Show Privacy Policy page
+    if (webPage === 'privacy') {
+      return (
+        <GestureHandlerRootView style={{ flex: 1 }}>
+          <LanguageProvider>
+            <PurchaseProvider>
+              <PrivacyPolicyScreen onBack={handleWebBack} />
+            </PurchaseProvider>
+          </LanguageProvider>
+        </GestureHandlerRootView>
+      );
+    }
+    
+    // Show Terms of Service page
+    if (webPage === 'terms') {
+      return (
+        <GestureHandlerRootView style={{ flex: 1 }}>
+          <LanguageProvider>
+            <PurchaseProvider>
+              <TermsOfServiceScreen onBack={handleWebBack} />
+            </PurchaseProvider>
+          </LanguageProvider>
+        </GestureHandlerRootView>
+      );
+    }
+    
+    return (
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <LanguageProvider>
+          <PurchaseProvider>
+            <WebLandingScreen onGetStarted={handleWebGetStarted} />
+          </PurchaseProvider>
+        </LanguageProvider>
+      </GestureHandlerRootView>
+    );
+  }
 
   if (checkingFirstLaunch) {
     content = (

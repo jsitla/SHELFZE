@@ -23,6 +23,7 @@ import {
   sendPasswordResetEmail,
   updateProfile,
   signInWithCredential,
+  signInWithPopup,
   GoogleAuthProvider,
   OAuthProvider,
   getAdditionalUserInfo,
@@ -65,17 +66,48 @@ const AuthScreen = ({ mode, onBack, onSuccess }) => {
   }, [hasGoogleConfig, googleClients.web, googleClients.ios]);
 
   const isAppleButtonDisabled = Platform.OS !== 'ios' || !appleAuthAvailable;
+  
+  // Web platform check - hide Apple Sign-In on web
+  const isWeb = Platform.OS === 'web';
 
   useEffect(() => {
     checkAppleAuthAvailability();
   }, []);
 
   const checkAppleAuthAvailability = async () => {
+    // Apple auth is only available on iOS, not on web
+    if (Platform.OS === 'web') {
+      setAppleAuthAvailable(false);
+      return;
+    }
     const isAvailable = await AppleAuthentication.isAvailableAsync();
     setAppleAuthAvailable(isAvailable);
   };
 
   const handleGoogleSignIn = async () => {
+    // Web: Use Firebase popup-based sign-in
+    if (Platform.OS === 'web') {
+      try {
+        setLoading(true);
+        const provider = new GoogleAuthProvider();
+        provider.addScope('email');
+        provider.addScope('profile');
+        
+        const userCredential = await signInWithPopup(auth, provider);
+        const { isNewUser } = getAdditionalUserInfo(userCredential) || {};
+        if (onSuccess) onSuccess(isNewUser ? 'signup' : 'login');
+      } catch (error) {
+        console.error('Google Sign-In Error (Web):', error);
+        if (error.code !== 'auth/popup-closed-by-user') {
+          Alert.alert(t('error', language), error.message || 'Unable to sign in with Google');
+        }
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
+    
+    // Native: Use Google Sign-In SDK
     if (!hasGoogleConfig) {
       Alert.alert(
         t('error', language),
@@ -336,16 +368,19 @@ const AuthScreen = ({ mode, onBack, onSuccess }) => {
               </TouchableOpacity>
               */}
 
-              <TouchableOpacity 
-                style={[styles.socialButton, styles.appleButton, isAppleButtonDisabled && styles.socialButtonDisabled]}
-                onPress={handleAppleSignIn}
-                disabled={loading || isAppleButtonDisabled}
-              >
-                <Text style={[styles.socialButtonIcon, styles.appleIcon]}></Text>
-                <Text style={[styles.socialButtonText, styles.appleText]}>
-                  {t('continueWithApple', language) || 'Continue with Apple'}
-                </Text>
-              </TouchableOpacity>
+              {/* Apple Sign-In - Only show on iOS, not on web */}
+              {!isWeb && (
+                <TouchableOpacity 
+                  style={[styles.socialButton, styles.appleButton, isAppleButtonDisabled && styles.socialButtonDisabled]}
+                  onPress={handleAppleSignIn}
+                  disabled={loading || isAppleButtonDisabled}
+                >
+                  <Text style={[styles.socialButtonIcon, styles.appleIcon]}></Text>
+                  <Text style={[styles.socialButtonText, styles.appleText]}>
+                    {t('continueWithApple', language) || 'Continue with Apple'}
+                  </Text>
+                </TouchableOpacity>
+              )}
 
               <View style={styles.divider}>
                 <View style={styles.dividerLine} />

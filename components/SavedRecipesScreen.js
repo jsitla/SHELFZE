@@ -1159,7 +1159,7 @@ ${t('sharedFromShelfze', language)}
                     </Text>
                     <View style={styles.savedRecipeInfo}>
                       <View style={styles.savedRecipeNameRow}>
-                        <Text style={styles.savedRecipeName} numberOfLines={1}>
+                        <Text style={styles.savedRecipeName}>
                           {recipe.recipeName}
                         </Text>
                         <Text style={styles.savedRecipeBadge}>
