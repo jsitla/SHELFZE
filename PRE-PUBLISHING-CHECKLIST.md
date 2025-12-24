@@ -178,7 +178,7 @@ Suggested keywords:
 - [ ] Marketing website (optional)
 
 **Action Required:**
-1. Create support email: `support@shelfze.app` or similar
+1. Create support email: `support@shelfze.com` or similar
 2. Add to `app.json`:
 ```json
 {
@@ -393,7 +393,7 @@ In App Store Connect:
 ### 4. **HIGH - Support Email Setup** (Est. time: 30 min)
 ```bash
 # Steps:
-1. Create support@shelfze.app or use personal email
+1. Create support@shelfze.com or use personal email
 2. Add to app.json
 3. Test email reception
 ```

@@ -1736,7 +1736,7 @@ Thank you to all contributors who have helped make Shelfze better!
 1. **App Store Screenshots** - Need 3-10 screenshots per device size
 2. **Feature Graphic** (Android) - 1024x500px banner
 3. **App Description** - Write compelling store description
-4. **Support Email** - Set up support@shelfze.app or similar
+4. **Support Email** - Set up support@shelfze.com or similar
 5. **Privacy Policy Hosting** - Host PRIVACY-POLICY.md publicly
 6. **Terms of Service Hosting** - Host TERMS-OF-SERVICE.md publicly
 7. **Test on Real Devices** - iOS & Android physical device testing

@@ -64,10 +64,10 @@ const FoodItem = ({ name, emoji, days, delay }) => (
 
 // App screenshots for carousel
 const APP_SCREENSHOTS = [
-  { id: 1, source: require('../assets/screenshots/Screen shot 1.jpg'), label: 'Pantry Management' },
-  { id: 2, source: require('../assets/screenshots/Screen shot 2.jpg'), label: 'Recipe Ideas' },
-  { id: 3, source: require('../assets/screenshots/Screen shot 3.jpg'), label: 'AI Scanning' },
-  { id: 4, source: require('../assets/screenshots/Screen shot 4.jpg'), label: 'Smart Detection' },
+  { id: 1, source: require('../assets/screenshots/Screen shot 1.jpg'), label: 'AI Scanning' },
+  { id: 2, source: require('../assets/screenshots/Screen shot 2.jpg'), label: 'Smart Detection' },
+  { id: 3, source: require('../assets/screenshots/Screen shot 3.jpg'), label: 'Pantry Management' },
+  { id: 4, source: require('../assets/screenshots/Screen shot 4.jpg'), label: 'Recipe Ideas' },
   { id: 5, source: require('../assets/screenshots/Screen shot 5.jpg'), label: 'Pantry Check' },
 ];
 
@@ -338,7 +338,7 @@ Anonymous Accounts: If you use the App without signing in, your data is tied to 
 You have the right to delete your data at any time.
 
 • In-App Deletion: Go to Settings > Delete Account. This will permanently wipe your inventory and user record from our database.
-• Manual Request: Contact denis.mlakar@m-ai.info.
+• Manual Request: Contact support@shelfze.com.
 
 6.2 Permissions
 
@@ -364,7 +364,7 @@ We may update this Privacy Policy to reflect changes in our practices. We will n
 
 If you have questions about this Privacy Policy or your data, please contact us:
 
-Email: denis.mlakar@m-ai.info
+Email: support@shelfze.com
 Developer: Shelfze Team`;
 
 // Terms of Service Content
@@ -617,7 +617,7 @@ Shelfze is intended for users aged 13 and older. Users under 18 should use the A
 
 13. Data Export
 
-For data export requests, contact denis.mlakar@m-ai.info. We will provide data in a readable format (JSON or CSV) within 30 days. Note: We can only export data if you contact us from the device with your active session or a verified email account.
+For data export requests, contact support@shelfze.com. We will provide data in a readable format (JSON or CSV) within 30 days. Note: We can only export data if you contact us from the device with your active session or a verified email account.
 
 14. Indemnification
 
@@ -636,7 +636,7 @@ These Terms are governed by the laws of Slovenia, without regard to its conflict
 
 15.2 Informal Resolution
 
-Before filing any formal claim, you agree to contact us at denis.mlakar@m-ai.info to attempt informal resolution.
+Before filing any formal claim, you agree to contact us at support@shelfze.com to attempt informal resolution.
 
 16. Severability
 
@@ -650,7 +650,7 @@ These Terms, together with our Privacy Policy, constitute the entire agreement b
 
 For questions about these Terms, contact us at:
 
-Email: denis.mlakar@m-ai.info
+Email: support@shelfze.com
 Developer: Shelfze Team
 
 19. Additional Terms for App Store Users (Apple)
@@ -691,14 +691,14 @@ const WebLandingScreen = ({ onGetStarted }) => {
   // URL-based navigation for legal pages
   const navigateToPrivacy = () => {
     if (Platform.OS === 'web' && typeof window !== 'undefined') {
-      window.history.pushState({}, '', '/privacy');
+      window.history.pushState({}, '', '/privacy-policy.html');
       window.dispatchEvent(new PopStateEvent('popstate'));
     }
   };
   
   const navigateToTerms = () => {
     if (Platform.OS === 'web' && typeof window !== 'undefined') {
-      window.history.pushState({}, '', '/terms');
+      window.history.pushState({}, '', '/terms-of-service.html');
       window.dispatchEvent(new PopStateEvent('popstate'));
     }
   };

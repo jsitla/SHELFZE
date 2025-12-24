@@ -1309,7 +1309,7 @@ export default function Profile({ navigation }) {
         <TouchableOpacity 
           style={styles.legalLink}
           onPress={() => {
-            const url = 'https://m-ai.info/privacy-policy.html';
+            const url = 'https://shelfze.com/privacy-policy.html';
             if (Platform.OS === 'web') {
               window.open(url, '_blank');
             } else {
@@ -1324,7 +1324,7 @@ export default function Profile({ navigation }) {
         <TouchableOpacity 
           style={styles.legalLink}
           onPress={() => {
-            const url = 'https://m-ai.info/terms-of-service.html';
+            const url = 'https://shelfze.com/terms-of-service.html';
             if (Platform.OS === 'web') {
               window.open(url, '_blank');
             } else {
@@ -1338,7 +1338,7 @@ export default function Profile({ navigation }) {
 
         <View style={styles.versionInfo}>
           <Text style={styles.versionText}>Version 1.0.0</Text>
-          <Text style={styles.supportText}>support@shelfze.app</Text>
+          <Text style={styles.supportText}>support@shelfze.com</Text>
         </View>
 
 

@@ -1,6 +1,6 @@
 # Terms of Service for Shelfze
 
-**Last Updated: December 11, 2025**
+**Last Updated: December 24, 2025**
 
 ## 1. Acceptance of Terms
 
@@ -259,7 +259,7 @@ Shelfze is intended for users aged 13 and older. Users under 18 should use the A
 
 ## 13. Data Export
 
-For data export requests, contact denis.mlakar@m-ai.info. We will provide data in a readable format (JSON or CSV) within 30 days. Note: We can only export data if you contact us from the device with your active session or a verified email account.
+For data export requests, contact support@shelfze.com. We will provide data in a readable format (JSON or CSV) within 30 days. Note: We can only export data if you contact us from the device with your active session or a verified email account.
 
 ## 14. Indemnification
 
@@ -278,7 +278,7 @@ These Terms are governed by the laws of Slovenia, without regard to its conflict
 
 ### 15.2 Informal Resolution
 
-Before filing any formal claim, you agree to contact us at denis.mlakar@m-ai.info to attempt informal resolution.
+Before filing any formal claim, you agree to contact us at support@shelfze.com to attempt informal resolution.
 
 ## 16. Severability
 
@@ -292,7 +292,7 @@ These Terms, together with our Privacy Policy, constitute the entire agreement b
 
 For questions about these Terms, contact us at:
 
-**Email:** denis.mlakar@m-ai.info  
+**Email:** support@shelfze.com  
 **Developer:** Shelfze Team
 
 ## 19. Additional Terms for App Store Users (Apple)

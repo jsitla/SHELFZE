@@ -319,7 +319,7 @@ if (displayName && displayName.trim()) {
     } else {
       Alert.alert(
         'Privacy Policy',
-        'Please visit our website or contact support@shelfze.app',
+        'Please visit our website or contact support@shelfze.com',
         [{ text: 'OK' }]
       );
     }
@@ -350,7 +350,7 @@ if (displayName && displayName.trim()) {
     } else {
       Alert.alert(
         'Terms of Service',
-        'Please visit our website or contact support@shelfze.app',
+        'Please visit our website or contact support@shelfze.com',
         [{ text: 'OK' }]
       );
     }
@@ -362,7 +362,7 @@ if (displayName && displayName.trim()) {
 
 <View>
   <Text>Version 1.0.0</Text>
-  <Text>support@shelfze.app</Text>
+  <Text>support@shelfze.com</Text>
 </View>
 ```
 
@@ -463,7 +463,7 @@ if (displayName && displayName.trim()) {
 #### Short-term (Next Week):
 1. [ ] **Screenshots** - Create 5-8 App Store screenshots (EN + other languages)
 2. [ ] **Descriptions** - Write App Store descriptions (EN, ES, FR, DE, IT, SL)
-3. [ ] **Support Email** - Set up support@shelfze.app
+3. [ ] **Support Email** - Set up support@shelfze.com
 4. [ ] **Privacy URL Update** - Update Profile.js with permanent URLs
 
 #### Before Launch:
@@ -508,7 +508,7 @@ if (displayName && displayName.trim()) {
 ### Requirements Met:
 - ✅ Privacy Policy accessible in-app
 - ✅ Terms of Service accessible in-app
-- ✅ Support contact provided (support@shelfze.app)
+- ✅ Support contact provided (support@shelfze.com)
 - ✅ Version number displayed (1.0.0)
 - ✅ App handles errors gracefully (Error Boundary)
 
@@ -576,6 +576,6 @@ if (displayName && displayName.trim()) {
 - `components/ManualEntry.js` - Input validation
 - `components/Profile.js` - Email validation + legal links
 
-**Support:** support@shelfze.app  
+**Support:** support@shelfze.com  
 **Version:** 1.0.0  
 **Bundle ID:** com.shelfze.app

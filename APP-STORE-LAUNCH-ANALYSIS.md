@@ -37,7 +37,7 @@ We have successfully completed the full UI translation for the core European lan
 | **Legal Docs** | ✅ Drafted | `PRIVACY-POLICY.md` and `TERMS-OF-SERVICE.md` exist in the repo. |
 | **App Config** | ✅ Ready | `app.json` has correct bundle IDs and permissions. |
 | **Security** | ✅ Ready | Firebase rules and API keys are configured. |
-| **Legal Hosting** | ✅ Ready | Public URLs (`m-ai.info`) configured in `app.json` and `Profile.js`. |
+| **Legal Hosting** | ✅ Ready | Public URLs (`shelfze.com`) configured in `app.json` and `Profile.js`. |
 
 ### 🔴 Critical Blockers (Must Fix Before Submission)
 
@@ -54,7 +54,7 @@ We have successfully completed the full UI translation for the core European lan
 
 #### 2. 📧 Support Channel
 **Status:** ✅ Ready
-**Details:** Support email (`denis.mlakar@m-ai.info`) is already defined in `TERMS-OF-SERVICE.md` (Section 18).
+**Details:** Support email (`support@shelfze.com`) is already defined in `TERMS-OF-SERVICE.md` (Section 18).
 **Action:**
 - Ensure this email is entered in the "Support URL" or "Contact" fields in App Store Connect and Google Play Console during submission.
 
@@ -78,7 +78,7 @@ We have successfully completed the full UI translation for the core European lan
 ## 3. Action Plan & Timeline
 
 ### Phase 1: Assets & Hosting (Days 1-2)
-1.  [x] **Host Legal Docs:** Deployed to `m-ai.info`.
+1.  [x] **Host Legal Docs:** Deployed to `shelfze.com`.
 2.  [x] **Update Links:** Updated `components/Profile.js` and `app.json` with the new URLs.
 3.  [ ] **Generate Screenshots:** Use the simulator/emulator to capture screenshots in all required languages (EN + one other like ES or FR).
 

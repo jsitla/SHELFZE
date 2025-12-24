@@ -36,7 +36,7 @@ const TermsOfServiceScreen = ({ onBack }) => {
       {/* Content */}
       <ScrollView style={styles.content} contentContainerStyle={styles.contentContainer}>
         <Text style={styles.title}>Terms of Service for Shelfze</Text>
-        <Text style={styles.lastUpdated}>Last Updated: December 11, 2025</Text>
+        <Text style={styles.lastUpdated}>Last Updated: December 24, 2025</Text>
 
         {/* Critical Disclaimer Box */}
         <View style={styles.warningBox}>
@@ -187,7 +187,7 @@ const TermsOfServiceScreen = ({ onBack }) => {
 
         <Section title="12. Dispute Resolution">
           <Text style={styles.paragraph}>
-            These Terms are governed by the laws of Slovenia. Before filing any formal claim, contact us at denis.mlakar@m-ai.info to attempt informal resolution.
+            These Terms are governed by the laws of Slovenia. Before filing any formal claim, contact us at support@shelfze.com to attempt informal resolution.
           </Text>
         </Section>
 
@@ -196,7 +196,7 @@ const TermsOfServiceScreen = ({ onBack }) => {
             For questions about these Terms, contact us:
           </Text>
           <Text style={styles.paragraph}>
-            <Text style={styles.bold}>Email:</Text> denis.mlakar@m-ai.info{'\n'}
+            <Text style={styles.bold}>Email:</Text> support@shelfze.com{'\n'}
             <Text style={styles.bold}>Developer:</Text> Shelfze Team
           </Text>
         </Section>

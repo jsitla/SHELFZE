@@ -367,9 +367,9 @@ export default function App() {
   useEffect(() => {
     if (Platform.OS === 'web' && typeof window !== 'undefined') {
       const path = window.location.pathname.toLowerCase();
-      if (path === '/privacy' || path === '/privacy-policy') {
+      if (path === '/privacy' || path === '/privacy-policy' || path === '/privacy-policy.html') {
         setWebPage('privacy');
-      } else if (path === '/terms' || path === '/terms-of-service') {
+      } else if (path === '/terms' || path === '/terms-of-service' || path === '/terms-of-service.html') {
         setWebPage('terms');
       } else {
         setWebPage(null);
@@ -378,10 +378,10 @@ export default function App() {
       // Listen for popstate (browser back/forward)
       const handlePopState = () => {
         const newPath = window.location.pathname.toLowerCase();
-        if (newPath === '/privacy' || newPath === '/privacy-policy') {
+        if (newPath === '/privacy' || newPath === '/privacy-policy' || newPath === '/privacy-policy.html') {
           setWebPage('privacy');
           setShowWebLanding(true);
-        } else if (newPath === '/terms' || newPath === '/terms-of-service') {
+        } else if (newPath === '/terms' || newPath === '/terms-of-service' || newPath === '/terms-of-service.html') {
           setWebPage('terms');
           setShowWebLanding(true);
         } else {

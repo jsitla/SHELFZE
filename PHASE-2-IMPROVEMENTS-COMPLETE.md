@@ -234,7 +234,7 @@ if (displayName && displayName.trim()) {
       } else {
         Alert.alert(
           'Privacy Policy',
-          'Please visit our website to view the Privacy Policy, or contact support@shelfze.app',
+          'Please visit our website to view the Privacy Policy, or contact support@shelfze.com',
           [{ text: 'OK' }]
         );
       }
@@ -252,7 +252,7 @@ if (displayName && displayName.trim()) {
       } else {
         Alert.alert(
           'Terms of Service',
-          'Please visit our website to view the Terms of Service, or contact support@shelfze.app',
+          'Please visit our website to view the Terms of Service, or contact support@shelfze.com',
           [{ text: 'OK' }]
         );
       }
@@ -264,7 +264,7 @@ if (displayName && displayName.trim()) {
 
   <View style={styles.versionInfo}>
     <Text style={styles.versionText}>Version 1.0.0</Text>
-    <Text style={styles.supportText}>support@shelfze.app</Text>
+    <Text style={styles.supportText}>support@shelfze.com</Text>
   </View>
 </View>
 ```
@@ -273,7 +273,7 @@ if (displayName && displayName.trim()) {
 - ✅ **Privacy Policy Link** - Opens GitHub on web, shows contact info on mobile
 - ✅ **Terms of Service Link** - Opens GitHub on web, shows contact info on mobile
 - ✅ **Version Number** - Displays app version (1.0.0)
-- ✅ **Support Email** - Shows support@shelfze.app
+- ✅ **Support Email** - Shows support@shelfze.com
 - ✅ **Platform-Aware** - Different behavior for web vs mobile
 - ✅ **Professional Styling** - Card-based design matching app theme
 
@@ -288,7 +288,7 @@ if (displayName && displayName.trim()) {
 - ✅ Version number displayed ✓
 
 ### 📝 Next Steps for Hosting:
-1. Host documents on a permanent URL (e.g., shelfze.app/privacy)
+1. Host documents on a permanent URL (e.g., shelfze.com/privacy)
 2. Update links in Profile.js to point to hosted URLs
 3. Or use GitHub Pages to serve the markdown files
 
@@ -411,7 +411,7 @@ if (displayName && displayName.trim()) {
 1. [ ] Batch replace remaining console.log statements
 2. [ ] Create App Store screenshots (5-8 required)
 3. [ ] Write App Store description (EN + other languages)
-4. [ ] Set up support email (support@shelfze.app)
+4. [ ] Set up support email (support@shelfze.com)
 5. [ ] Build production APK for Android
 6. [ ] Build production IPA for iOS
 

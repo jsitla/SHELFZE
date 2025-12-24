@@ -191,7 +191,7 @@ pantry,food tracker,expiry,recipe,AI,scan,groceries,inventory,meal planner
 ## 📧 Step 5: Support Contact
 
 Create a support email:
-- `support@shelfze.app` (if you have domain)
+- `support@shelfze.com` (if you have domain)
 - `shelfze.support@gmail.com` (alternative)
 - Or use GitHub Issues: `https://github.com/jsitla/SHELFZE/issues`
 

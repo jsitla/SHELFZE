@@ -83,7 +83,7 @@ You're ready to reduce food waste and discover delicious recipes. For detailed g
 
 ## ❓ Need Help?
 
-- **Support:** support@shelfze.app
+- **Support:** support@shelfze.com
 - **GitHub Issues:** https://github.com/jsitla/SHELFZE/issues
 
 ---

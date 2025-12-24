@@ -1,7 +1,7 @@
 // PHASE 4: The UI (The "Face")
 
 // 1. Create a new React Native component called 'PantryList'.
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
   View, 
   Text, 
@@ -306,7 +306,7 @@ export default function PantryList({ navigation }) {
     setFilteredItems(result);
   }, [selectedCategory, searchText, items, sortOption]);
 
-  const deleteItem = async (itemId) => {
+  const deleteItem = useCallback(async (itemId) => {
     try {
       const userId = auth.currentUser?.uid;
       
@@ -322,9 +322,9 @@ export default function PantryList({ navigation }) {
       console.error('Error deleting item:', error);
       Alert.alert(t('error', language), t('failedToDelete', language));
     }
-  };
+  }, [householdId, language, db]);
 
-  const confirmDelete = (itemId, itemName) => {
+  const confirmDelete = useCallback((itemId, itemName) => {
     if (Platform.OS === 'web') {
       // On web, use browser confirm
       if (window.confirm(`${t('deleteItem', language)}: "${itemName}"?`)) {
@@ -345,7 +345,7 @@ export default function PantryList({ navigation }) {
         ]
       );
     }
-  };
+  }, [deleteItem, language]);
 
   const clearAllInventory = async () => {
     const userId = auth.currentUser?.uid;
@@ -402,7 +402,7 @@ export default function PantryList({ navigation }) {
     }
   };
 
-  const openEditModal = (item) => {
+  const openEditModal = useCallback((item) => {
     setEditingItem(item);
     setEditName(item.name || item.itemName || '');
     setEditCategory(normalizeCategory(item.category));
@@ -410,7 +410,7 @@ export default function PantryList({ navigation }) {
     setEditUnit(item.unit || 'pcs');
     setEditExpiryDate(parseDate(item.expiryDate));
     setEditModalVisible(true);
-  };
+  }, []);
 
   const saveEdit = async () => {
     if (!editingItem) return;
@@ -555,6 +555,11 @@ export default function PantryList({ navigation }) {
                 </Text>
               </>
             )}
+            {item.addedDate && (
+              <Text style={styles.addedDate}>
+                📥 {t('added', language) || 'Added'}: {formatDate(parseDate(item.addedDate), language)}
+              </Text>
+            )}
             {item.confidence && (
               <Text style={styles.confidence}>
                 {t('detectionConfidence', language)}: {Math.round(item.confidence * 100)}%
@@ -580,7 +585,7 @@ export default function PantryList({ navigation }) {
         </View>
       </View>
     );
-  }, [language, selectedCategory]); // Dependencies for renderItem
+  }, [language, selectedCategory, confirmDelete, openEditModal]); // Dependencies for renderItem
 
   if (loading) {
     return (
@@ -1124,6 +1129,11 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#666',
     marginBottom: 3,
+  },
+  addedDate: {
+    fontSize: 12,
+    color: '#999',
+    marginTop: 2,
   },
   daysLeft: {
     fontSize: 13,

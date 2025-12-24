@@ -34,7 +34,7 @@ const PrivacyPolicyScreen = ({ onBack }) => {
       {/* Content */}
       <ScrollView style={styles.content} contentContainerStyle={styles.contentContainer}>
         <Text style={styles.title}>Privacy Policy for Shelfze</Text>
-        <Text style={styles.lastUpdated}>Last Updated: December 11, 2025</Text>
+        <Text style={styles.lastUpdated}>Last Updated: December 24, 2025</Text>
 
         <Section title="Introduction">
           <Text style={styles.paragraph}>
@@ -136,7 +136,7 @@ const PrivacyPolicyScreen = ({ onBack }) => {
         <Section title="6. Your Rights and Choices">
           <Text style={styles.subheading}>6.1 Account & Data Deletion</Text>
           <Text style={styles.paragraph}>
-            You have the right to delete your data at any time. Go to Settings → Delete Account, or contact denis.mlakar@m-ai.info.
+            You have the right to delete your data at any time. Go to Settings → Delete Account, or contact support@shelfze.com.
           </Text>
 
           <Text style={styles.subheading}>6.2 European Users (GDPR)</Text>
@@ -167,7 +167,7 @@ const PrivacyPolicyScreen = ({ onBack }) => {
             If you have questions about this Privacy Policy or your data, please contact us:
           </Text>
           <Text style={styles.paragraph}>
-            <Text style={styles.bold}>Email:</Text> denis.mlakar@m-ai.info{'\n'}
+            <Text style={styles.bold}>Email:</Text> support@shelfze.com{'\n'}
             <Text style={styles.bold}>Developer:</Text> Shelfze Team
           </Text>
         </Section>

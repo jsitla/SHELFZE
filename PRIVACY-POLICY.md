@@ -1,5 +1,5 @@
 # Privacy Policy for Shelfze
-**Last Updated: December 11, 2025**
+**Last Updated: December 24, 2025**
 
 ## Introduction
 Welcome to Shelfze ("we," "our," or "us"). This Privacy Policy explains how we collect, use, store, and protect your information when you use our mobile application (the "App"). We are committed to protecting your privacy while helping you reduce food waste through intelligent inventory management.
@@ -113,7 +113,7 @@ The App requests permissions to:
 You have the right to delete your data at any time.
 
 - **In-App Deletion:** Go to Settings > Delete Account. This will permanently wipe your inventory and user record from our database.
-- **Manual Request:** Contact denis.mlakar@m-ai.info.
+- **Manual Request:** Contact support@shelfze.com.
 
 ### 6.2 Permissions
 You can revoke Camera, Microphone, or Notification permissions at any time via your device settings. Note that revoking permissions will disable scanning features.
@@ -133,5 +133,5 @@ We may update this Privacy Policy to reflect changes in our practices. We will n
 ## 9. Contact Us
 If you have questions about this Privacy Policy or your data, please contact us:
 
-**Email:** denis.mlakar@m-ai.info
+**Email:** support@shelfze.com
 **Developer:** Shelfze Team

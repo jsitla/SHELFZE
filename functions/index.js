@@ -268,6 +268,7 @@ exports.analyzeImage = onRequest({
           unit: "pcs",
           fullText: fullText.substring(0, 500),
           addedAt: admin.firestore.FieldValue.serverTimestamp(),
+          addedDate: new Date().toISOString(),
         };
 
         // Add addedBy fields for household items
@@ -1083,13 +1084,16 @@ Example:
 
     // --- HYBRID RECIPE ENGINE END ---
 
-    await usageRef.update({
-      recipesRemaining: admin.firestore.FieldValue.increment(-1),
-      totalRecipesUsed: admin.firestore.FieldValue.increment(1),
-    });
-
     // Combine and Deduplicate (using savedNewRecipes which have IDs)
     const allRecipes = [...existingRecipes, ...savedNewRecipes];
+
+    // Only charge if we actually have recipes to return
+    if (allRecipes.length > 0) {
+      await usageRef.update({
+        recipesRemaining: admin.firestore.FieldValue.increment(-1),
+        totalRecipesUsed: admin.firestore.FieldValue.increment(1),
+      });
+    }
     const uniqueRecipes = [];
     const seenNames = new Set();
 
@@ -2120,12 +2124,15 @@ Example:
 
         // --- HYBRID RECIPE ENGINE END ---
 
-        await usageRef.update({
-          recipesRemaining: admin.firestore.FieldValue.increment(-1),
-          totalRecipesUsed: admin.firestore.FieldValue.increment(1),
-        });
-
         const allRecipes = [...existingRecipes, ...savedNewRecipes];
+
+        // Only charge if we actually have recipes to return
+        if (allRecipes.length > 0) {
+          await usageRef.update({
+            recipesRemaining: admin.firestore.FieldValue.increment(-1),
+            totalRecipesUsed: admin.firestore.FieldValue.increment(1),
+          });
+        }
         const uniqueRecipes = [];
         const seenNames = new Set();
 
