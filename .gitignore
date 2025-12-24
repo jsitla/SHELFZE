@@ -47,3 +47,4 @@ Thumbs.db
 functions/service-account.json
 
 user_exports/
+.firebase/
