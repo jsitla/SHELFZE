@@ -717,9 +717,9 @@ const WebLandingScreen = ({ onGetStarted }) => {
           </View>
           <Text style={styles.navTitle}>Shelfze</Text>
         </View>
-        <TouchableOpacity style={styles.navCta} onPress={onGetStarted}>
+        {/* <TouchableOpacity style={styles.navCta} onPress={onGetStarted}>
           <Text style={styles.navCtaText}>Get Started</Text>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
       </View>
 
       {/* Hero Section */}
@@ -731,7 +731,7 @@ const WebLandingScreen = ({ onGetStarted }) => {
             Scan your groceries, track expiry dates automatically, and get recipes 
             that use what's about to expire. Save money. Save the planet.
           </Text>
-          <View style={styles.heroCtas}>
+          {/* <View style={styles.heroCtas}>
             <TouchableOpacity style={styles.primaryCta} onPress={onGetStarted}>
               <Text style={styles.primaryCtaText}>Start Free</Text>
               <Ionicons name="arrow-forward" size={20} color={COLORS.white} />
@@ -744,7 +744,7 @@ const WebLandingScreen = ({ onGetStarted }) => {
               <Ionicons name="logo-google-playstore" size={20} color={COLORS.charcoal} />
               <Text style={styles.secondaryCtaText}>Google Play</Text>
             </TouchableOpacity>
-          </View>
+          </View> */}
         </View>
         <View style={styles.heroVisual}>
           <PhoneMockup />
@@ -793,16 +793,16 @@ const WebLandingScreen = ({ onGetStarted }) => {
             number="3" 
             icon="restaurant-outline" 
             title="Cook" 
-            description="Get personalized recipes using ingredients that need to be used first. Zero waste, delicious meals."
+            description="Get personalized recipes using ingredients from your pantry. Zero waste, delicious meals."
           />
         </View>
       </View>
 
       {/* Video Section */}
-      <View style={styles.videoSection}>
+      {/* <View style={styles.videoSection}>
         <Text style={styles.sectionTitle}>See It In Action</Text>
         <YouTubeEmbed videoId="dQw4w9WgXcQ" placeholder={true} />
-      </View>
+      </View> */}
 
       {/* Features Section */}
       <View style={styles.featuresSection}>
@@ -822,7 +822,7 @@ const WebLandingScreen = ({ onGetStarted }) => {
           <FeatureCard 
             icon="restaurant-outline"
             title="Recipe Magic"
-            description="AI generates recipes using only what's in your pantry, prioritizing soon-to-expire items."
+            description="AI generates recipes using only what's in your pantry. Zero waste, delicious meals."
           />
           <FeatureCard 
             icon="sync-outline"
@@ -845,8 +845,8 @@ const WebLandingScreen = ({ onGetStarted }) => {
       {/* Final CTA Section */}
       <View style={styles.finalCta}>
         <Text style={styles.finalCtaTitle}>Ready to Stop Wasting Food?</Text>
-        <Text style={styles.finalCtaSubtitle}>Join thousands saving money and reducing waste</Text>
-        <View style={styles.finalCtaButtons}>
+        <Text style={styles.finalCtaSubtitle}>Join the movement to save money and reduce waste</Text>
+        {/* <View style={styles.finalCtaButtons}>
           <TouchableOpacity style={styles.primaryCtaLarge} onPress={onGetStarted}>
             <Text style={styles.primaryCtaText}>Try Free on Web</Text>
             <Ionicons name="arrow-forward" size={24} color={COLORS.white} />
@@ -867,7 +867,7 @@ const WebLandingScreen = ({ onGetStarted }) => {
               <Text style={styles.appStoreName}>Google Play</Text>
             </View>
           </TouchableOpacity>
-        </View>
+        </View> */}
       </View>
 
       {/* Footer */}
@@ -921,23 +921,23 @@ const styles = StyleSheet.create({
   navBrand: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: 16,
   },
   navLogoContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 12,
+    width: 80,
+    height: 80,
+    borderRadius: 20,
     overflow: 'hidden',
     alignItems: 'center',
     justifyContent: 'center',
   },
   navLogoImage: {
-    width: 60,
-    height: 60,
+    width: 100,
+    height: 100,
   },
   navTitle: {
-    fontSize: 26,
-    fontWeight: '700',
+    fontSize: 42,
+    fontWeight: '800',
     color: COLORS.darkGreen,
   },
   navCta: {
