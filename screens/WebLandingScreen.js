@@ -11,6 +11,7 @@ import {
   Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import * as Font from 'expo-font';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const isLargeScreen = SCREEN_WIDTH > 768;
@@ -684,6 +685,38 @@ const WebLandingScreen = ({ onGetStarted }) => {
   const [statsAnimated, setStatsAnimated] = useState(false);
 
   useEffect(() => {
+    // Load Ionicons font for Web
+    if (Platform.OS === 'web') {
+      const loadFonts = async () => {
+        try {
+          await Font.loadAsync({
+            'Ionicons': {
+              uri: 'https://cdn.jsdelivr.net/npm/react-native-vector-icons@10.0.3/Fonts/Ionicons.ttf',
+              display: Font.FontDisplay.SWAP,
+            },
+          });
+          console.log('Ionicons loaded successfully');
+        } catch (e) {
+          console.error('Error loading font', e);
+          
+          // Fallback: Inject CSS directly if loadAsync fails
+          const iconFontStyles = `@font-face {
+            src: url(https://cdn.jsdelivr.net/npm/react-native-vector-icons@10.0.3/Fonts/Ionicons.ttf);
+            font-family: Ionicons;
+          }`;
+          const style = document.createElement('style');
+          style.type = 'text/css';
+          if (style.styleSheet) {
+            style.styleSheet.cssText = iconFontStyles;
+          } else {
+            style.appendChild(document.createTextNode(iconFontStyles));
+          }
+          document.head.appendChild(style);
+        }
+      };
+      loadFonts();
+    }
+
     const timer = setTimeout(() => setStatsAnimated(true), 500);
     return () => clearTimeout(timer);
   }, []);
