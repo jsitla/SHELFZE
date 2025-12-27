@@ -1068,6 +1068,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
+    paddingHorizontal: isLargeScreen ? 0 : 40,
+    marginBottom: 24,
   },
 
   // Phone Mockup
@@ -1110,10 +1112,10 @@ const styles = StyleSheet.create({
     zIndex: 10,
   },
   carouselArrowLeft: {
-    left: -20,
+    left: isLargeScreen ? -20 : 0,
   },
   carouselArrowRight: {
-    right: -20,
+    right: isLargeScreen ? -20 : 0,
   },
   carouselDots: {
     flexDirection: 'row',
@@ -1131,10 +1133,15 @@ const styles = StyleSheet.create({
     width: 24,
   },
   screenshotLabel: {
-    marginTop: 12,
-    fontSize: 14,
+    marginTop: 16,
+    marginBottom: 8,
+    fontSize: 16,
     fontWeight: '600',
     color: COLORS.darkGreen,
+    backgroundColor: COLORS.cream,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
   },
   phoneScreen: {
     flex: 1,
@@ -1224,29 +1231,30 @@ const styles = StyleSheet.create({
   howItWorks: {
     width: '100%',
     maxWidth: 1200,
-    paddingVertical: 80,
+    paddingVertical: isLargeScreen ? 80 : 60,
     paddingHorizontal: 24,
     alignItems: 'center',
   },
   sectionTitle: {
-    fontSize: 36,
+    fontSize: isLargeScreen ? 36 : 28,
     fontWeight: '700',
     color: COLORS.darkGreen,
     marginBottom: 12,
     textAlign: 'center',
   },
   sectionSubtitle: {
-    fontSize: 18,
+    fontSize: isLargeScreen ? 18 : 16,
     color: COLORS.charcoal,
     opacity: 0.7,
-    marginBottom: 48,
+    marginBottom: isLargeScreen ? 48 : 32,
     textAlign: 'center',
+    paddingHorizontal: 16,
   },
   stepsContainer: {
     flexDirection: isLargeScreen ? 'row' : 'column',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: isLargeScreen ? 0 : 24,
+    gap: isLargeScreen ? 0 : 8,
   },
   step: {
     alignItems: 'center',
