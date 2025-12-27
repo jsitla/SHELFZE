@@ -41,16 +41,14 @@
 
 ### Why Shelfze?
 
-| Feature | Description |
-|---------|-------------|
-| 🎯 **Reduce Waste** | 40% of food is wasted globally - Shelfze helps reduce this |
-| ⏰ **Save Time** | No manual entry needed, just scan and go |
-| 🤖 **AI-Powered** | Google Gemini 2.5 Flash for intelligent food recognition & recipes |
-| 🌍 **Multilingual** | Available in 6+ languages with full UI translation |
-| 🍳 **Smart Recipes** | AI generates recipes using ONLY your pantry items |
-| 📱 **Cross-Platform** | Works seamlessly on iOS, Android, and Web |
-| 🔄 **Real-time Sync** | Cloud-powered inventory with Firebase Firestore |
-| 💳 **RevenueCat** | Premium subscriptions via App Store / Google Play |
+- 🎯 **Reduce Waste** - 40% of food is wasted globally
+- ⏰ **Save Time** - Just scan and go, no manual entry
+- 🤖 **AI-Powered** - Gemini 2.5 Flash recognition
+- 🌍 **Multilingual** - 6+ languages supported
+- 🍳 **Smart Recipes** - Uses only YOUR pantry items
+- 📱 **Cross-Platform** - iOS, Android, and Web
+- 🔄 **Real-time Sync** - Firebase Firestore powered
+- 💳 **RevenueCat** - Premium subscriptions
 
 ---
 
@@ -200,54 +198,52 @@ Share your pantry and credits with family members!
 ### Application Flow
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                          App.js                                  │
-│  ┌─────────────┐  ┌──────────────┐  ┌─────────────────────────┐ │
-│  │ Welcome     │→ │ Auth Screen  │→ │ Legal Consent Screen    │ │
-│  │ Screen      │  │ (Login/      │  │ (Terms & Privacy)       │ │
-│  │             │  │  Signup)     │  │                         │ │
-│  └─────────────┘  └──────────────┘  └─────────────────────────┘ │
-│                           ↓                                      │
-│  ┌─────────────────────────────────────────────────────────────┐│
-│  │                  Tab Navigator                               ││
-│  │  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌────────────────┐  ││
-│  │  │ Pantry   │ │ Scanner  │ │ Recipes  │ │ Shopping List  │  ││
-│  │  │ Stack    │ │          │ │ Stack    │ │                │  ││
-│  │  └──────────┘ └──────────┘ └──────────┘ └────────────────┘  ││
-│  └─────────────────────────────────────────────────────────────┘│
-└─────────────────────────────────────────────────────────────────┘
-
-Pantry Stack:                    Recipes Stack:
-├── PantryList                   ├── RecipeGenerator
-├── ManualEntry                  ├── CustomRecipeGenerator
-├── ProfileScreen                └── SavedRecipes
-└── PremiumPlans
+App.js
+  │
+  ├── Welcome Screen
+  │       ↓
+  ├── Auth Screen (Login/Signup)
+  │       ↓
+  ├── Legal Consent Screen
+  │       ↓
+  └── Tab Navigator
+        ├── Pantry Stack
+        │     ├── PantryList
+        │     ├── ManualEntry
+        │     ├── ProfileScreen
+        │     └── PremiumPlans
+        ├── Scanner
+        ├── Recipes Stack
+        │     ├── RecipeGenerator
+        │     ├── CustomRecipeGenerator
+        │     └── SavedRecipes
+        └── Shopping List
 ```
 
 ### Data Flow
 
 ```
-┌──────────────┐    ┌─────────────────┐    ┌──────────────────┐
-│   Mobile/    │───▶│  Cloud Functions │───▶│  External APIs   │
-│   Web App    │    │  (Firebase)      │    │                  │
-│              │◀───│                  │◀───│  • Gemini AI     │
-│  • Expo      │    │  • analyzeImage  │    │  • Vision API    │
-│  • React     │    │  • generateRecipes│    │                  │
-│    Native    │    │  • getRecipeDetails│   │                  │
-└──────────────┘    │  • checkIngredients│   └──────────────────┘
-       │            │  • generateCustom │
-       │            │    Recipe         │
-       ▼            └─────────────────┬─┘
-┌──────────────┐                      │
-│  Firestore   │◀─────────────────────┘
-│  Database    │
-│              │
-│  /users/{uid}/
-│    /pantry
-│    /shoppingList
-│    /usage
-│    /savedRecipes
-└──────────────┘
+Mobile/Web App (Expo + React Native)
+        │
+        ▼
+Cloud Functions (Firebase)
+  • analyzeImage
+  • generateRecipes
+  • getRecipeDetails
+  • checkIngredients
+  • generateCustomRecipe
+        │
+        ├──▶ External APIs
+        │      • Gemini AI
+        │      • Vision API
+        │
+        ▼
+Firestore Database
+  /users/{uid}/
+    ├── /pantry
+    ├── /shoppingList
+    ├── /usage
+    └── /savedRecipes
 ```
 
 ### Context Providers
@@ -267,16 +263,17 @@ Pantry Stack:                    Recipes Stack:
 ## 🛠️ Technology Stack
 
 ### Frontend
-| Package | Version | Purpose |
-|---------|---------|---------|
-| React Native | 0.81.5 | Cross-platform mobile framework |
-| Expo | 54.0.25 | Development platform & native modules |
-| React Navigation | 6.x | Routing (Bottom Tabs + Stack) |
-| expo-camera | 17.0.9 | Photo & video capture |
-| expo-file-system | 19.0.17 | File operations |
-| react-native-purchases | 9.6.8 | RevenueCat subscriptions |
-| @react-native-async-storage | 2.2.0 | Local persistence |
-| @react-native-community/datetimepicker | 8.4.4 | Date selection |
+
+| Package | Version |
+|---------|--------:|
+| React Native | 0.81.5 |
+| Expo | 54.0.25 |
+| React Navigation | 6.x |
+| expo-camera | 17.0.9 |
+| expo-file-system | 19.0.17 |
+| react-native-purchases | 9.6.8 |
+| @react-native-async-storage | 2.2.0 |
+| datetimepicker | 8.4.4 |
 
 ### Backend & Cloud
 | Service | Purpose |
@@ -348,49 +345,48 @@ The project includes VS Code tasks for quick startup:
 
 ```
 Shelfze/
-├── 📱 App.js                     # Main entry - navigation, auth, providers
-├── ⚙️ config.js                   # Cloud Function URLs, RevenueCat keys
-├── 🔥 firebase.config.js          # Firebase initialization
-├── 📦 package.json               # Dependencies
-├── 🎨 app.json                   # Expo configuration
+├── App.js              # Main entry
+├── config.js           # Cloud Function URLs
+├── firebase.config.js  # Firebase init
+├── package.json
+├── app.json            # Expo config
 │
-├── 🧩 components/                # React components
-│   ├── AuthScreen.js             # Login/Signup with Google, Apple, Email
-│   ├── CameraScanner.js          # Photo/video capture & AI processing
-│   ├── CustomRecipeGenerator.js  # Chef's Table - custom recipe requests
-│   ├── LanguageSelector.js       # Language selection modal
-│   ├── LegalConsentScreen.js     # Terms & Privacy agreement
-│   ├── ManualEntry.js            # Manual item addition form
-│   ├── PantryList.js             # Inventory display & management
-│   ├── PremiumPlansScreen.js     # Subscription plans (RevenueCat)
-│   ├── Profile.js                # User profile, settings, tier info
-│   ├── RecipeGenerator.js        # AI recipe suggestions
-│   ├── SavedRecipesScreen.js     # Saved recipe collection
-│   ├── ShoppingList.js           # Shopping list management
-│   ├── WelcomeScreen.js          # Onboarding with tier selection
-│   └── ui/                       # Reusable UI components
+├── components/
+│   ├── AuthScreen.js
+│   ├── CameraScanner.js
+│   ├── CustomRecipeGenerator.js
+│   ├── LanguageSelector.js
+│   ├── LegalConsentScreen.js
+│   ├── ManualEntry.js
+│   ├── PantryList.js
+│   ├── PremiumPlansScreen.js
+│   ├── Profile.js
+│   ├── RecipeGenerator.js
+│   ├── SavedRecipesScreen.js
+│   ├── ShoppingList.js
+│   ├── WelcomeScreen.js
+│   └── ui/
 │
-├── 🌐 contexts/                  # React Context providers
-│   ├── LanguageContext.js        # Language state (6 languages)
-│   ├── PurchaseContext.js        # RevenueCat subscription state
-│   └── translations.js           # i18n strings (150+ keys)
+├── contexts/
+│   ├── LanguageContext.js
+│   ├── PurchaseContext.js
+│   └── translations.js
 │
-├── 🔧 utils/                     # Utility functions
-│   ├── constants.js              # Categories, units, mappings
-│   ├── dateHelpers.js            # Date parsing & formatting
-│   ├── fetchWithTimeout.js       # Network requests with timeout
-│   ├── ingredientScaler.js       # Recipe serving adjustments
-│   ├── premiumPricing.js         # Pricing display helpers
-│   └── usageTracking.js          # Scan/recipe quota management
+├── utils/
+│   ├── constants.js
+│   ├── dateHelpers.js
+│   ├── fetchWithTimeout.js
+│   ├── ingredientScaler.js
+│   ├── premiumPricing.js
+│   └── usageTracking.js
 │
-├── ☁️ functions/                  # Firebase Cloud Functions
-│   ├── index.js                  # All cloud functions (2500+ lines)
-│   ├── package.json              # Function dependencies
-│   └── src/                      # TypeScript sources (optional)
+├── functions/
+│   ├── index.js
+│   ├── package.json
+│   └── src/
 │
-├── 🎨 assets/                    # Images & icons
-├── 📱 android/                   # Android native code
-└── 📄 *.md                       # Documentation files
+├── assets/
+└── android/
 ```
 
 ---
@@ -540,41 +536,37 @@ Anonymous users can upgrade to a full account:
 
 ### User Tiers
 
-| Feature | 🚀 Anonymous | ✨ Free | 👑 Premium |
-|---------|--------------|---------|------------|
-| **Scans** | 10 (lifetime) | 30 + 5/month | 500/month |
-| **Recipes** | 10 (lifetime) | 30 + 5/month | 500/month |
-| **Cloud Sync** | ❌ Local only | ✅ | ✅ |
-| **Monthly Bonus** | ❌ | ✅ +5 each | ✅ Resets |
-| **Gift Codes** | ✅ | ✅ | ✅ |
+**🚀 Anonymous**
+- 10 scans (lifetime)
+- 10 recipes (lifetime)
+- Local storage only
+
+**✨ Free Account**
+- 30 scans + 5/month bonus
+- 30 recipes + 5/month bonus
+- ✅ Cloud sync
+- ✅ Gift codes
+
+**👑 Premium**
+- 500 scans/month
+- 500 recipes/month
+- ✅ Cloud sync
+- ✅ Monthly reset
 
 ### Firestore User Data Structure
 
 ```
 /users/{userId}/
-├── pantry/                 # Food items
-│   └── {itemId}/
-│       ├── name
-│       ├── category
-│       ├── quantity
-│       ├── unit
-│       ├── expiryDate
-│       ├── addedAt
-│       └── detectionSource
-├── shoppingList/           # Shopping items
-│   └── {itemId}/
-│       ├── name
-│       └── checked
-├── usage/
-│   └── current/            # Usage tracking
-│       ├── tier
-│       ├── scansRemaining
-│       ├── recipesRemaining
-│       ├── totalScansUsed
-│       ├── totalRecipesUsed
-│       └── lastMonthlyBonusDate
-└── savedRecipes/           # Saved recipes
-    └── {recipeId}/
+├── pantry/{itemId}/
+│     name, category, quantity,
+│     unit, expiryDate, addedAt,
+│     detectionSource
+├── shoppingList/{itemId}/
+│     name, checked
+├── usage/current/
+│     tier, scansRemaining,
+│     recipesRemaining, etc.
+└── savedRecipes/{recipeId}/
 ```
 
 ---
@@ -680,20 +672,15 @@ const firebaseConfig = {
 
 ```javascript
 export const config = {
-  // Cloud Function URLs
-  analyzeImage: 'https://analyzeimage-xxx-uc.a.run.app',
-  generateRecipes: 'https://generaterecipes-xxx-uc.a.run.app',
-  getRecipeDetails: 'https://getrecipedetails-xxx-uc.a.run.app',
-  initializeUsage: 'https://us-central1-xxx.cloudfunctions.net/initializeUsage',
-  checkMonthlyBonus: 'https://us-central1-xxx.cloudfunctions.net/checkMonthlyBonus',
-  upgradeTier: 'https://us-central1-xxx.cloudfunctions.net/upgradeTier',
-  redeemGiftCode: 'https://us-central1-xxx.cloudfunctions.net/redeemGiftCode',
-  recordLegalConsent: 'https://us-central1-xxx.cloudfunctions.net/recordLegalConsent',
-  rateRecipe: 'https://us-central1-xxx.cloudfunctions.net/rateRecipe',
-  checkIngredients: 'https://checkingredients-xxx-uc.a.run.app',
-  matchPantryToRecipes: 'https://matchpantrytorecipes-xxx-uc.a.run.app',
-  generateCustomRecipe: 'https://us-central1-xxx.cloudfunctions.net/generateCustomRecipe',
-  modifyRecipe: 'https://us-central1-xxx.cloudfunctions.net/modifyRecipe',
+  // Cloud Function URLs (shortened)
+  analyzeImage: 'https://.../analyzeimage',
+  generateRecipes: 'https://.../generaterecipes',
+  getRecipeDetails: 'https://.../getrecipedetails',
+  initializeUsage: 'https://.../initializeUsage',
+  checkMonthlyBonus: 'https://.../checkMonthlyBonus',
+  upgradeTier: 'https://.../upgradeTier',
+  redeemGiftCode: 'https://.../redeemGiftCode',
+  // ... more functions
   
   // RevenueCat
   revenueCat: {
