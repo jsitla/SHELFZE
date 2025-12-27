@@ -9,6 +9,7 @@ import {
   Dimensions,
   Linking,
   Platform,
+  useWindowDimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Font from 'expo-font';
@@ -116,10 +117,10 @@ const PhoneMockup = () => {
       
       {/* Navigation Arrows */}
       <TouchableOpacity style={[styles.carouselArrow, styles.carouselArrowLeft]} onPress={goPrev}>
-        <Ionicons name="chevron-back" size={24} color={COLORS.darkGreen} />
+        <View style={styles.arrowLeft} />
       </TouchableOpacity>
       <TouchableOpacity style={[styles.carouselArrow, styles.carouselArrowRight]} onPress={goNext}>
-        <Ionicons name="chevron-forward" size={24} color={COLORS.darkGreen} />
+        <View style={styles.arrowRight} />
       </TouchableOpacity>
       
       {/* Dots Indicator */}
@@ -159,7 +160,9 @@ const Step = ({ number, icon, title, description }) => (
     <View style={styles.stepNumber}>
       <Text style={styles.stepNumberText}>{number}</Text>
     </View>
-    <Ionicons name={icon} size={40} color={COLORS.primaryGreen} style={styles.stepIcon} />
+    <View style={{ minWidth: 40, minHeight: 40, alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
+      <Ionicons name={icon} size={40} color={COLORS.primaryGreen} />
+    </View>
     <Text style={styles.stepTitle}>{title}</Text>
     <Text style={styles.stepDescription}>{description}</Text>
   </View>
@@ -682,39 +685,36 @@ By using Shelfze, you acknowledge that you have read, understood, and agree to t
 
 // Main WebLandingScreen component
 const WebLandingScreen = ({ onGetStarted }) => {
+  const { width } = useWindowDimensions();
+  const isLargeScreen = width > 768;
   const [statsAnimated, setStatsAnimated] = useState(false);
 
   useEffect(() => {
-    // Load Ionicons font for Web
+    // Load Ionicons font for Web - inject CSS directly for immediate availability
     if (Platform.OS === 'web') {
-      const loadFonts = async () => {
-        try {
-          await Font.loadAsync({
-            'Ionicons': {
-              uri: 'https://cdn.jsdelivr.net/npm/react-native-vector-icons@10.0.3/Fonts/Ionicons.ttf',
-              display: Font.FontDisplay.SWAP,
-            },
-          });
-          console.log('Ionicons loaded successfully');
-        } catch (e) {
-          console.error('Error loading font', e);
-          
-          // Fallback: Inject CSS directly if loadAsync fails
-          const iconFontStyles = `@font-face {
-            src: url(https://cdn.jsdelivr.net/npm/react-native-vector-icons@10.0.3/Fonts/Ionicons.ttf);
-            font-family: Ionicons;
-          }`;
-          const style = document.createElement('style');
-          style.type = 'text/css';
-          if (style.styleSheet) {
-            style.styleSheet.cssText = iconFontStyles;
-          } else {
-            style.appendChild(document.createTextNode(iconFontStyles));
-          }
-          document.head.appendChild(style);
+      // Use local font file from public folder (copied during build)
+      const iconFontStyles = `
+        @font-face {
+          font-family: 'Ionicons';
+          src: url('/Ionicons.ttf') format('truetype');
+          font-display: swap;
         }
-      };
-      loadFonts();
+        @font-face {
+          font-family: 'ionicons';
+          src: url('/Ionicons.ttf') format('truetype');
+          font-display: swap;
+        }
+      `;
+      
+      // Inject CSS immediately
+      const existingStyle = document.getElementById('ionicons-font');
+      if (!existingStyle) {
+        const style = document.createElement('style');
+        style.id = 'ionicons-font';
+        style.type = 'text/css';
+        style.appendChild(document.createTextNode(iconFontStyles));
+        document.head.appendChild(style);
+      }
     }
 
     const timer = setTimeout(() => setStatsAnimated(true), 500);
@@ -738,6 +738,9 @@ const WebLandingScreen = ({ onGetStarted }) => {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
+      {/* Dummy icon to force font load / bypass first-icon render bug */}
+      <Ionicons name="home" size={1} color="transparent" style={{ position: 'absolute', opacity: 0 }} />
+
       {/* Navigation */}
       <View style={styles.nav}>
         <View style={styles.navBrand}>
@@ -807,21 +810,19 @@ const WebLandingScreen = ({ onGetStarted }) => {
       <View style={styles.howItWorks}>
         <Text style={styles.sectionTitle}>How It Works</Text>
         <Text style={styles.sectionSubtitle}>Three simple steps to a waste-free kitchen</Text>
-        <View style={styles.stepsContainer}>
+        <View style={[styles.stepsContainer, { flexDirection: isLargeScreen ? 'row' : 'column', gap: isLargeScreen ? 0 : 8 }]}>
           <Step 
             number="1" 
             icon="camera-outline" 
             title="Scan" 
             description="Point your camera at food items or receipts. Our AI detects items and expiry dates instantly."
           />
-          <View style={styles.stepConnector} />
           <Step 
             number="2" 
             icon="list-outline" 
             title="Track" 
             description="Your pantry updates automatically with color-coded expiry alerts. Never forget what's in your fridge."
           />
-          <View style={styles.stepConnector} />
           <Step 
             number="3" 
             icon="restaurant-outline" 
@@ -993,8 +994,8 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 1200,
     paddingHorizontal: 24,
-    paddingVertical: 60,
-    gap: 40,
+    paddingVertical: isLargeScreen ? 60 : 32,
+    gap: isLargeScreen ? 40 : 24,
   },
   heroContent: {
     flex: 1,
@@ -1013,13 +1014,13 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: COLORS.darkGreen,
     lineHeight: isLargeScreen ? 64 : 48,
-    marginBottom: 24,
+    marginBottom: isLargeScreen ? 24 : 16,
   },
   heroSubtitle: {
-    fontSize: 20,
+    fontSize: isLargeScreen ? 20 : 18,
     color: COLORS.charcoal,
-    lineHeight: 32,
-    marginBottom: 32,
+    lineHeight: isLargeScreen ? 32 : 28,
+    marginBottom: isLargeScreen ? 32 : 20,
     opacity: 0.8,
   },
   heroCtas: {
@@ -1069,7 +1070,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     position: 'relative',
     paddingHorizontal: isLargeScreen ? 0 : 40,
-    marginBottom: 24,
+    paddingBottom: 60,
   },
 
   // Phone Mockup
@@ -1112,10 +1113,28 @@ const styles = StyleSheet.create({
     zIndex: 10,
   },
   carouselArrowLeft: {
-    left: isLargeScreen ? -20 : 0,
+    left: isLargeScreen ? -20 : -5,
   },
   carouselArrowRight: {
-    right: isLargeScreen ? -20 : 0,
+    right: isLargeScreen ? -20 : -5,
+  },
+  arrowLeft: {
+    width: 10,
+    height: 10,
+    borderLeftWidth: 2,
+    borderBottomWidth: 2,
+    borderColor: COLORS.darkGreen,
+    transform: [{ rotate: '45deg' }],
+    marginLeft: 4,
+  },
+  arrowRight: {
+    width: 10,
+    height: 10,
+    borderRightWidth: 2,
+    borderTopWidth: 2,
+    borderColor: COLORS.darkGreen,
+    transform: [{ rotate: '45deg' }],
+    marginRight: 4,
   },
   carouselDots: {
     flexDirection: 'row',
@@ -1138,10 +1157,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: COLORS.darkGreen,
-    backgroundColor: COLORS.cream,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
   },
   phoneScreen: {
     flex: 1,
@@ -1249,17 +1264,22 @@ const styles = StyleSheet.create({
     marginBottom: isLargeScreen ? 48 : 32,
     textAlign: 'center',
     paddingHorizontal: 16,
+    zIndex: 0,
   },
   stepsContainer: {
     flexDirection: isLargeScreen ? 'row' : 'column',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     justifyContent: 'center',
     gap: isLargeScreen ? 0 : 8,
+    overflow: 'visible',
+    zIndex: 1,
   },
   step: {
     alignItems: 'center',
     maxWidth: 280,
     padding: 24,
+    overflow: 'visible',
+    zIndex: 2,
   },
   stepNumber: {
     width: 40,
@@ -1276,6 +1296,10 @@ const styles = StyleSheet.create({
     color: COLORS.darkGreen,
   },
   stepIcon: {
+    marginBottom: 16,
+  },
+  stepEmoji: {
+    fontSize: 40,
     marginBottom: 16,
   },
   stepTitle: {
