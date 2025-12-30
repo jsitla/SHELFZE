@@ -8,7 +8,7 @@ export const parseDate = (dateInput) => {
     return date;
   }
   
-  console.warn('Invalid date encountered:', dateInput);
+  if (__DEV__) console.warn('Invalid date encountered:', dateInput);
   return null; // Fallback to null
 };
 

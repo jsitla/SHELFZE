@@ -32,7 +32,7 @@ export async function syncLegalConsent(userId, dateStr = null) {
         updatedAt: serverTimestamp()
       }
     }, { merge: true });
-    console.log('✅ Legal consent saved to Firestore directly');
+    if (__DEV__) console.log('✅ Legal consent saved to Firestore directly');
 
     // 2. Call Cloud Function (Legacy/Backup/Trigger)
     // We still call this in case there are other side effects (like emails, analytics)
@@ -50,12 +50,12 @@ export async function syncLegalConsent(userId, dateStr = null) {
     });
 
     if (response.ok) {
-      console.log('✅ Legal consent synced to cloud function for user:', userId);
+      if (__DEV__) console.log('✅ Legal consent synced to cloud function for user:', userId);
     } else {
-      console.warn('⚠️ Failed to sync legal consent via cloud function');
+      if (__DEV__) console.warn('⚠️ Failed to sync legal consent via cloud function');
     }
   } catch (error) {
-    console.error('❌ Error syncing legal consent:', error);
+    if (__DEV__) console.error('❌ Error syncing legal consent:', error);
   }
 }
 
@@ -78,7 +78,7 @@ export async function checkUserLegalConsent(userId) {
     }
     return false;
   } catch (error) {
-    console.error('❌ Error checking legal consent from DB:', error);
+    if (__DEV__) console.error('❌ Error checking legal consent from DB:', error);
     return false;
   }
 }
@@ -92,7 +92,7 @@ export async function initializeUsageTracking(userId, tier = 'anonymous') {
   try {
     const auth = getAuth();
     if (!auth.currentUser) {
-       console.warn('User not authenticated in initializeUsageTracking');
+       if (__DEV__) console.warn('User not authenticated in initializeUsageTracking');
        return null;
     }
     const token = await auth.currentUser.getIdToken();
@@ -118,16 +118,16 @@ export async function initializeUsageTracking(userId, tier = 'anonymous') {
         if ((tier === 'free' && usage.tier === 'anonymous') || 
             (tier === 'premium' && usage.tier !== 'premium')) {
             
-            console.log(`Upgrading from ${usage.tier} to ${tier}`);
+            if (__DEV__) console.log(`Upgrading from ${usage.tier} to ${tier}`);
             return await upgradeTier(userId, tier);
         }
     }
 
-    console.log('✅ Usage tracking initialized/verified for user:', userId);
+    if (__DEV__) console.log('✅ Usage tracking initialized/verified for user:', userId);
     return usage;
 
   } catch (error) {
-    console.error('❌ Error initializing usage tracking:', error);
+    if (__DEV__) console.error('❌ Error initializing usage tracking:', error);
     throw error;
   }
 }
@@ -149,7 +149,7 @@ export async function getUserUsage(userId) {
     let usageRef;
     if (householdId) {
       usageRef = doc(db, `households/${householdId}/usage/current`);
-      console.log('📊 Loading household usage for:', householdId);
+      if (__DEV__) console.log('📊 Loading household usage for:', householdId);
     } else {
       usageRef = doc(db, `users/${userId}/usage/current`);
     }
@@ -159,7 +159,7 @@ export async function getUserUsage(userId) {
     if (!usageDoc.exists()) {
       // Initialize if doesn't exist (only for personal usage)
       if (!householdId) {
-        console.log('No usage data found, initializing...');
+        if (__DEV__) console.log('No usage data found, initializing...');
         return await initializeUsageTracking(userId, 'anonymous');
       }
       // For household, return default values
@@ -174,7 +174,7 @@ export async function getUserUsage(userId) {
     
     return usageDoc.data();
   } catch (error) {
-    console.error('❌ Error getting usage data:', error);
+    if (__DEV__) console.error('❌ Error getting usage data:', error);
     throw error;
   }
 }
@@ -208,12 +208,12 @@ export async function checkAndApplyMonthlyBonus(userId) {
 
     const data = await response.json();
     if (data.bonusApplied) {
-      console.log(`✅ Monthly bonus applied! +${data.bonusAmount} scans and recipes`);
+      if (__DEV__) console.log(`✅ Monthly bonus applied! +${data.bonusAmount} scans and recipes`);
     }
     
     return data;
   } catch (error) {
-    console.error('❌ Error checking monthly bonus:', error);
+    if (__DEV__) console.error('❌ Error checking monthly bonus:', error);
     throw error;
   }
 }
@@ -248,10 +248,10 @@ export async function upgradeTier(userId, newTier) {
     }
 
     const data = await response.json();
-    console.log(`✅ Tier upgraded to ${newTier} for user:`, userId);
+    if (__DEV__) console.log(`✅ Tier upgraded to ${newTier} for user:`, userId);
     return data;
   } catch (error) {
-    console.error('❌ Error upgrading tier:', error);
+    if (__DEV__) console.error('❌ Error upgrading tier:', error);
     throw error;
   }
 }
@@ -289,10 +289,10 @@ export async function redeemGiftCode(userId, code) {
       };
     }
 
-    console.log(`✅ Gift code redeemed: ${code} by user: ${userId}`);
+    if (__DEV__) console.log(`✅ Gift code redeemed: ${code} by user: ${userId}`);
     return data;
   } catch (error) {
-    console.error('❌ Error redeeming gift code:', error);
+    if (__DEV__) console.error('❌ Error redeeming gift code:', error);
     return {
       success: false,
       message: error.message || 'Network error occurred'

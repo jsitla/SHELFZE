@@ -27,7 +27,7 @@ try {
   });
 } catch (error) {
   // If auth is already initialized, just get the existing instance
-  console.log('Auth already initialized, using existing instance');
+  if (__DEV__) console.log('Auth already initialized, using existing instance');
   auth = getAuth(app);
 }
 

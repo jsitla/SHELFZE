@@ -21,7 +21,7 @@ export const PurchaseProvider = ({ children }) => {
   useEffect(() => {
     // Skip RevenueCat initialization on web - purchases not supported
     if (isWeb) {
-      console.log('Web platform detected - RevenueCat disabled, purchases not available');
+      if (__DEV__) console.log('Web platform detected - RevenueCat disabled, purchases not available');
       return;
     }
 
@@ -48,12 +48,12 @@ export const PurchaseProvider = ({ children }) => {
             setOfferings(offerings.current);
           }
         } catch (e) {
-          console.log('Error fetching offerings:', e);
+          if (__DEV__) console.log('Error fetching offerings:', e);
         }
 
         setIsReady(true);
       } catch (e) {
-        console.error('Error initializing RevenueCat:', e);
+        if (__DEV__) console.error('Error initializing RevenueCat:', e);
         setIsReady(true); // Still mark as ready so app doesn't hang
       }
     };
@@ -72,7 +72,7 @@ export const PurchaseProvider = ({ children }) => {
           }
         } catch (e) {
           // Ignore error if already anonymous or check fails
-          console.log('RevenueCat logout info:', e.message);
+          if (__DEV__) console.log('RevenueCat logout info:', e.message);
         }
       }
       // Refresh info after auth change
@@ -105,7 +105,7 @@ export const PurchaseProvider = ({ children }) => {
     const hasPremium = activeEntitlements.length > 0;
     
     if (activeEntitlements.length > 0 && !info.entitlements.active[entitlementId]) {
-      console.warn('Entitlement ID mismatch. Configured:', entitlementId, 'Found:', activeEntitlements);
+      if (__DEV__) console.warn('Entitlement ID mismatch. Configured:', entitlementId, 'Found:', activeEntitlements);
     }
     
     setIsPremium(hasPremium);
@@ -120,11 +120,11 @@ export const PurchaseProvider = ({ children }) => {
         try {
           const usage = await getUserUsage(auth.currentUser.uid);
           if (usage && usage.tier === 'premium') {
-            console.log('Detected expired subscription, syncing downgrade to free');
+            if (__DEV__) console.log('Detected expired subscription, syncing downgrade to free');
             syncSubscriptionStatus('free');
           }
         } catch (error) {
-          console.error('Error checking usage for downgrade:', error);
+          if (__DEV__) console.error('Error checking usage for downgrade:', error);
         }
       }
     }
@@ -142,7 +142,7 @@ export const PurchaseProvider = ({ children }) => {
         body: JSON.stringify({ newTier: tier }),
       });
     } catch (error) {
-      console.error('Error syncing subscription status:', error);
+      if (__DEV__) console.error('Error syncing subscription status:', error);
     }
   };
 
