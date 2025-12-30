@@ -37,8 +37,6 @@
       },
       "permissions": [
         "CAMERA",
-        "android.permission.INTERNET",
-        "CAMERA",
         "android.permission.INTERNET"
       ],
       "googleServicesFile": "./google-services.json"
@@ -61,8 +59,7 @@
             "deploymentTarget": "15.1"
           }
         }
-      ],
-      "expo-web-browser"
+      ]
     ],
     "sdkVersion": "54.0.0",
     "extra": {
@@ -72,12 +69,6 @@
       "eas": {
         "projectId": "230cf138-b663-453b-808a-e98fa066b545"
       }
-    },
-    "runtimeVersion": {
-      "policy": "appVersion"
-    },
-    "updates": {
-      "url": "https://u.expo.dev/230cf138-b663-453b-808a-e98fa066b545"
     }
   }
 }
