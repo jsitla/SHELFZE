@@ -168,7 +168,8 @@ const PrivacyPolicyScreen = ({ onBack }) => {
           </Text>
           <Text style={styles.paragraph}>
             <Text style={styles.bold}>Email:</Text> support@shelfze.com{'\n'}
-            <Text style={styles.bold}>Developer:</Text> Shelfze Team
+            <Text style={styles.bold}>Developer:</Text> M-AI d.o.o.{'\n'}
+            <Text style={styles.bold}>Website:</Text> https://m-ai.info/
           </Text>
         </Section>
 

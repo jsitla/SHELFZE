@@ -134,4 +134,5 @@ We may update this Privacy Policy to reflect changes in our practices. We will n
 If you have questions about this Privacy Policy or your data, please contact us:
 
 **Email:** support@shelfze.com
-**Developer:** Shelfze Team
+**Developer:** M-AI d.o.o.
+**Website:** https://m-ai.info/
