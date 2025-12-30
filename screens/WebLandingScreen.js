@@ -169,33 +169,40 @@ const Step = ({ number, icon, title, description }) => (
 );
 
 // YouTube embed component
-const YouTubeEmbed = ({ videoId, placeholder = true }) => {
+const YouTubeEmbed = ({ videoId, title = "Shelfze Demo", placeholder = true, aspectRatio = 16 / 9 }) => {
   const [showVideo, setShowVideo] = useState(!placeholder);
 
   if (!showVideo) {
     return (
-      <TouchableOpacity style={styles.videoPlaceholder} onPress={() => setShowVideo(true)}>
+      <TouchableOpacity 
+        style={[styles.videoPlaceholder, { aspectRatio }]} 
+        onPress={() => setShowVideo(true)}
+      >
         <View style={styles.playButton}>
           <Ionicons name="play" size={48} color={COLORS.white} />
         </View>
-        <Text style={styles.videoPlaceholderText}>Watch How It Works</Text>
-        <Text style={styles.videoComingSoon}>Video coming soon</Text>
+        <Text style={styles.videoPlaceholderText} numberOfLines={1}>Watch {title}</Text>
+        <Text style={styles.videoComingSoon}>Click to play</Text>
       </TouchableOpacity>
     );
   }
 
   return (
-    <View style={styles.videoContainer}>
-      <iframe
-        width="100%"
-        height="100%"
-        src={`https://www.youtube.com/embed/${videoId}?autoplay=1`}
-        title="Shelfze Demo"
-        frameBorder="0"
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-        allowFullScreen
-        style={{ borderRadius: 16 }}
-      />
+    <View style={[styles.videoContainer, { aspectRatio }]}>
+      {Platform.OS === 'web' ? (
+        <iframe
+          width="100%"
+          height="100%"
+          src={`https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1`}
+          title={title}
+          frameBorder="0"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
+          style={{ borderRadius: 16 }}
+        />
+      ) : (
+        <Text style={{ color: 'white' }}>Video only available on web</Text>
+      )}
     </View>
   );
 };
@@ -833,10 +840,40 @@ const WebLandingScreen = ({ onGetStarted }) => {
       </View>
 
       {/* Video Section */}
-      {/* <View style={styles.videoSection}>
+      <View style={styles.videoSection}>
         <Text style={styles.sectionTitle}>See It In Action</Text>
-        <YouTubeEmbed videoId="dQw4w9WgXcQ" placeholder={true} />
-      </View> */}
+        <Text style={[styles.sectionSubtitle, { marginBottom: 40 }]}>
+          Watch how Shelfze transforms your kitchen experience
+        </Text>
+        
+        <View style={styles.videosGrid}>
+          {/* Video 1 */}
+          <View style={styles.videoWrapper}>
+            <YouTubeEmbed 
+              videoId="eYNjksQKfBQ" 
+              title="Shelfze: The AI Pantry Tracker" 
+              placeholder={true}
+              aspectRatio={9/16}
+            />
+            <Text style={styles.videoTitle}>
+              Shelfze: The AI Pantry Tracker That Generates Recipes Instantly 📱✨
+            </Text>
+          </View>
+
+          {/* Video 2 */}
+          <View style={styles.videoWrapper}>
+            <YouTubeEmbed 
+              videoId="dFrGDHK_wxQ" 
+              title="Shelfze Tutorial" 
+              placeholder={true}
+              aspectRatio={9/16}
+            />
+            <Text style={styles.videoTitle}>
+              Shelfze Tutorial: AI Pantry Scanning, Recipe Generation & Smart Shopping
+            </Text>
+          </View>
+        </View>
+      </View>
 
       {/* Features Section */}
       <View style={styles.featuresSection}>
@@ -1324,25 +1361,51 @@ const styles = StyleSheet.create({
   // Video Section
   videoSection: {
     width: '100%',
-    maxWidth: 900,
+    maxWidth: 1200,
     paddingVertical: 60,
     paddingHorizontal: 24,
     alignItems: 'center',
   },
+  videosGrid: {
+    width: '100%',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    gap: 40,
+  },
+  videoWrapper: {
+    width: isLargeScreen ? 350 : '100%',
+    maxWidth: 400,
+    alignItems: 'center',
+    marginBottom: isLargeScreen ? 0 : 40,
+  },
+  videoTitle: {
+    fontFamily: Platform.OS === 'ios' ? 'System' : 'Roboto',
+    fontSize: 18,
+    fontWeight: '600',
+    color: COLORS.charcoal,
+    marginTop: 16,
+    textAlign: 'center',
+    lineHeight: 24,
+  },
   videoContainer: {
     width: '100%',
-    aspectRatio: 16 / 9,
     borderRadius: 16,
     overflow: 'hidden',
     backgroundColor: COLORS.charcoal,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 5,
   },
   videoPlaceholder: {
     width: '100%',
-    aspectRatio: 16 / 9,
     borderRadius: 16,
     backgroundColor: COLORS.darkGreen,
     alignItems: 'center',
     justifyContent: 'center',
+    padding: 20,
   },
   playButton: {
     width: 80,
