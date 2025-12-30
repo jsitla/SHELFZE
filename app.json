@@ -23,6 +23,7 @@
       "usesAppleSignIn": true,
       "infoPlist": {
         "NSCameraUsageDescription": "Shelfze needs access to your camera to scan food items and expiry dates.",
+        "NSMicrophoneUsageDescription": "Shelfze needs access to your microphone for video recording when scanning multiple items.",
         "NSUserTrackingUsageDescription": "This identifier will be used to deliver personalized ads to you.",
         "ITSAppUsesNonExemptEncryption": false
       },
