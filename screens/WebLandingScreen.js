@@ -375,9 +375,12 @@ We may update this Privacy Policy to reflect changes in our practices. We will n
 
 If you have questions about this Privacy Policy or your data, please contact us:
 
-Email: support@shelfze.com
 Developer: M-AI d.o.o.
-Website: https://m-ai.info/`;
+Website: https://m-ai.info/
+
+Shelfze Contacts:
+Email: support@shelfze.com
+Website: https://shelfze.com/`;
 
 // Terms of Service Content
 const TERMS_OF_SERVICE = `Terms of Service for Shelfze
@@ -662,9 +665,12 @@ These Terms, together with our Privacy Policy, constitute the entire agreement b
 
 For questions about these Terms, contact us at:
 
-Email: support@shelfze.com
 Developer: M-AI d.o.o.
 Website: https://m-ai.info/
+
+Shelfze Contacts:
+Email: support@shelfze.com
+Website: https://shelfze.com/
 
 19. Additional Terms for App Store Users (Apple)
 

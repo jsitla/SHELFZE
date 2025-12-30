@@ -292,9 +292,12 @@ These Terms, together with our Privacy Policy, constitute the entire agreement b
 
 For questions about these Terms, contact us at:
 
-**Email:** support@shelfze.com  
 **Developer:** M-AI d.o.o.
 **Website:** https://m-ai.info/
+
+**Shelfze Contacts:**
+**Email:** support@shelfze.com
+**Website:** https://shelfze.com/
 
 ## 19. Additional Terms for App Store Users (Apple)
 

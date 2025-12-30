@@ -167,9 +167,11 @@ const PrivacyPolicyScreen = ({ onBack }) => {
             If you have questions about this Privacy Policy or your data, please contact us:
           </Text>
           <Text style={styles.paragraph}>
-            <Text style={styles.bold}>Email:</Text> support@shelfze.com{'\n'}
             <Text style={styles.bold}>Developer:</Text> M-AI d.o.o.{'\n'}
-            <Text style={styles.bold}>Website:</Text> https://m-ai.info/
+            <Text style={styles.bold}>Website:</Text> https://m-ai.info/{'\n'}{'\n'}
+            <Text style={styles.bold}>Shelfze Contacts:</Text>{'\n'}
+            <Text style={styles.bold}>Email:</Text> support@shelfze.com{'\n'}
+            <Text style={styles.bold}>Website:</Text> https://shelfze.com/
           </Text>
         </Section>
 
