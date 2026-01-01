@@ -1,6 +1,10 @@
 ﻿import { useMemo } from 'react';
 
 const baseTranslation = {
+	// AI Disclaimer
+	aiDisclaimerRecipes: 'Recipes are AI-generated and may contain errors. Always verify ingredients and cooking instructions.',
+	premiumTermsLink: 'By subscribing, you agree to our Terms of Service and Privacy Policy.',
+
 	// Custom Recipe Generator
 	whatAreYouCraving: 'What are you craving?',
 	askForAnyDish: 'Ask for any dish, and I\'ll create a custom recipe just for you.',
@@ -546,6 +550,10 @@ const withOverrides = (overrides) => ({
 export const translations = {
 	en: baseTranslation,
 	es: withOverrides({
+		// AI Disclaimer
+		aiDisclaimerRecipes: 'Las recetas son generadas por IA y pueden contener errores. Siempre verifica los ingredientes e instrucciones.',
+		premiumTermsLink: 'Al suscribirte, aceptas nuestros Términos de Servicio y Política de Privacidad.',
+
 		whatAreYouCraving: '¿Qué se te antoja?',
 		askForAnyDish: 'Pide cualquier plato...',
 		suggestion_tacos: 'Tacos picantes',
@@ -1056,6 +1064,10 @@ export const translations = {
 		nicknameSaved: '¡Apodo guardado!',
 	}),
 	fr: withOverrides({
+		// AI Disclaimer
+		aiDisclaimerRecipes: 'Les recettes sont générées par IA et peuvent contenir des erreurs. Vérifiez toujours les ingrédients et les instructions.',
+		premiumTermsLink: 'En vous abonnant, vous acceptez nos Conditions d\'utilisation et notre Politique de confidentialité.',
+
 		whatAreYouCraving: 'De quoi avez-vous envie ?',
 		askForAnyDish: 'Demandez n\'importe quel plat...',
 		suggestion_tacos: 'Tacos épicés',
@@ -1551,6 +1563,10 @@ export const translations = {
 		nicknameSaved: 'Surnom enregistré!',
 	}),
 	de: withOverrides({
+		// AI Disclaimer
+		aiDisclaimerRecipes: 'Rezepte werden von KI generiert und können Fehler enthalten. Überprüfen Sie immer Zutaten und Anweisungen.',
+		premiumTermsLink: 'Mit dem Abonnement akzeptieren Sie unsere Nutzungsbedingungen und Datenschutzrichtlinie.',
+
 		whatAreYouCraving: 'Worauf hast du Lust?',
 		askForAnyDish: 'Frage nach einem Gericht...',
 		suggestion_smoothie: 'Schneller Frühstücks-Smoothie',
@@ -2033,6 +2049,10 @@ export const translations = {
 		nicknameSaved: 'Spitzname gespeichert!',
 	}),
 	it: withOverrides({
+		// AI Disclaimer
+		aiDisclaimerRecipes: 'Le ricette sono generate dall\'IA e potrebbero contenere errori. Verifica sempre ingredienti e istruzioni.',
+		premiumTermsLink: 'Abbonandoti, accetti i nostri Termini di Servizio e la nostra Informativa sulla Privacy.',
+
 		whatAreYouCraving: 'Di cosa hai voglia?',
 		askForAnyDish: 'Chiedi qualsiasi piatto...',
 		suggestion_tacos: 'Tacos piccanti',
@@ -2531,6 +2551,10 @@ export const translations = {
 		nicknameSaved: 'Soprannome salvato!',
 	}),
 	sl: withOverrides({
+		// AI Disclaimer
+		aiDisclaimerRecipes: 'Recepti so ustvarjeni z UI in lahko vsebujejo napake. Vedno preverite sestavine in navodila.',
+		premiumTermsLink: 'Z naročnino sprejemate naše Pogoje uporabe in Pravilnik o zasebnosti.',
+
 		whatAreYouCraving: 'Kaj vam diši?',
 		askForAnyDish: 'Vprašajte za katero koli jed...',
 		suggestion_tacos: 'Pikantni takosi',

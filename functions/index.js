@@ -13,9 +13,9 @@ const vertexAI = new VertexAI({
   location: "us-central1",
 });
 
-// Model for Camera/Image Analysis (Keep as requested)
+// Model for Camera/Image Analysis (Upgraded to 2.5 - Jan 2026)
 const cameraModel = vertexAI.getGenerativeModel({
-  model: "gemini-2.0-flash-exp",
+  model: "gemini-2.5-flash",
 });
 
 // Model for Recipe Generation
@@ -24,14 +24,14 @@ const recipeModel = vertexAI.getGenerativeModel({
   model: "gemini-2.5-flash",
 });
 
-// Model for Fast Filtering (Retrieval)
+// Model for Fast Filtering (Retrieval) - Upgraded to 2.5 Jan 2026
 const filterModel = vertexAI.getGenerativeModel({
-  model: "gemini-2.0-flash-exp",
+  model: "gemini-2.5-flash",
 });
 
-// Model specifically for Pantry Check (Using 2.0 as requested)
+// Model specifically for Pantry Check - Upgraded to 2.5 Jan 2026
 const pantryCheckModel = vertexAI.getGenerativeModel({
-  model: "gemini-2.0-flash-exp",
+  model: "gemini-2.5-flash",
 });
 
 /**
@@ -342,7 +342,7 @@ async function analyzeWithGemini(
 ) {
   try {
     console.log("=== GEMINI ANALYSIS START ===");
-    console.log("Model: Gemini 2.0 Flash");
+    console.log("Model: Gemini 2.5 Flash");
     console.log("Image data length:", base64Image ? base64Image.length : 0);
     console.log("Target language:", targetLang);
     console.log("Mime Type:", mimeType);
@@ -1366,18 +1366,41 @@ exports.upgradeTier = onRequest({cors: true}, async (req, res) => {
 
     await usageRef.update(updates);
 
-    // Check if user is in a household and update household premium status
+    // Check if user is in a household and update household usage directly
     const userDoc = await db.collection("users").doc(uid).get();
     const userData = userDoc.exists ? userDoc.data() : null;
     if (userData && userData.householdId) {
-      const householdDoc = await db.collection("households")
-          .doc(userData.householdId).get();
-      if (householdDoc.exists) {
-        const householdData = householdDoc.data();
-        await updateHouseholdPremiumStatus(
-            userData.householdId,
-            householdData.memberIds || [],
-        );
+      const householdId = userData.householdId;
+      const householdUsageRef = db.collection("households")
+          .doc(householdId).collection("usage").doc("current");
+      
+      // Directly update household usage based on the new tier
+      if (newTier === "premium") {
+        // User is now premium - upgrade household to premium
+        await householdUsageRef.set({
+          tier: "premium",
+          scansRemaining: 500,
+          recipesRemaining: 500,
+          resetDate: admin.firestore.FieldValue.serverTimestamp(),
+        }, {merge: true});
+        
+        // Also update household hasPremium flag
+        await db.collection("households").doc(householdId).update({
+          hasPremium: true,
+        });
+        
+        console.log(`✅ Upgraded household ${householdId} to premium`);
+      } else if (newTier === "free") {
+        // User downgraded - check if any other member is still premium
+        const householdDoc = await db.collection("households")
+            .doc(householdId).get();
+        if (householdDoc.exists) {
+          const householdData = householdDoc.data();
+          await updateHouseholdPremiumStatus(
+              householdId,
+              householdData.memberIds || [],
+          );
+        }
       }
     }
 
@@ -2247,9 +2270,9 @@ exports.checkIngredients = onRequest({
     try {
       result = await pantryCheckModel.generateContent(prompt);
     } catch (modelError) {
-      console.warn("Gemini 2.0 failed, falling back to 1.5-flash", modelError);
+      console.warn("Gemini 2.5 failed, falling back to 2.5-flash-lite", modelError);
       const fallbackModel = vertexAI.getGenerativeModel({
-        model: "gemini-1.5-flash",
+        model: "gemini-2.5-flash-lite",
       });
       result = await fallbackModel.generateContent(prompt);
     }
@@ -2693,15 +2716,33 @@ function generateInviteCode() {
 }
 
 /**
- * Check premium status for all household members via RevenueCat API
+ * Check premium status for all household members
+ * First checks Firestore (user's usage tier), then falls back to RevenueCat API
  * @param {Array} memberIds - Array of user IDs
  * @return {Promise<boolean>} True if any member has premium
  */
 async function checkHouseholdPremiumStatus(memberIds) {
+  const db = admin.firestore();
+
+  // First, check Firestore for any member with premium tier
+  for (const memberId of memberIds) {
+    try {
+      const usageDoc = await db.collection("users").doc(memberId)
+          .collection("usage").doc("current").get();
+      if (usageDoc.exists && usageDoc.data().tier === "premium") {
+        console.log(`Member ${memberId} has premium tier in Firestore`);
+        return true;
+      }
+    } catch (error) {
+      console.error(`Error checking Firestore for member ${memberId}:`, error);
+    }
+  }
+
+  // Fallback: Check RevenueCat API if configured
   const REVENUECAT_API_KEY = process.env.REVENUECAT_SECRET_KEY;
 
   if (!REVENUECAT_API_KEY) {
-    console.warn("RevenueCat API key not configured, skipping premium check");
+    console.log("RevenueCat API key not configured, using Firestore only");
     return false;
   }
 
@@ -3074,9 +3115,25 @@ exports.joinHousehold = onRequest({cors: true}, async (req, res) => {
 
     await batch.commit();
 
-    // Check premium status for the updated household
-    const updatedMemberIds = [...householdData.memberIds, uid];
-    await updateHouseholdPremiumStatus(householdId, updatedMemberIds);
+    // If joining user is premium, directly upgrade household to premium
+    if (userUsage && userUsage.tier === "premium") {
+      const householdUsageRef = db.collection("households")
+          .doc(householdId).collection("usage").doc("current");
+      await householdUsageRef.set({
+        tier: "premium",
+        scansRemaining: 500,
+        recipesRemaining: 500,
+        resetDate: admin.firestore.FieldValue.serverTimestamp(),
+      }, {merge: true});
+      await db.collection("households").doc(householdId).update({
+        hasPremium: true,
+      });
+      console.log(`✅ Premium user joined - upgraded household ${householdId}`);
+    } else {
+      // Check premium status for all members (in case another member is premium)
+      const updatedMemberIds = [...householdData.memberIds, uid];
+      await updateHouseholdPremiumStatus(householdId, updatedMemberIds);
+    }
 
     res.status(200).json({
       success: true,

@@ -142,6 +142,10 @@ export default function PremiumPlansScreen() {
           'Payments will be processed via your app store account. Subscription automatically renews unless canceled at least 24 hours before the end of the current period.'}
       </Text>
       
+      <Text style={styles.footerTextSmall}>
+        {t('premiumTermsLink') || 'By subscribing, you agree to our Terms of Service and Privacy Policy.'}
+      </Text>
+      
       {loading && (
         <View style={styles.overlay}>
           <ActivityIndicator size="large" color="#FFFFFF" />
@@ -271,6 +275,13 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#999',
     textAlign: 'center',
+  },
+  footerTextSmall: {
+    marginTop: 8,
+    fontSize: 11,
+    color: '#999',
+    textAlign: 'center',
+    fontStyle: 'italic',
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,

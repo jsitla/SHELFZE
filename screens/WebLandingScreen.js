@@ -858,7 +858,7 @@ const WebLandingScreen = ({ onGetStarted }) => {
           {/* Video 1 */}
           <View style={styles.videoWrapper}>
             <YouTubeEmbed 
-              videoId="eYNjksQKfBQ" 
+              videoId="iKa09bIM4JY" 
               title="Shelfze: The AI Pantry Tracker" 
               placeholder={true}
               aspectRatio={9/16}
@@ -871,13 +871,13 @@ const WebLandingScreen = ({ onGetStarted }) => {
           {/* Video 2 */}
           <View style={styles.videoWrapper}>
             <YouTubeEmbed 
-              videoId="dFrGDHK_wxQ" 
+              videoId="_biszFDW0Vw" 
               title="Shelfze Tutorial" 
               placeholder={true}
               aspectRatio={9/16}
             />
             <Text style={styles.videoTitle}>
-              Shelfze Tutorial: AI Pantry Scanning, Recipe Generation & Smart Shopping
+              Shelfze Tutorial Video
             </Text>
           </View>
         </View>

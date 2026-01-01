@@ -1421,6 +1421,13 @@ ${t('sharedFromShelfze', language)}
           </View>
         )}
 
+        {/* AI Disclaimer */}
+        <View style={styles.aiDisclaimerContainer}>
+          <Text style={styles.aiDisclaimerText}>
+            🤖 {t('aiDisclaimerRecipes', language)}
+          </Text>
+        </View>
+
         <TouchableOpacity 
           style={[
             styles.generateButton,
@@ -1599,6 +1606,23 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F4F1DE', // Alabaster
+  },
+  aiDisclaimerContainer: {
+    marginHorizontal: 20,
+    marginTop: 10,
+    marginBottom: 5,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    backgroundColor: '#FFF9E6',
+    borderRadius: 8,
+    borderLeftWidth: 3,
+    borderLeftColor: '#F5A623',
+  },
+  aiDisclaimerText: {
+    fontSize: 11,
+    color: '#8B6914',
+    textAlign: 'center',
+    lineHeight: 16,
   },
   centerContainer: {
     flex: 1,

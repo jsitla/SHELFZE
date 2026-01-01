@@ -96,7 +96,7 @@ export const PurchaseProvider = ({ children }) => {
   }, []);
 
   const checkEntitlements = async (info) => {
-    if (!info) return;
+    if (!info) return false;
     
     const entitlementId = config.revenueCat.entitlementId || 'premium';
     
@@ -110,30 +110,33 @@ export const PurchaseProvider = ({ children }) => {
     
     setIsPremium(hasPremium);
     
-    // Sync with our backend
+    // Sync with our backend and wait for completion
     if (auth.currentUser) {
       if (hasPremium) {
-        // Always ensure backend knows we are premium
-        syncSubscriptionStatus('premium');
+        // Always ensure backend knows we are premium and wait for it
+        const synced = await syncSubscriptionStatus('premium');
+        if (__DEV__) console.log('Premium sync result:', synced);
+        return synced;
       } else {
         // If not premium locally, check if backend thinks we are
         try {
           const usage = await getUserUsage(auth.currentUser.uid);
           if (usage && usage.tier === 'premium') {
             if (__DEV__) console.log('Detected expired subscription, syncing downgrade to free');
-            syncSubscriptionStatus('free');
+            await syncSubscriptionStatus('free');
           }
         } catch (error) {
           if (__DEV__) console.error('Error checking usage for downgrade:', error);
         }
       }
     }
+    return true;
   };
 
   const syncSubscriptionStatus = async (tier) => {
     try {
       const token = await auth.currentUser.getIdToken();
-      await fetch(config.upgradeTier, {
+      const response = await fetch(config.upgradeTier, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -141,8 +144,19 @@ export const PurchaseProvider = ({ children }) => {
         },
         body: JSON.stringify({ newTier: tier }),
       });
+      
+      if (response.ok) {
+        const data = await response.json();
+        if (__DEV__) console.log('✅ Subscription synced successfully:', data);
+        return true;
+      } else {
+        const errorText = await response.text();
+        if (__DEV__) console.error('❌ Failed to sync subscription:', errorText);
+        return false;
+      }
     } catch (error) {
       if (__DEV__) console.error('Error syncing subscription status:', error);
+      return false;
     }
   };
 
@@ -155,7 +169,8 @@ export const PurchaseProvider = ({ children }) => {
     
     try {
       const { customerInfo } = await Purchases.purchasePackage(pack);
-      checkEntitlements(customerInfo);
+      // Wait for backend sync to complete before returning success
+      await checkEntitlements(customerInfo);
       return { success: true };
     } catch (e) {
       if (!e.userCancelled) {

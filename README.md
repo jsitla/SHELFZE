@@ -62,7 +62,7 @@
 - **🔦 Flashlight** - Integrated torch toggle for low-light environments
 - **🌐 Web Upload** - File upload support for web platform
 
-**Intelligent Detection (Gemini 2.0 Flash):**
+**Intelligent Detection (Gemini 2.5 Flash):**
 - Multi-item recognition in a single scan
 - Product specificity (e.g., "Sheep Milk" vs "Goat Milk")
 - Form detection (Fresh, Dried, Ground, Powder, Whole, Minced)
@@ -72,7 +72,7 @@
 - Confidence scoring (0-100%)
 
 **Detection Fallback Hierarchy:**
-1. **Primary:** Google Gemini 2.0 Flash (`gemini-2.0-flash-exp`)
+1. **Primary:** Google Gemini 2.5 Flash (`gemini-2.5-flash`)
 2. **Fallback:** Google Cloud Vision API (TEXT_DETECTION, LABEL_DETECTION, OBJECT_LOCALIZATION)
 
 ---
@@ -288,7 +288,7 @@ Firestore Database
 ### AI Models
 | Model | Usage |
 |-------|-------|
-| `gemini-2.0-flash-exp` | Camera/image analysis, pantry check |
+| `gemini-2.5-flash` | Camera/image analysis, pantry check, filtering |
 | `gemini-2.5-flash` | Recipe generation |
 
 ---
