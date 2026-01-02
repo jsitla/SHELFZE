@@ -58,10 +58,17 @@ const AuthScreen = ({ mode, onBack, onSuccess }) => {
   // Configure Native Google Sign In
   useEffect(() => {
     if (hasGoogleConfig) {
-      GoogleSignin.configure({
+      const config = {
         webClientId: googleClients.web, // Required for Firebase
         iosClientId: googleClients.ios, // Optional, but good for iOS
-      });
+      };
+
+      // Only add scopes for Android to avoid changing iOS behavior
+      if (Platform.OS === 'android') {
+        config.scopes = ['email', 'profile'];
+      }
+
+      GoogleSignin.configure(config);
     }
   }, [hasGoogleConfig, googleClients.web, googleClients.ios]);
 
@@ -368,8 +375,8 @@ const AuthScreen = ({ mode, onBack, onSuccess }) => {
               </TouchableOpacity>
               */}
 
-              {/* Apple Sign-In - Only show on iOS, not on web */}
-              {!isWeb && (
+              {/* Apple Sign-In - Only show on iOS */}
+              {Platform.OS === 'ios' && (
                 <TouchableOpacity 
                   style={[styles.socialButton, styles.appleButton, isAppleButtonDisabled && styles.socialButtonDisabled]}
                   onPress={handleAppleSignIn}

@@ -49,6 +49,7 @@ export default function Profile({ navigation }) {
   const [showGiftCode, setShowGiftCode] = useState(false);
   const [usageData, setUsageData] = useState(null);
   const [loadingUsage, setLoadingUsage] = useState(false);
+  const [deletingAccount, setDeletingAccount] = useState(false);
   // Household state
   const [householdInfo, setHouseholdInfo] = useState(null);
   const [loadingHousehold, setLoadingHousehold] = useState(false);
@@ -501,6 +502,80 @@ export default function Profile({ navigation }) {
             text: t('signOut', language),
             style: 'destructive',
             onPress: performSignOut,
+          },
+        ]
+      );
+    }
+  };
+
+  // Handle account deletion
+  const handleDeleteAccount = async () => {
+    const isWeb = Platform.OS === 'web';
+    
+    const warningMessage = t('deleteAccountWarning', language) || 
+      'This will permanently delete your account and all associated data including:\n\n• Your pantry items\n• Shopping lists\n• Saved recipes\n• Usage history\n\nIf you are a household owner, the entire household will be deleted.\n\nThis action cannot be undone.';
+    
+    const confirmDelete = async () => {
+      setDeletingAccount(true);
+      try {
+        const token = await auth.currentUser?.getIdToken();
+        
+        const response = await fetch(config.deleteAccount, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+          // Clear local storage
+          await AsyncStorage.clear();
+          
+          if (isWeb) {
+            alert(t('accountDeleted', language) || 'Your account has been permanently deleted.');
+            window.location.reload();
+          } else {
+            Alert.alert(
+              t('success', language),
+              t('accountDeleted', language) || 'Your account has been permanently deleted.',
+              [{ text: 'OK' }]
+            );
+          }
+        } else {
+          throw new Error(data.error || 'Failed to delete account');
+        }
+      } catch (error) {
+        console.error('Error deleting account:', error);
+        if (isWeb) {
+          alert(t('deleteAccountFailed', language) || 'Failed to delete account. Please try again or contact support.');
+        } else {
+          Alert.alert(
+            t('error', language),
+            t('deleteAccountFailed', language) || 'Failed to delete account. Please try again or contact support.'
+          );
+        }
+      } finally {
+        setDeletingAccount(false);
+      }
+    };
+    
+    if (isWeb) {
+      if (window.confirm(warningMessage + '\n\nAre you sure you want to delete your account?')) {
+        await confirmDelete();
+      }
+    } else {
+      Alert.alert(
+        t('deleteAccount', language) || 'Delete Account',
+        warningMessage,
+        [
+          { text: t('cancel', language), style: 'cancel' },
+          {
+            text: t('deleteAccountConfirm', language) || 'Delete My Account',
+            style: 'destructive',
+            onPress: confirmDelete,
           },
         ]
       );
@@ -1348,6 +1423,24 @@ export default function Profile({ navigation }) {
         <Text style={styles.signOutButtonText}>🚪 {t('signOut', language)}</Text>
       </TouchableOpacity>
 
+      {/* Delete Account Section */}
+      <TouchableOpacity 
+        style={styles.deleteAccountButton} 
+        onPress={handleDeleteAccount}
+        disabled={deletingAccount}
+      >
+        {deletingAccount ? (
+          <ActivityIndicator size="small" color="#DC2626" />
+        ) : (
+          <Text style={styles.deleteAccountButtonText}>
+            🗑️ {t('deleteAccount', language) || 'Delete Account'}
+          </Text>
+        )}
+      </TouchableOpacity>
+      <Text style={styles.deleteAccountWarningText}>
+        {t('deleteAccountPermanent', language) || 'This action is permanent and cannot be undone'}
+      </Text>
+
       <LanguageSelector 
         visible={languageModalVisible} 
         onClose={() => setLanguageModalVisible(false)} 
@@ -2145,5 +2238,29 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     color: '#fff',
+  },
+  // Delete Account Styles
+  deleteAccountButton: {
+    backgroundColor: '#FEE2E2',
+    borderWidth: 2,
+    borderColor: '#DC2626',
+    borderRadius: 22,
+    padding: 16,
+    marginHorizontal: 20,
+    marginTop: 20,
+    alignItems: 'center',
+  },
+  deleteAccountButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#DC2626',
+  },
+  deleteAccountWarningText: {
+    fontSize: 12,
+    color: '#9CA3AF',
+    textAlign: 'center',
+    marginTop: 8,
+    marginBottom: 30,
+    fontStyle: 'italic',
   },
 });

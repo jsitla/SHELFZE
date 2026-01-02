@@ -3412,3 +3412,117 @@ exports.updateNickname = onRequest({
     res.status(500).json({error: "Internal server error", details: error.message});
   }
 });
+
+/**
+ * Delete User Account
+ * Deletes all user data from Firestore and the Firebase Auth account
+ */
+exports.deleteAccount = onRequest({
+  cors: true,
+  memory: "512MiB",
+  timeoutSeconds: 60,
+}, async (req, res) => {
+  if (req.method !== "POST" && req.method !== "DELETE") {
+    res.status(405).json({error: "Method not allowed. Use POST or DELETE."});
+    return;
+  }
+
+  try {
+    const uid = await verifyAuth(req);
+    if (!uid) {
+      res.status(401).json({error: "Unauthorized. Invalid or missing token."});
+      return;
+    }
+
+    const db = admin.firestore();
+    const batch = db.batch();
+
+    console.log(`Starting account deletion for user: ${uid}`);
+
+    // 1. Get user document to check for household membership
+    const userDoc = await db.collection("users").doc(uid).get();
+    const userData = userDoc.exists ? userDoc.data() : null;
+    const householdId = userData?.householdId;
+
+    // 2. Handle household membership
+    if (householdId) {
+      const householdRef = db.collection("households").doc(householdId);
+      const householdDoc = await householdRef.get();
+
+      if (householdDoc.exists) {
+        const householdData = householdDoc.data();
+        const isOwner = householdData.ownerId === uid;
+
+        if (isOwner) {
+          // Owner is deleting account - delete entire household
+          console.log(`User is household owner. Deleting household: ${householdId}`);
+
+          // Delete household subcollections
+          const subcollections = ["pantry", "shoppingList", "savedRecipes", "usage"];
+          for (const subcol of subcollections) {
+            const subcollectionRef = householdRef.collection(subcol);
+            const subcollectionDocs = await subcollectionRef.listDocuments();
+            for (const docRef of subcollectionDocs) {
+              batch.delete(docRef);
+            }
+          }
+
+          // Remove householdId from other members
+          const members = householdData.members || [];
+          for (const member of members) {
+            if (member.id !== uid) {
+              batch.update(db.collection("users").doc(member.id), {
+                householdId: admin.firestore.FieldValue.delete(),
+              });
+            }
+          }
+
+          // Delete household document
+          batch.delete(householdRef);
+        } else {
+          // Member is deleting account - just remove from household
+          console.log(`User is household member. Removing from household: ${householdId}`);
+          const updatedMembers = (householdData.members || [])
+              .filter((m) => m.id !== uid);
+          batch.update(householdRef, {members: updatedMembers});
+        }
+      }
+    }
+
+    // 3. Delete user's personal subcollections
+    const userRef = db.collection("users").doc(uid);
+    const userSubcollections = ["pantry", "shoppingList", "savedRecipes", "usage", "legalConsent"];
+
+    for (const subcol of userSubcollections) {
+      const subcollectionRef = userRef.collection(subcol);
+      const subcollectionDocs = await subcollectionRef.listDocuments();
+      for (const docRef of subcollectionDocs) {
+        batch.delete(docRef);
+      }
+    }
+
+    // 4. Delete user document
+    batch.delete(userRef);
+
+    // 5. Commit all Firestore deletions
+    await batch.commit();
+    console.log(`Firestore data deleted for user: ${uid}`);
+
+    // 6. Delete Firebase Auth account
+    await admin.auth().deleteUser(uid);
+    console.log(`Firebase Auth account deleted for user: ${uid}`);
+
+    res.status(200).json({
+      success: true,
+      message: "Account and all associated data have been permanently deleted.",
+    });
+  } catch (error) {
+    console.error("Error deleting account:", error);
+    res.status(500).json({
+      error: "Failed to delete account",
+      details: error.message,
+    });
+  }
+});
+
+

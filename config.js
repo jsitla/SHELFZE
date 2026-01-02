@@ -22,6 +22,7 @@ export const config = {
   leaveHousehold: 'https://leavehousehold-awiyk42b4q-uc.a.run.app',
   getHouseholdInfo: 'https://gethouseholdinfo-awiyk42b4q-uc.a.run.app',
   updateNickname: 'https://us-central1-pantryai-3d396.cloudfunctions.net/updateNickname',
+  deleteAccount: 'https://us-central1-pantryai-3d396.cloudfunctions.net/deleteAccount',
   
   // RevenueCat API Keys
   revenueCat: {
