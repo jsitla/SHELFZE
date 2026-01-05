@@ -27,7 +27,7 @@ export const config = {
   // RevenueCat API Keys
   revenueCat: {
     ios: 'appl_mhVIozZXkZvAnHbOlkAvqbyJrbq',
-    android: 'goog_REPLACE_WITH_YOUR_ANDROID_KEY',
+    android: 'goog_QyXcEJdgnqzYhLcKPFnyNmsmwqN',
     entitlementId: 'Shelfze / M-AI d.o.o. Pro', // Matches your RevenueCat Entitlement Identifier
   },
 };
