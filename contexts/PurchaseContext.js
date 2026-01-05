@@ -37,6 +37,16 @@ export const PurchaseProvider = ({ children }) => {
         // because onAuthStateChanged below will fire immediately with the current user state
         // and handle the login/info fetch. This prevents race conditions.
         
+        // Load offerings
+        try {
+          const offerings = await Purchases.getOfferings();
+          if (offerings && offerings.current) {
+            setOfferings(offerings.current);
+          }
+        } catch (e) {
+          if (__DEV__) console.error('Error fetching offerings:', e);
+        }
+
         setIsReady(true);
       } catch (e) {
         if (__DEV__) console.error('Error initializing RevenueCat:', e);
