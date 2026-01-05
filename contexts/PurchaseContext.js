@@ -33,28 +33,14 @@ export const PurchaseProvider = ({ children }) => {
           Purchases.configure({ apiKey: config.revenueCat.android });
         }
 
-        // Set user ID if logged in
-        if (auth.currentUser) {
-          await Purchases.logIn(auth.currentUser.uid);
-        }
-
-        const info = await Purchases.getCustomerInfo();
-        setCustomerInfo(info);
-        checkEntitlements(info);
-
-        try {
-          const offerings = await Purchases.getOfferings();
-          if (offerings.current !== null) {
-            setOfferings(offerings.current);
-          }
-        } catch (e) {
-          if (__DEV__) console.log('Error fetching offerings:', e);
-        }
-
+        // We don't need to manually check auth.currentUser here or call logIn/getCustomerInfo
+        // because onAuthStateChanged below will fire immediately with the current user state
+        // and handle the login/info fetch. This prevents race conditions.
+        
         setIsReady(true);
       } catch (e) {
         if (__DEV__) console.error('Error initializing RevenueCat:', e);
-        setIsReady(true); // Still mark as ready so app doesn't hang
+        setIsReady(true);
       }
     };
 
@@ -62,8 +48,14 @@ export const PurchaseProvider = ({ children }) => {
 
     // Listen for auth changes to identify user in RevenueCat
     const unsubscribeAuth = auth.onAuthStateChanged(async (user) => {
+      // Ensure RevenueCat is configured before proceeding (though initRevenueCat runs synchronously up to configure)
+      
       if (user) {
-        await Purchases.logIn(user.uid);
+        try {
+          await Purchases.logIn(user.uid);
+        } catch (e) {
+          if (__DEV__) console.error('Error logging into RevenueCat:', e);
+        }
       } else {
         try {
           const isAnonymous = await Purchases.isAnonymous();
@@ -75,10 +67,15 @@ export const PurchaseProvider = ({ children }) => {
           if (__DEV__) console.log('RevenueCat logout info:', e.message);
         }
       }
-      // Refresh info after auth change
-      const info = await Purchases.getCustomerInfo();
-      setCustomerInfo(info);
-      checkEntitlements(info);
+      
+      // Refresh info after auth change (and login)
+      try {
+        const info = await Purchases.getCustomerInfo();
+        setCustomerInfo(info);
+        checkEntitlements(info);
+      } catch (e) {
+        if (__DEV__) console.error('Error fetching customer info:', e);
+      }
     });
 
     // Listen for purchase updates
