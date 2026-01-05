@@ -1353,15 +1353,34 @@ exports.upgradeTier = onRequest({cors: true}, async (req, res) => {
 
     const updates = {tier: newTier};
 
-    if (newTier === "free") {
-      updates.scansRemaining = 30;
-      updates.recipesRemaining = 30;
-      updates.lastMonthlyBonusDate =
-          admin.firestore.FieldValue.serverTimestamp();
-    } else if (newTier === "premium") {
-      updates.scansRemaining = 500;
-      updates.recipesRemaining = 500;
-      updates.resetDate = admin.firestore.FieldValue.serverTimestamp();
+    // Only reset limits if the tier is actually changing
+    if (usage.tier !== newTier) {
+      if (newTier === "free") {
+        // PROTECTION: Prevent accidental downgrades due to race conditions
+        // If user became premium recently (e.g., < 1 hour ago), ignore the downgrade
+        if (usage.tier === "premium" && usage.resetDate) {
+          const lastReset = usage.resetDate.toDate();
+          const now = new Date();
+          const minutesSinceReset = (now - lastReset) / (1000 * 60);
+          
+          if (minutesSinceReset < 60) {
+            console.log(`Ignoring downgrade for ${uid} - Premium active for only ${minutesSinceReset.toFixed(1)} mins`);
+            res.status(200).json(usage); // Return current usage without changes
+            return;
+          }
+        }
+
+        updates.scansRemaining = 30;
+        updates.recipesRemaining = 30;
+        updates.lastMonthlyBonusDate =
+            admin.firestore.FieldValue.serverTimestamp();
+      } else if (newTier === "premium") {
+        updates.scansRemaining = 500;
+        updates.recipesRemaining = 500;
+        updates.resetDate = admin.firestore.FieldValue.serverTimestamp();
+      }
+    } else {
+      console.log(`User ${uid} is already ${newTier}, skipping usage reset.`);
     }
 
     await usageRef.update(updates);
