@@ -1395,20 +1395,29 @@ exports.upgradeTier = onRequest({cors: true}, async (req, res) => {
       
       // Directly update household usage based on the new tier
       if (newTier === "premium") {
-        // User is now premium - upgrade household to premium
-        await householdUsageRef.set({
-          tier: "premium",
-          scansRemaining: 500,
-          recipesRemaining: 500,
-          resetDate: admin.firestore.FieldValue.serverTimestamp(),
-        }, {merge: true});
-        
-        // Also update household hasPremium flag
-        await db.collection("households").doc(householdId).update({
-          hasPremium: true,
-        });
-        
-        console.log(`✅ Upgraded household ${householdId} to premium`);
+        // Check if household is already premium to avoid resetting credits
+        const householdUsageDoc = await householdUsageRef.get();
+        const householdUsage = householdUsageDoc.exists ? 
+            householdUsageDoc.data() : null;
+
+        if (!householdUsage || householdUsage.tier !== "premium") {
+          // User is now premium - upgrade household to premium
+          await householdUsageRef.set({
+            tier: "premium",
+            scansRemaining: 500,
+            recipesRemaining: 500,
+            resetDate: admin.firestore.FieldValue.serverTimestamp(),
+          }, {merge: true});
+          
+          // Also update household hasPremium flag
+          await db.collection("households").doc(householdId).update({
+            hasPremium: true,
+          });
+          
+          console.log(`✅ Upgraded household ${householdId} to premium`);
+        } else {
+          console.log(`Household ${householdId} is already premium, skipping reset.`);
+        }
       } else if (newTier === "free") {
         // User downgraded - check if any other member is still premium
         const householdDoc = await db.collection("households")
