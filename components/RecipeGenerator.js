@@ -12,7 +12,8 @@ import {
   Platform,
   TextInput,
   Share,
-  Modal
+  Modal,
+  Linking
 } from 'react-native';
 import { getFirestore, collection, query, onSnapshot, addDoc, doc, getDoc } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
@@ -25,6 +26,8 @@ import { getUserUsage } from '../utils/usageTracking';
 import { config } from '../config';
 import { fetchWithTimeout } from '../utils/fetchWithTimeout';
 import { scaleIngredient } from '../utils/ingredientScaler';
+
+const USDA_NUTRITION_URL = 'https://fdc.nal.usda.gov/';
 
 // Helper function to validate emoji - returns default if not a valid emoji
 const getValidEmoji = (emoji) => {
@@ -958,6 +961,15 @@ ${t('sharedFromShelfze', language)}
               <Text style={styles.perServingText}>
                 {t('perServing', language)} ({servings} {t('servings', language)})
               </Text>
+              <View style={styles.nutritionCitation}>
+                <Text style={styles.citationText}>{t('nutritionDisclaimer', language)}</Text>
+                <Text 
+                  style={styles.citationLink}
+                  onPress={() => Linking.openURL(USDA_NUTRITION_URL)}
+                >
+                  {t('usdaDatabase', language)}
+                </Text>
+              </View>
             </View>
           )}
           <View style={styles.recipeMetaRow}>
@@ -1433,6 +1445,20 @@ ${t('sharedFromShelfze', language)}
           <Text style={styles.aiDisclaimerText}>
             🤖 {t('aiDisclaimerRecipes', language)}
           </Text>
+          <View style={styles.nutritionCitationContainer}>
+            <Text style={styles.aiDisclaimerSubtext}>
+              {t('nutritionDisclaimer', language) || '* AI-estimated values based on'}{' '}
+            </Text>
+            <Text 
+              style={styles.citationLink} 
+              onPress={() => Linking.openURL('https://fdc.nal.usda.gov/')}
+            >
+              {t('usdaDatabase', language) || 'USDA FoodData Central'}
+            </Text>
+            <Text style={styles.aiDisclaimerSubtext}>
+              {'. '}{t('notMedicalAdvice', language) || 'Not for medical use.'}
+            </Text>
+          </View>
         </View>
 
         <TouchableOpacity 
@@ -1630,6 +1656,24 @@ const styles = StyleSheet.create({
     color: '#8B6914',
     textAlign: 'center',
     lineHeight: 16,
+  },
+  aiDisclaimerSubtext: {
+    fontSize: 9,
+    color: '#8B6914',
+    fontStyle: 'italic',
+  },
+  nutritionCitationContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 4,
+  },
+  citationLink: {
+    fontSize: 9,
+    color: '#4A7C59',
+    fontStyle: 'italic',
+    textDecorationLine: 'underline',
   },
   centerContainer: {
     flex: 1,
@@ -2072,6 +2116,25 @@ const styles = StyleSheet.create({
     color: '#999',
     textAlign: 'center',
     fontStyle: 'italic',
+  },
+  nutritionCitation: {
+    marginTop: 8,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: '#FEE2E2',
+    alignItems: 'center',
+  },
+  citationText: {
+    fontSize: 10,
+    color: '#9CA3AF',
+    textAlign: 'center',
+    marginBottom: 2,
+  },
+  citationLink: {
+    fontSize: 10,
+    color: '#3B82F6',
+    textDecorationLine: 'underline',
+    textAlign: 'center',
   },
   recipeMetaRow: {
     flexDirection: 'row',

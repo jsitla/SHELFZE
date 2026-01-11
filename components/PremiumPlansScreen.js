@@ -1,10 +1,14 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Platform, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Platform, ActivityIndicator, Alert, Linking } from 'react-native';
 import { PACKAGE_TYPE } from 'react-native-purchases';
 import { useNavigation } from '@react-navigation/native';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTranslation } from '../contexts/translations';
 import { usePurchase } from '../contexts/PurchaseContext';
+
+// URLs for Terms and Privacy Policy
+const TERMS_URL = 'https://shelfze.com/terms-of-service';
+const PRIVACY_URL = 'https://shelfze.com/privacy-policy';
 
 export default function PremiumPlansScreen() {
   const navigation = useNavigation();
@@ -143,7 +147,15 @@ export default function PremiumPlansScreen() {
       </Text>
       
       <Text style={styles.footerTextSmall}>
-        {t('premiumTermsLink') || 'By subscribing, you agree to our Terms of Service and Privacy Policy.'}
+        {t('bySubscribing') || 'By subscribing, you agree to our '}
+        <Text style={styles.linkText} onPress={() => Linking.openURL(TERMS_URL)}>
+          {t('termsOfService') || 'Terms of Service'}
+        </Text>
+        {' '}{t('and') || 'and'}{' '}
+        <Text style={styles.linkText} onPress={() => Linking.openURL(PRIVACY_URL)}>
+          {t('privacyPolicy') || 'Privacy Policy'}
+        </Text>
+        .
       </Text>
       
       {loading && (
@@ -282,6 +294,10 @@ const styles = StyleSheet.create({
     color: '#999',
     textAlign: 'center',
     fontStyle: 'italic',
+  },
+  linkText: {
+    color: '#4A7C59',
+    textDecorationLine: 'underline',
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,

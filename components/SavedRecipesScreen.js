@@ -9,8 +9,11 @@ import {
   Alert,
   TextInput,
   Share,
-  Modal
+  Modal,
+  Linking
 } from 'react-native';
+
+const USDA_NUTRITION_URL = 'https://fdc.nal.usda.gov/';
 import { getFirestore, collection, query, onSnapshot, addDoc, doc, deleteDoc, getDoc, getDocs, writeBatch } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
 import { app, auth } from '../firebase.config';
@@ -602,6 +605,15 @@ ${t('sharedFromShelfze', language)}
                 <Text style={styles.perServingText}>
                   {t('perServing', language)} ({servings} {t('servings', language)})
                 </Text>
+                <View style={styles.nutritionCitation}>
+                  <Text style={styles.citationText}>{t('nutritionDisclaimer', language)}</Text>
+                  <Text 
+                    style={styles.citationLink}
+                    onPress={() => Linking.openURL(USDA_NUTRITION_URL)}
+                  >
+                    {t('usdaDatabase', language)}
+                  </Text>
+                </View>
               </View>
             )}
             <View style={styles.recipeMetaRow}>
@@ -1618,6 +1630,25 @@ const styles = StyleSheet.create({
     color: '#999',
     textAlign: 'center',
     fontStyle: 'italic',
+  },
+  nutritionCitation: {
+    marginTop: 8,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: '#FEE2E2',
+    alignItems: 'center',
+  },
+  citationText: {
+    fontSize: 10,
+    color: '#9CA3AF',
+    textAlign: 'center',
+    marginBottom: 2,
+  },
+  citationLink: {
+    fontSize: 10,
+    color: '#3B82F6',
+    textDecorationLine: 'underline',
+    textAlign: 'center',
   },
   recipeMetaRow: {
     flexDirection: 'row',

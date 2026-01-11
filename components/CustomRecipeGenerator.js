@@ -12,8 +12,11 @@ import {
   Share,
   Modal,
   KeyboardAvoidingView,
-  Keyboard
+  Keyboard,
+  Linking
 } from 'react-native';
+
+const USDA_NUTRITION_URL = 'https://fdc.nal.usda.gov/';
 import { getFirestore, collection, query, onSnapshot, addDoc, doc, getDoc } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
 import { app, auth } from '../firebase.config';
@@ -416,16 +419,48 @@ export default function CustomRecipeGenerator() {
           <Text style={styles.recipeTitle}>{recipeDetails.name}</Text>
           <Text style={styles.recipeEmoji}>{getValidEmoji(recipeDetails.emoji)}</Text>
           
-          {/* AI Generated Notice */}
-          <View style={styles.aiNoticeContainer}>
-            <Text style={styles.aiNoticeText}>✨ {t('aiGeneratedRecipe', language) || 'AI Generated Recipe'}</Text>
-          </View>
+          {/* Nutrition Card - same position as RecipeGenerator */}
+          {recipeDetails.nutrition && (
+            <View style={styles.nutritionCard}>
+              <Text style={styles.nutritionTitle}>🔥 {t('nutrition', language)}</Text>
+              <View style={styles.nutritionGrid}>
+                <View style={styles.nutritionItem}>
+                  <Text style={styles.nutritionValue}>{recipeDetails.nutrition.calories}</Text>
+                  <Text style={styles.nutritionLabel}>{t('calories', language)}</Text>
+                </View>
+                <View style={styles.nutritionItem}>
+                  <Text style={styles.nutritionValue}>{recipeDetails.nutrition.protein}</Text>
+                  <Text style={styles.nutritionLabel}>{t('protein', language)}</Text>
+                </View>
+                <View style={styles.nutritionItem}>
+                  <Text style={styles.nutritionValue}>{recipeDetails.nutrition.carbs}</Text>
+                  <Text style={styles.nutritionLabel}>{t('carbs', language)}</Text>
+                </View>
+                <View style={styles.nutritionItem}>
+                  <Text style={styles.nutritionValue}>{recipeDetails.nutrition.fat}</Text>
+                  <Text style={styles.nutritionLabel}>{t('fat', language)}</Text>
+                </View>
+              </View>
+              <Text style={styles.perServingText}>
+                {t('perServing', language)} ({servings} {t('servings', language)})
+              </Text>
+              <View style={styles.nutritionCitation}>
+                <Text style={styles.citationText}>{t('nutritionDisclaimer', language)}</Text>
+                <Text 
+                  style={styles.citationLink}
+                  onPress={() => Linking.openURL(USDA_NUTRITION_URL)}
+                >
+                  {t('usdaDatabase', language)}
+                </Text>
+              </View>
+            </View>
+          )}
           
           {/* Meta Row */}
           <View style={styles.recipeMetaRow}>
             {recipeDetails.cuisine && <View style={styles.metaChip}><Text style={styles.metaChipText}>🍴 {recipeDetails.cuisine}</Text></View>}
             {recipeDetails.difficulty && <View style={styles.metaChip}><Text style={styles.metaChipText}>⚡ {recipeDetails.difficulty}</Text></View>}
-            <View style={styles.metaChip}><Text style={styles.metaChipText}>👥 {servings} {t('servings', language)}</Text></View>
+            {recipeDetails.skillLevel && <View style={styles.metaChip}><Text style={styles.metaChipText}>👨‍🍳 {recipeDetails.skillLevel}</Text></View>}
           </View>
 
           <Text style={styles.recipeTime}>🕒 {t('prepTime', language)}: {recipeDetails.prepTime || '—'}</Text>
@@ -810,20 +845,67 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   
-  aiNoticeContainer: {
-    backgroundColor: 'rgba(74, 124, 89, 0.1)',
-    paddingVertical: 4,
-    paddingHorizontal: 12,
+  // Nutrition styles - matching RecipeGenerator.js exactly
+  nutritionCard: {
+    backgroundColor: '#FEF2F2',
     borderRadius: 12,
-    alignSelf: 'center',
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(74, 124, 89, 0.2)',
+    padding: 15,
+    marginVertical: 15,
+    borderWidth: 2,
+    borderColor: '#FEE2E2',
+    width: '100%',
   },
-  aiNoticeText: {
-    fontSize: 12,
-    color: '#4A7C59',
+  nutritionTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#E11D48',
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  nutritionGrid: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginBottom: 10,
+  },
+  nutritionItem: {
+    alignItems: 'center',
+  },
+  nutritionValue: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#E11D48',
+    marginBottom: 4,
+  },
+  nutritionLabel: {
+    fontSize: 11,
+    color: '#666',
+    textTransform: 'uppercase',
     fontWeight: '600',
+  },
+  perServingText: {
+    fontSize: 11,
+    color: '#999',
+    textAlign: 'center',
+    fontStyle: 'italic',
+  },
+  nutritionCitation: {
+    marginTop: 8,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: '#FEE2E2',
+    alignItems: 'center',
+  },
+  citationText: {
+    fontSize: 10,
+    color: '#9CA3AF',
+    textAlign: 'center',
+    marginBottom: 2,
+  },
+  citationLink: {
+    fontSize: 10,
+    color: '#3B82F6',
+    textDecorationLine: 'underline',
+    textAlign: 'center',
   },
   
   section: {

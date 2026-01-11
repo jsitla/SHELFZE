@@ -1,8 +1,11 @@
 // components/recipe/RecipeList.js
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Linking } from 'react-native';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { t } from '../../contexts/translations';
+
+// USDA FoodData Central - official source for nutritional information
+const USDA_NUTRITION_URL = 'https://fdc.nal.usda.gov/';
 
 const RecipeList = ({ recipes, onSelectRecipe }) => {
   const { language } = useLanguage();
@@ -42,6 +45,22 @@ const RecipeList = ({ recipes, onSelectRecipe }) => {
                 </Text>
                 <Text style={styles.nutritionDetail}>
                   {t('fat', language)}: {item.nutrition.fat}
+                </Text>
+              </View>
+            )}
+            {item.nutrition && (
+              <View style={styles.nutritionDisclaimerContainer}>
+                <Text style={styles.nutritionDisclaimer}>
+                  {t('nutritionDisclaimer', language) || '* AI-estimated values based on'}{' '}
+                </Text>
+                <Text 
+                  style={styles.nutritionLink} 
+                  onPress={() => Linking.openURL(USDA_NUTRITION_URL)}
+                >
+                  {t('usdaDatabase', language) || 'USDA FoodData Central'}
+                </Text>
+                <Text style={styles.nutritionDisclaimer}>
+                  {'. '}{t('notMedicalAdvice', language) || 'Not for medical use.'}
                 </Text>
               </View>
             )}
@@ -151,6 +170,23 @@ const styles = StyleSheet.create({
         paddingVertical: 4,
         borderRadius: 10,
         fontWeight: '600',
+      },
+      nutritionDisclaimerContainer: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        alignItems: 'center',
+        marginBottom: 4,
+      },
+      nutritionDisclaimer: {
+        fontSize: 9,
+        color: '#999',
+        fontStyle: 'italic',
+      },
+      nutritionLink: {
+        fontSize: 9,
+        color: '#4A7C59',
+        fontStyle: 'italic',
+        textDecorationLine: 'underline',
       },
       metaBadgesRow: {
         flexDirection: 'row',

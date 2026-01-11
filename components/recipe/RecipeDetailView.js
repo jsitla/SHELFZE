@@ -1,6 +1,8 @@
 // components/recipe/RecipeDetailView.js
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Share, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Share, Alert, Linking } from 'react-native';
+
+const USDA_NUTRITION_URL = 'https://fdc.nal.usda.gov/';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { t } from '../../contexts/translations';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -109,6 +111,15 @@ ${t('sharedFromShelfze', language)}
               <Text style={styles.perServingText}>
                 {t('perServing', language)} ({servings} {t('servings', language)})
               </Text>
+              <View style={styles.nutritionCitation}>
+                <Text style={styles.citationText}>{t('nutritionDisclaimer', language)}</Text>
+                <Text 
+                  style={styles.citationLink}
+                  onPress={() => Linking.openURL(USDA_NUTRITION_URL)}
+                >
+                  {t('usdaDatabase', language)}
+                </Text>
+              </View>
             </View>
           )}
           <View style={styles.recipeMetaRow}>
@@ -420,6 +431,25 @@ const styles = StyleSheet.create({
         color: '#999',
         textAlign: 'center',
         fontStyle: 'italic',
+      },
+      nutritionCitation: {
+        marginTop: 8,
+        paddingTop: 8,
+        borderTopWidth: 1,
+        borderTopColor: '#FEE2E2',
+        alignItems: 'center',
+      },
+      citationText: {
+        fontSize: 10,
+        color: '#9CA3AF',
+        textAlign: 'center',
+        marginBottom: 2,
+      },
+      citationLink: {
+        fontSize: 10,
+        color: '#3B82F6',
+        textDecorationLine: 'underline',
+        textAlign: 'center',
       },
       recipeMetaRow: {
         flexDirection: 'row',
