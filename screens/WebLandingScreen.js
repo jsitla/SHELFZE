@@ -782,20 +782,20 @@ const WebLandingScreen = ({ onGetStarted }) => {
             Scan your groceries, track expiry dates automatically, and get recipes 
             that use what's about to expire. Save money. Save the planet.
           </Text>
-          {/* <View style={styles.heroCtas}>
+          <View style={styles.heroCtas}>
             <TouchableOpacity style={styles.primaryCta} onPress={onGetStarted}>
               <Text style={styles.primaryCtaText}>Start Free</Text>
               <Ionicons name="arrow-forward" size={20} color={COLORS.white} />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.secondaryCta}>
+            <TouchableOpacity style={styles.secondaryCta} onPress={() => Linking.openURL('https://apps.apple.com/app/shelfze/id6740039288')}>
               <Ionicons name="logo-apple" size={20} color={COLORS.charcoal} />
               <Text style={styles.secondaryCtaText}>App Store</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.secondaryCta}>
+            <TouchableOpacity style={styles.secondaryCta} onPress={() => Linking.openURL('https://play.google.com/store/apps/details?id=com.shelfze.app')}>
               <Ionicons name="logo-google-playstore" size={20} color={COLORS.charcoal} />
               <Text style={styles.secondaryCtaText}>Google Play</Text>
             </TouchableOpacity>
-          </View> */}
+          </View>
         </View>
         <View style={styles.heroVisual}>
           <PhoneMockup />
@@ -925,28 +925,28 @@ const WebLandingScreen = ({ onGetStarted }) => {
       <View style={styles.finalCta}>
         <Text style={styles.finalCtaTitle}>Ready to Stop Wasting Food?</Text>
         <Text style={styles.finalCtaSubtitle}>Join the movement to save money and reduce waste</Text>
-        {/* <View style={styles.finalCtaButtons}>
+        <View style={styles.finalCtaButtons}>
           <TouchableOpacity style={styles.primaryCtaLarge} onPress={onGetStarted}>
             <Text style={styles.primaryCtaText}>Try Free on Web</Text>
             <Ionicons name="arrow-forward" size={24} color={COLORS.white} />
           </TouchableOpacity>
         </View>
         <View style={styles.appStoreButtons}>
-          <TouchableOpacity style={styles.appStoreButton}>
+          <TouchableOpacity style={styles.appStoreButton} onPress={() => Linking.openURL('https://apps.apple.com/app/shelfze/id6740039288')}>
             <Ionicons name="logo-apple" size={28} color={COLORS.white} />
             <View>
               <Text style={styles.appStoreLabel}>Download on the</Text>
               <Text style={styles.appStoreName}>App Store</Text>
             </View>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.appStoreButton}>
+          <TouchableOpacity style={styles.appStoreButton} onPress={() => Linking.openURL('https://play.google.com/store/apps/details?id=com.shelfze.app')}>
             <Ionicons name="logo-google-playstore" size={28} color={COLORS.white} />
             <View>
               <Text style={styles.appStoreLabel}>Get it on</Text>
               <Text style={styles.appStoreName}>Google Play</Text>
             </View>
           </TouchableOpacity>
-        </View> */}
+        </View>
       </View>
 
       {/* Footer */}
@@ -972,7 +972,7 @@ const WebLandingScreen = ({ onGetStarted }) => {
             <Text style={styles.footerLink}>Terms of Service</Text>
           </TouchableOpacity>
         </View>
-        <Text style={styles.footerCopyright}>© 2025 Shelfze. All rights reserved.</Text>
+        <Text style={styles.footerCopyright}>© 2026 Shelfze. All rights reserved.</Text>
       </View>
     </ScrollView>
   );
