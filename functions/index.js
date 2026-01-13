@@ -13,25 +13,24 @@ const vertexAI = new VertexAI({
   location: "us-central1",
 });
 
-// Model for Camera/Image Analysis (Upgraded to 2.5 - Jan 2026)
+// Model for Camera/Image Analysis (Upgraded to Gemini 3 Flash - Jan 2026)
 const cameraModel = vertexAI.getGenerativeModel({
-  model: "gemini-2.5-flash",
+  model: "gemini-3-flash",
 });
 
-// Model for Recipe Generation
-// User requested Gemini 2.5; use flash variant for richer outputs.
+// Model for Recipe Generation (Upgraded to Gemini 3 Flash - Jan 2026)
 const recipeModel = vertexAI.getGenerativeModel({
-  model: "gemini-2.5-flash",
+  model: "gemini-3-flash",
 });
 
-// Model for Fast Filtering (Retrieval) - Upgraded to 2.5 Jan 2026
+// Model for Fast Filtering (Retrieval) - Upgraded to Gemini 3 Flash Jan 2026
 const filterModel = vertexAI.getGenerativeModel({
-  model: "gemini-2.5-flash",
+  model: "gemini-3-flash",
 });
 
-// Model specifically for Pantry Check - Upgraded to 2.5 Jan 2026
+// Model specifically for Pantry Check - Upgraded to Gemini 3 Flash Jan 2026
 const pantryCheckModel = vertexAI.getGenerativeModel({
-  model: "gemini-2.5-flash",
+  model: "gemini-3-flash",
 });
 
 /**
@@ -2298,9 +2297,9 @@ exports.checkIngredients = onRequest({
     try {
       result = await pantryCheckModel.generateContent(prompt);
     } catch (modelError) {
-      console.warn("Gemini 2.5 failed, falling back to 2.5-flash-lite", modelError);
+      console.warn("Gemini 3 Flash failed, falling back to 2.5-flash", modelError);
       const fallbackModel = vertexAI.getGenerativeModel({
-        model: "gemini-2.5-flash-lite",
+        model: "gemini-2.5-flash",
       });
       result = await fallbackModel.generateContent(prompt);
     }
