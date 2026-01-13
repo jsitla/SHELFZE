@@ -787,6 +787,10 @@ const WebLandingScreen = ({ onGetStarted }) => {
               <Text style={styles.primaryCtaText}>Start Free</Text>
               <Ionicons name="arrow-forward" size={20} color={COLORS.white} />
             </TouchableOpacity>
+            <TouchableOpacity style={styles.secondaryCta} onPress={() => Linking.openURL('https://apps.apple.com/app/id6755694325')}>
+              <Ionicons name="logo-apple" size={20} color={COLORS.charcoal} />
+              <Text style={styles.secondaryCtaText}>App Store</Text>
+            </TouchableOpacity>
             <TouchableOpacity style={styles.secondaryCta} onPress={() => Linking.openURL('https://play.google.com/store/apps/details?id=com.shelfze.app')}>
               <Ionicons name="logo-google-playstore" size={20} color={COLORS.charcoal} />
               <Text style={styles.secondaryCtaText}>Google Play</Text>
@@ -928,6 +932,13 @@ const WebLandingScreen = ({ onGetStarted }) => {
           </TouchableOpacity>
         </View>
         <View style={styles.appStoreButtons}>
+          <TouchableOpacity style={styles.appStoreButton} onPress={() => Linking.openURL('https://apps.apple.com/app/id6755694325')}>
+            <Ionicons name="logo-apple" size={28} color={COLORS.white} />
+            <View>
+              <Text style={styles.appStoreLabel}>Download on the</Text>
+              <Text style={styles.appStoreName}>App Store</Text>
+            </View>
+          </TouchableOpacity>
           <TouchableOpacity style={styles.appStoreButton} onPress={() => Linking.openURL('https://play.google.com/store/apps/details?id=com.shelfze.app')}>
             <Ionicons name="logo-google-playstore" size={28} color={COLORS.white} />
             <View>
