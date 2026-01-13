@@ -782,18 +782,21 @@ const WebLandingScreen = ({ onGetStarted }) => {
             Scan your groceries, track expiry dates automatically, and get recipes 
             that use what's about to expire. Save money. Save the planet.
           </Text>
-          <View style={styles.heroCtas}>
-            <TouchableOpacity style={styles.primaryCta} onPress={onGetStarted}>
-              <Text style={styles.primaryCtaText}>Start Free</Text>
-              <Ionicons name="arrow-forward" size={20} color={COLORS.white} />
+          <Text style={styles.availableOnText}>Available on</Text>
+          <View style={styles.heroBadges}>
+            <TouchableOpacity style={styles.heroBadge} onPress={() => Linking.openURL('https://apps.apple.com/app/id6755694325')}>
+              <Ionicons name="logo-apple" size={32} color={COLORS.white} />
+              <View>
+                <Text style={styles.badgeLabel}>Download on the</Text>
+                <Text style={styles.badgeName}>App Store</Text>
+              </View>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.secondaryCta} onPress={() => Linking.openURL('https://apps.apple.com/app/id6755694325')}>
-              <Ionicons name="logo-apple" size={20} color={COLORS.charcoal} />
-              <Text style={styles.secondaryCtaText}>App Store</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.secondaryCta} onPress={() => Linking.openURL('https://play.google.com/store/apps/details?id=com.shelfze.app')}>
-              <Ionicons name="logo-google-playstore" size={20} color={COLORS.charcoal} />
-              <Text style={styles.secondaryCtaText}>Google Play</Text>
+            <TouchableOpacity style={styles.heroBadge} onPress={() => Linking.openURL('https://play.google.com/store/apps/details?id=com.shelfze.app')}>
+              <Ionicons name="logo-google-playstore" size={32} color={COLORS.white} />
+              <View>
+                <Text style={styles.badgeLabel}>Get it on</Text>
+                <Text style={styles.badgeName}>Google Play</Text>
+              </View>
             </TouchableOpacity>
           </View>
         </View>
@@ -925,25 +928,20 @@ const WebLandingScreen = ({ onGetStarted }) => {
       <View style={styles.finalCta}>
         <Text style={styles.finalCtaTitle}>Ready to Stop Wasting Food?</Text>
         <Text style={styles.finalCtaSubtitle}>Join the movement to save money and reduce waste</Text>
-        <View style={styles.finalCtaButtons}>
-          <TouchableOpacity style={styles.primaryCtaLarge} onPress={onGetStarted}>
-            <Text style={styles.primaryCtaText}>Try Free on Web</Text>
-            <Ionicons name="arrow-forward" size={24} color={COLORS.white} />
-          </TouchableOpacity>
-        </View>
+        <Text style={styles.availableOnTextLight}>Available on</Text>
         <View style={styles.appStoreButtons}>
-          <TouchableOpacity style={styles.appStoreButton} onPress={() => Linking.openURL('https://apps.apple.com/app/id6755694325')}>
-            <Ionicons name="logo-apple" size={28} color={COLORS.white} />
+          <TouchableOpacity style={styles.appStoreButtonLarge} onPress={() => Linking.openURL('https://apps.apple.com/app/id6755694325')}>
+            <Ionicons name="logo-apple" size={36} color={COLORS.charcoal} />
             <View>
-              <Text style={styles.appStoreLabel}>Download on the</Text>
-              <Text style={styles.appStoreName}>App Store</Text>
+              <Text style={styles.appStoreLabelDark}>Download on the</Text>
+              <Text style={styles.appStoreNameDark}>App Store</Text>
             </View>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.appStoreButton} onPress={() => Linking.openURL('https://play.google.com/store/apps/details?id=com.shelfze.app')}>
-            <Ionicons name="logo-google-playstore" size={28} color={COLORS.white} />
+          <TouchableOpacity style={styles.appStoreButtonLarge} onPress={() => Linking.openURL('https://play.google.com/store/apps/details?id=com.shelfze.app')}>
+            <Ionicons name="logo-google-playstore" size={36} color={COLORS.charcoal} />
             <View>
-              <Text style={styles.appStoreLabel}>Get it on</Text>
-              <Text style={styles.appStoreName}>Google Play</Text>
+              <Text style={styles.appStoreLabelDark}>Get it on</Text>
+              <Text style={styles.appStoreNameDark}>Google Play</Text>
             </View>
           </TouchableOpacity>
         </View>
@@ -1582,13 +1580,74 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     gap: 12,
   },
+  appStoreButtonLarge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.white,
+    paddingHorizontal: 28,
+    paddingVertical: 16,
+    borderRadius: 14,
+    gap: 14,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 6,
+  },
   appStoreLabel: {
     fontSize: 11,
     color: COLORS.white,
     opacity: 0.8,
   },
+  appStoreLabelDark: {
+    fontSize: 12,
+    color: COLORS.charcoal,
+    opacity: 0.7,
+  },
   appStoreName: {
     fontSize: 18,
+    fontWeight: '600',
+    color: COLORS.white,
+  },
+  appStoreNameDark: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: COLORS.charcoal,
+  },
+  availableOnText: {
+    fontSize: 16,
+    color: COLORS.charcoal,
+    marginBottom: 16,
+    fontWeight: '500',
+    opacity: 0.7,
+  },
+  availableOnTextLight: {
+    fontSize: 16,
+    color: COLORS.white,
+    marginBottom: 20,
+    fontWeight: '500',
+    opacity: 0.8,
+  },
+  heroBadges: {
+    flexDirection: isLargeScreen ? 'row' : 'column',
+    gap: 16,
+  },
+  heroBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.charcoal,
+    paddingHorizontal: 24,
+    paddingVertical: 14,
+    borderRadius: 14,
+    gap: 14,
+  },
+  badgeLabel: {
+    fontSize: 11,
+    color: COLORS.white,
+    opacity: 0.8,
+  },
+  badgeName: {
+    fontSize: 20,
     fontWeight: '600',
     color: COLORS.white,
   },
