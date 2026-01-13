@@ -13,24 +13,24 @@ const vertexAI = new VertexAI({
   location: "us-central1",
 });
 
-// Model for Camera/Image Analysis (Upgraded to Gemini 3 Flash - Jan 2026)
+// Model for Camera/Image Analysis
 const cameraModel = vertexAI.getGenerativeModel({
-  model: "gemini-3-flash",
+  model: "gemini-2.5-flash",
 });
 
-// Model for Recipe Generation (Upgraded to Gemini 3 Flash - Jan 2026)
+// Model for Recipe Generation
 const recipeModel = vertexAI.getGenerativeModel({
-  model: "gemini-3-flash",
+  model: "gemini-2.5-flash",
 });
 
-// Model for Fast Filtering (Retrieval) - Upgraded to Gemini 3 Flash Jan 2026
+// Model for Fast Filtering (Retrieval)
 const filterModel = vertexAI.getGenerativeModel({
-  model: "gemini-3-flash",
+  model: "gemini-2.5-flash",
 });
 
-// Model specifically for Pantry Check - Upgraded to Gemini 3 Flash Jan 2026
+// Model specifically for Pantry Check
 const pantryCheckModel = vertexAI.getGenerativeModel({
-  model: "gemini-3-flash",
+  model: "gemini-2.5-flash",
 });
 
 /**
