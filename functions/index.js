@@ -13,24 +13,16 @@ const vertexAI = new VertexAI({
   location: "us-central1",
 });
 
-// Model for Camera/Image Analysis
-const cameraModel = vertexAI.getGenerativeModel({
-  model: "gemini-2.5-flash",
+// Gemini 2.0 Flash - optimized for scanning (video, photo, pantry checks)
+const SCAN_MODEL = "gemini-2.0-flash";
+const scanModel = vertexAI.getGenerativeModel({
+  model: SCAN_MODEL,
 });
 
-// Model for Recipe Generation
+// Gemini 2.5 Flash - for recipe generation (more complex reasoning)
+const RECIPE_MODEL = "gemini-2.5-flash";
 const recipeModel = vertexAI.getGenerativeModel({
-  model: "gemini-2.5-flash",
-});
-
-// Model for Fast Filtering (Retrieval)
-const filterModel = vertexAI.getGenerativeModel({
-  model: "gemini-2.5-flash",
-});
-
-// Model specifically for Pantry Check
-const pantryCheckModel = vertexAI.getGenerativeModel({
-  model: "gemini-2.5-flash",
+  model: RECIPE_MODEL,
 });
 
 /**
@@ -341,7 +333,7 @@ async function analyzeWithGemini(
 ) {
   try {
     console.log("=== GEMINI ANALYSIS START ===");
-    console.log("Model: Gemini 2.5 Flash");
+    console.log("Model: Gemini 3 Flash Preview");
     console.log("Image data length:", base64Image ? base64Image.length : 0);
     console.log("Target language:", targetLang);
     console.log("Mime Type:", mimeType);
@@ -424,7 +416,7 @@ JSON response:
 Remember: If the media contains NO food items, return {"items": [], ` +
 `"totalItems": 0}`;
 
-    const result = await cameraModel.generateContent({
+    const result = await scanModel.generateContent({
       contents: [{
         role: "user",
         parts: [
@@ -933,7 +925,9 @@ ${userGuidance && userGuidance.trim() ?
 
       const result = await recipeModel.generateContent({
         contents: [{role: "user", parts: [{text: prompt}]}],
-        generationConfig: {responseMimeType: "application/json"},
+        generationConfig: {
+          responseMimeType: "application/json",
+        },
       });
 
       const response = await result.response;
@@ -1012,9 +1006,11 @@ Example:
 }
 `;
 
-        const filterResult = await filterModel.generateContent({
+        const filterResult = await recipeModel.generateContent({
           contents: [{role: "user", parts: [{text: filterPrompt}]}],
-          generationConfig: {responseMimeType: "application/json"},
+          generationConfig: {
+            responseMimeType: "application/json",
+          },
         });
 
         const filterResponse = await filterResult.response;
@@ -1994,7 +1990,9 @@ ${userGuidance && userGuidance.trim() ?
 
             const result = await recipeModel.generateContent({
               contents: [{role: "user", parts: [{text: prompt}]}],
-              generationConfig: {responseMimeType: "application/json"},
+              generationConfig: {
+                responseMimeType: "application/json",
+              },
             });
 
             const response = await result.response;
@@ -2099,9 +2097,11 @@ Example:
 }
 `;
 
-            const filterResult = await filterModel.generateContent({
+            const filterResult = await recipeModel.generateContent({
               contents: [{role: "user", parts: [{text: filterPrompt}]}],
-              generationConfig: {responseMimeType: "application/json"},
+              generationConfig: {
+                responseMimeType: "application/json",
+              },
             });
 
             const filterResponse = await filterResult.response;
@@ -2293,16 +2293,9 @@ exports.checkIngredients = onRequest({
       - Ensure the output is valid JSON.
     `;
 
-    let result;
-    try {
-      result = await pantryCheckModel.generateContent(prompt);
-    } catch (modelError) {
-      console.warn("Gemini 3 Flash failed, falling back to 2.5-flash", modelError);
-      const fallbackModel = vertexAI.getGenerativeModel({
-        model: "gemini-2.5-flash",
-      });
-      result = await fallbackModel.generateContent(prompt);
-    }
+    const result = await scanModel.generateContent({
+      contents: [{role: "user", parts: [{text: prompt}]}],
+    });
 
     const response = await result.response;
     let text = "";
@@ -2405,7 +2398,9 @@ exports.matchPantryToRecipes = onRequest({
       Output JSON ONLY. No markdown.
     `;
 
-    const result = await pantryCheckModel.generateContent(prompt);
+    const result = await scanModel.generateContent({
+      contents: [{role: "user", parts: [{text: prompt}]}],
+    });
     const response = await result.response;
     let text = "";
     if (response.candidates && response.candidates[0] &&
@@ -2557,7 +2552,9 @@ You MUST return a single JSON object matching this exact schema:
 
     const result = await recipeModel.generateContent({
       contents: [{role: "user", parts: [{text: systemPrompt}]}],
-      generationConfig: {responseMimeType: "application/json"},
+      generationConfig: {
+        responseMimeType: "application/json",
+      },
     });
 
     const response = await result.response;
@@ -2690,7 +2687,9 @@ Return the UPDATED recipe object matching the exact same schema:
 
     const result = await recipeModel.generateContent({
       contents: [{role: "user", parts: [{text: systemPrompt}]}],
-      generationConfig: {responseMimeType: "application/json"},
+      generationConfig: {
+        responseMimeType: "application/json",
+      },
     });
 
     const response = await result.response;

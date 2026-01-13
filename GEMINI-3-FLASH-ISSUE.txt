@@ -1,0 +1,105 @@
+GEMINI 3 FLASH PREVIEW - IMPLEMENTATION ISSUE REPORT
+=====================================================
+Date: January 13, 2026
+Project: Shelfze (pantryai-3d396)
+Platform: Firebase Cloud Functions (Node.js 20)
+SDK: @google-cloud/vertexai v1.10.0
+
+OBJECTIVE
+---------
+Upgrade from gemini-2.5-flash to gemini-3-flash-preview for improved AI capabilities.
+
+IMPLEMENTATION ATTEMPTED
+------------------------
+1. Changed VertexAI location from "us-central1" to "global"
+2. Changed model name from "gemini-2.5-flash" to "gemini-3-flash-preview"
+3. Added thinkingConfig with thinkingLevel parameter to generateContent calls
+
+Code implemented:
+
+```javascript
+const {VertexAI} = require("@google-cloud/vertexai");
+
+const vertexAI = new VertexAI({
+  project: "pantryai-3d396",
+  location: "global",
+});
+
+const generativeModel = vertexAI.getGenerativeModel({
+  model: "gemini-3-flash-preview",
+});
+
+// Example generateContent call
+const result = await generativeModel.generateContent({
+  contents: [{role: "user", parts: [{text: prompt}]}],
+  generationConfig: {
+    responseMimeType: "application/json",
+    thinkingConfig: { thinkingLevel: "HIGH" },
+  },
+});
+```
+
+ERROR ENCOUNTERED
+-----------------
+After deployment to Firebase Cloud Functions, the API returned an HTML error page
+instead of JSON response:
+
+```
+Failed to generate/parse recipes: SyntaxError: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+    at async throwErrorIfNotOK (/workspace/node_modules/@google-cloud/vertexai/build/src/functions/post_fetch_processing.js:29:27)
+```
+
+This error indicates the Vertex AI endpoint returned an HTML error page (likely a 404
+or service unavailable page) instead of the expected JSON response.
+
+ENVIRONMENT DETAILS
+-------------------
+- Google Cloud Project ID: pantryai-3d396
+- Firebase Project: pantryai-3d396
+- Region: us-central1 (functions deployed here)
+- Node.js Runtime: 20
+- SDK Version: @google-cloud/vertexai ^1.10.0
+- Service Account: 747247644525-compute@developer.gserviceaccount.com
+
+WHAT WORKED BEFORE
+------------------
+The following configuration works correctly:
+
+```javascript
+const vertexAI = new VertexAI({
+  project: "pantryai-3d396",
+  location: "us-central1",
+});
+
+const generativeModel = vertexAI.getGenerativeModel({
+  model: "gemini-2.5-flash",
+});
+```
+
+QUESTIONS
+---------
+1. Is "gemini-3-flash-preview" the correct model name for Gemini 3 Flash?
+2. What is the correct location for Gemini 3 Flash? ("global", "us-central1", or other?)
+3. Is thinkingConfig with thinkingLevel the correct way to configure thinking levels?
+4. Are there any additional API enablements required in Google Cloud Console?
+5. Is Gemini 3 Flash Preview available for Vertex AI Node.js SDK as of January 2026?
+6. What SDK version is required for Gemini 3 Flash support?
+
+DOCUMENTATION REFERENCED
+------------------------
+- Searched for "gemini-3-flash-preview vertex ai" 
+- Found references to model using "global" location
+- Found references to thinkingLevel parameter (LOW, MEDIUM, HIGH, MINIMAL)
+
+RESOLUTION NEEDED
+-----------------
+Please provide:
+1. The correct model identifier for Gemini 3 Flash
+2. The correct location/region configuration
+3. The correct SDK configuration for thinking levels
+4. Any required API enablements or permissions
+5. Sample working code for Node.js Vertex AI SDK
+
+CURRENT WORKAROUND
+------------------
+Reverted to gemini-2.5-flash with us-central1 location, which works correctly.
