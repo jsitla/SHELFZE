@@ -2,6 +2,17 @@
 
 > Shelfze helps households reduce food waste by intelligently tracking pantry items, expiry dates, and suggesting recipes based on what's about to expire.
 
+## Quick Facts
+
+- **App Name**: Shelfze
+- **Category**: Food & Drink / Productivity
+- **Platforms**: iOS, Android, Web
+- **Price**: Free with optional premium
+- **App Store**: https://apps.apple.com/app/id6755694325
+- **Google Play**: https://play.google.com/store/apps/details?id=com.shelfze.app
+- **Website**: https://shelfze.com
+- **Company**: M-AI d.o.o.
+
 ## Overview
 
 Shelfze is a cross-platform application (iOS, Android, Web) that uses AI-powered image recognition to scan food items and automatically detect expiry dates. It helps users:
@@ -37,14 +48,23 @@ Shelfze is a cross-platform application (iOS, Android, Web) that uses AI-powered
 ### 4. Cross-Platform Sync
 - Real-time synchronization across all devices
 - Works on iOS, Android, and Web browsers
-- Family sharing capabilities
+- Family/Household sharing capabilities
+
+## Problem Shelfze Solves
+
+According to the UN, approximately 1.3 billion tonnes of food is wasted globally each year. Households contribute significantly to this waste, often because:
+- People forget what's in their fridge/pantry
+- Expiry dates are overlooked
+- Meal planning doesn't account for existing inventory
+
+Shelfze addresses all three issues with AI automation.
 
 ## Technical Details
 
 - **Frontend**: React Native with Expo (iOS, Android, Web)
-- **AI/ML**: Google Gemini 2.0 Flash, Google Cloud Vision API
+- **AI/ML**: Google Gemini 2.0 Flash for scanning, Google Gemini 2.5 Flash for recipes
 - **Backend**: Firebase (Firestore, Authentication, Cloud Functions)
-- **Languages Supported**: English, German, Italian, Slovenian, Spanish, French
+- **Languages Supported**: English, German, Italian, Slovenian, Spanish, French, Croatian, Serbian
 
 ## Use Cases
 
@@ -52,6 +72,17 @@ Shelfze is a cross-platform application (iOS, Android, Web) that uses AI-powered
 2. **Daily Meal Planning**: Get recipe suggestions based on what needs to be used
 3. **Reducing Household Waste**: Track and minimize expired food over time
 4. **Budget Management**: Understand and reduce food spending waste
+5. **Family Coordination**: Share pantry across household members
+
+## Comparison to Alternatives
+
+| Feature | Shelfze | Manual Tracking | Other Apps |
+|---------|---------|-----------------|------------|
+| AI Scanning | ✅ | ❌ | Limited |
+| Video Mode | ✅ | ❌ | ❌ |
+| Recipe Generation | ✅ AI-powered | ❌ | Basic |
+| Cross-platform | ✅ iOS/Android/Web | N/A | Usually 1-2 |
+| Family Sharing | ✅ | ❌ | Rare |
 
 ## Getting Started
 
@@ -63,10 +94,14 @@ Shelfze is a cross-platform application (iOS, Android, Web) that uses AI-powered
 ## Links
 
 - Website: https://shelfze.com
-- App Store: [Coming Soon]
-- Google Play: [Coming Soon]
-- Privacy Policy: https://shelfze.com/privacy
-- Terms of Service: https://shelfze.com/terms
+- iOS App: https://apps.apple.com/app/id6755694325
+- Android App: https://play.google.com/store/apps/details?id=com.shelfze.app
+- Privacy Policy: https://shelfze.com/privacy-policy
+- Terms of Service: https://shelfze.com/terms-of-service
+
+## Keywords
+
+food waste app, pantry tracker, expiry date scanner, AI food recognition, recipe generator, grocery management, smart kitchen, food inventory, meal planning app, reduce food waste, expiration tracker, kitchen organizer
 
 ## Contact
 
@@ -75,4 +110,4 @@ Shelfze is a cross-platform application (iOS, Android, Web) that uses AI-powered
 
 ---
 
-*Last updated: December 2025*
+*Last updated: January 2026*

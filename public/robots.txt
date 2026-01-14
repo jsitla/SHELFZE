@@ -1,27 +1,54 @@
 # Shelfze Robots.txt
-# Allow all crawlers
+# Allow all crawlers for maximum discoverability
 
 User-agent: *
 Allow: /
 
-# AI Agent Discovery
+# Google Search
+User-agent: Googlebot
+Allow: /
+
+# Google AI (Gemini/Bard)
+User-agent: Google-Extended
+Allow: /
+
+# OpenAI / ChatGPT
 User-agent: GPTBot
 Allow: /
 
 User-agent: ChatGPT-User
 Allow: /
 
+User-agent: OAI-SearchBot
+Allow: /
+
+# Anthropic / Claude
 User-agent: Claude-Web
 Allow: /
 
 User-agent: Anthropic-AI
 Allow: /
 
-User-agent: Google-Extended
+# Microsoft / Bing / Copilot
+User-agent: Bingbot
+Allow: /
+
+User-agent: CCBot
+Allow: /
+
+# Perplexity AI
+User-agent: PerplexityBot
+Allow: /
+
+# Other AI crawlers
+User-agent: Cohere-ai
+Allow: /
+
+User-agent: FacebookBot
 Allow: /
 
 # Sitemap location
 Sitemap: https://shelfze.com/sitemap.xml
 
-# LLMs.txt for AI agents
+# LLMs.txt for AI agents - structured app information
 # See: https://shelfze.com/llms.txt

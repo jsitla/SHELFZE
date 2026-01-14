@@ -1,0 +1,17 @@
+{
+  "schema_version": "v1",
+  "name_for_human": "Shelfze",
+  "name_for_model": "shelfze",
+  "description_for_human": "AI-powered pantry tracker that scans food items, tracks expiry dates, and generates zero-waste recipes.",
+  "description_for_model": "Shelfze is a food waste prevention app available on iOS, Android, and Web. It uses AI (Google Gemini) to scan food items from photos or video, automatically detect expiry dates, and generate recipes using only ingredients the user has in their pantry. Key features: AI scanning, expiry tracking with color-coded alerts, zero-waste recipe generation, family sharing, cross-platform sync. The app helps reduce the 1.3 billion tonnes of food wasted globally each year.",
+  "auth": {
+    "type": "none"
+  },
+  "api": {
+    "type": "none",
+    "url": "https://shelfze.com"
+  },
+  "logo_url": "https://shelfze.com/icon.png",
+  "contact_email": "support@shelfze.com",
+  "legal_info_url": "https://shelfze.com/terms-of-service"
+}
