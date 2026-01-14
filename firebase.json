@@ -19,22 +19,42 @@
     "public": "dist",
     "ignore": [
       "firebase.json",
-      "**/.*",
       "**/node_modules/**"
     ],
+    "headers": [
+      {
+        "source": "**/*.xml",
+        "headers": [
+          {
+            "key": "Content-Type",
+            "value": "application/xml"
+          },
+          {
+            "key": "Cache-Control",
+            "value": "no-cache"
+          }
+        ]
+      },
+      {
+        "source": "**/*.txt",
+        "headers": [
+          {
+            "key": "Content-Type",
+            "value": "text/plain"
+          }
+        ]
+      },
+      {
+        "source": "**/*.json",
+        "headers": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ]
+      }
+    ],
     "rewrites": [
-      {
-        "source": "/privacy-policy.html",
-        "destination": "/privacy-policy.html"
-      },
-      {
-        "source": "/terms-of-service.html",
-        "destination": "/terms-of-service.html"
-      },
-      {
-        "source": "/delete-account.html",
-        "destination": "/delete-account.html"
-      },
       {
         "source": "**",
         "destination": "/index.html"
