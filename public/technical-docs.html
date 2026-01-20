@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Shelfze - Technical Documentation</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.7;
+            color: #3D405B;
+            background: #F4F1DE;
+            padding: 40px 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #4A7C59;
+            font-size: 2.2em;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        h2 {
+            color: #4A7C59;
+            font-size: 1.5em;
+            margin-top: 40px;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #4A7C59;
+            padding-bottom: 8px;
+        }
+        h3 {
+            color: #E07A5F;
+            font-size: 1.2em;
+            margin-top: 25px;
+            margin-bottom: 10px;
+        }
+        p { margin-bottom: 15px; }
+        ul, ol {
+            margin-left: 25px;
+            margin-bottom: 15px;
+        }
+        li { margin-bottom: 8px; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 0.95em;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background: #4A7C59;
+            color: white;
+        }
+        tr:nth-child(even) { background: #f9f9f9; }
+        code {
+            background: #f5f5f5;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Monaco', 'Consolas', monospace;
+            font-size: 0.9em;
+        }
+        pre {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 15px 0;
+            font-size: 0.85em;
+            line-height: 1.5;
+        }
+        .toc {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+        .toc h3 {
+            margin-top: 0;
+            color: #4A7C59;
+        }
+        .toc ul { list-style: none; margin-left: 0; }
+        .toc li { margin-bottom: 5px; }
+        .toc a { color: #4A7C59; text-decoration: none; }
+        .toc a:hover { text-decoration: underline; }
+        hr {
+            border: none;
+            border-top: 2px solid #eee;
+            margin: 30px 0;
+        }
+        .architecture-diagram {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 0.8em;
+            overflow-x: auto;
+            white-space: pre;
+            line-height: 1.4;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🛠️ Shelfze - Technical Documentation</h1>
+
+        <div class="toc">
+            <h3>Table of Contents</h3>
+            <ul>
+                <li><a href="#tech-stack">1. Tech Stack Overview</a></li>
+                <li><a href="#architecture">2. System Architecture</a></li>
+                <li><a href="#frontend">3. Frontend Implementation</a></li>
+                <li><a href="#backend">4. Backend Services</a></li>
+                <li><a href="#ai">5. AI Integration</a></li>
+                <li><a href="#revenuecat">6. RevenueCat Implementation</a></li>
+                <li><a href="#database">7. Database Schema</a></li>
+                <li><a href="#auth">8. Authentication Flow</a></li>
+            </ul>
+        </div>
+
+        <h2 id="tech-stack">1. Tech Stack Overview</h2>
+
+        <h3>Frontend</h3>
+        <table>
+            <tr><th>Technology</th><th>Version</th><th>Purpose</th></tr>
+            <tr><td>React Native</td><td>0.81.5</td><td>Cross-platform mobile framework</td></tr>
+            <tr><td>Expo</td><td>54.0.25</td><td>Development platform & build tools</td></tr>
+            <tr><td>React Navigation</td><td>6.x</td><td>Navigation & routing</td></tr>
+            <tr><td>expo-camera</td><td>17.0.9</td><td>Camera access for scanning</td></tr>
+            <tr><td>react-native-purchases</td><td>9.6.8</td><td>RevenueCat SDK</td></tr>
+            <tr><td>@react-native-async-storage</td><td>2.2.0</td><td>Local storage</td></tr>
+        </table>
+
+        <h3>Backend & Cloud Services</h3>
+        <table>
+            <tr><th>Service</th><th>Purpose</th></tr>
+            <tr><td>Firebase Authentication</td><td>User auth (Email, Google, Apple, Anonymous)</td></tr>
+            <tr><td>Cloud Firestore</td><td>Real-time NoSQL database</td></tr>
+            <tr><td>Cloud Functions (v2)</td><td>Serverless API endpoints</td></tr>
+            <tr><td>Google Cloud Vision API</td><td>OCR & object detection fallback</td></tr>
+            <tr><td>Google Vertex AI</td><td>Gemini 2.5 Flash AI model</td></tr>
+            <tr><td>RevenueCat</td><td>Subscription management</td></tr>
+        </table>
+
+        <hr>
+
+        <h2 id="architecture">2. System Architecture</h2>
+
+        <h3>High-Level Architecture</h3>
+        <div class="architecture-diagram">┌─────────────────────────────────────────────────────────────────┐
+│                        CLIENT LAYER                              │
+│  ┌───────────┐  ┌───────────┐  ┌───────────┐                   │
+│  │    iOS    │  │  Android  │  │    Web    │                   │
+│  └─────┬─────┘  └─────┬─────┘  └─────┬─────┘                   │
+│        └──────────────┼──────────────┘                          │
+│                       ▼                                          │
+│              React Native / Expo                                 │
+└───────────────────────┬─────────────────────────────────────────┘
+                        │
+                        ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                      SERVICE LAYER                               │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │              Firebase Cloud Functions (v2)               │   │
+│  │  ┌──────────────┐ ┌──────────────┐ ┌──────────────┐    │   │
+│  │  │ analyzeImage │ │generateRecipe│ │checkIngredient│    │   │
+│  │  └──────────────┘ └──────────────┘ └──────────────┘    │   │
+│  └─────────────────────────────────────────────────────────┘   │
+└───────────────────────┬─────────────────────────────────────────┘
+                        │
+          ┌─────────────┼─────────────┐
+          ▼             ▼             ▼
+┌──────────────┐ ┌──────────────┐ ┌──────────────┐
+│  Gemini AI   │ │ Vision API   │ │  RevenueCat  │
+│ (Primary AI) │ │  (Fallback)  │ │ (Purchases)  │
+└──────────────┘ └──────────────┘ └──────────────┘
+                        │
+                        ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                       DATA LAYER                                 │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │                  Cloud Firestore                         │   │
+│  │  /users/{uid}/pantry                                     │   │
+│  │  /users/{uid}/shoppingList                               │   │
+│  │  /users/{uid}/savedRecipes                               │   │
+│  │  /households/{householdId}/...                           │   │
+│  └─────────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────────┘</div>
+
+        <h3>Data Flow: Image Scanning</h3>
+        <div class="architecture-diagram">Camera Capture → Base64 Encode → Cloud Function → Gemini 2.5 AI
+                                                              ↓
+Firestore Save ← Review Modal ← Parse Response ← JSON Response</div>
+
+        <hr>
+
+        <h2 id="frontend">3. Frontend Implementation</h2>
+
+        <h3>Project Structure</h3>
+        <pre>Shelfze/
+├── App.js                    # Entry point, navigation setup
+├── config.js                 # Cloud Function URLs
+├── firebase.config.js        # Firebase initialization
+│
+├── components/
+│   ├── AuthScreen.js         # Login/Signup UI
+│   ├── CameraScanner.js      # AI scanning interface
+│   ├── PantryList.js         # Inventory display
+│   ├── RecipeGenerator.js    # Recipe suggestions
+│   ├── Profile.js            # User settings & subscription
+│   └── PremiumPlansScreen.js # Subscription UI
+│
+├── contexts/
+│   ├── LanguageContext.js    # i18n state management
+│   ├── PurchaseContext.js    # RevenueCat state
+│   └── translations.js       # Translation strings
+│
+└── utils/
+    ├── usageTracking.js      # Scan/recipe quota management
+    └── dateHelpers.js        # Expiry date formatting</pre>
+
+        <h3>Navigation Structure</h3>
+        <pre>Tab.Navigator
+├── Pantry (Stack.Navigator)
+│   ├── PantryList          // Main inventory view
+│   ├── ManualEntry         // Add items manually
+│   ├── ProfileScreen       // User account & settings
+│   └── PremiumPlans        // Subscription upgrade
+│
+├── Scanner                  // CameraScanner component
+│
+├── Recipes (Stack.Navigator)
+│   ├── RecipeGenerator     // AI recipe suggestions
+│   ├── CustomRecipeGenerator // Chef's Table feature
+│   └── SavedRecipes        // Bookmarked recipes
+│
+└── ShoppingList            // Shopping list management</pre>
+
+        <hr>
+
+        <h2 id="backend">4. Backend Services</h2>
+
+        <h3>Cloud Functions</h3>
+
+        <h4><code>analyzeImage</code></h4>
+        <pre>// Endpoint: POST /analyzeImage
+// Purpose: Process food images with AI
+
+Input: {
+  imageBase64: string,      // Base64 encoded image
+  language: string,         // User's language code
+  isVideo?: boolean         // Video mode flag
+}
+
+Output: {
+  success: boolean,
+  items: [
+    {
+      name: string,
+      quantity: number,
+      unit: string,
+      category: string,
+      expiryDate: string,   // ISO format
+      confidence: number    // 0-100
+    }
+  ]
+}</pre>
+
+        <h4><code>generateRecipes</code></h4>
+        <pre>// Endpoint: POST /generateRecipes
+// Purpose: Generate recipes from pantry ingredients
+
+Input: {
+  ingredients: string[],    // Available ingredients
+  category: string,         // Meal type filter
+  language: string
+}
+
+Output: {
+  success: boolean,
+  recipes: [
+    {
+      title: string,
+      ingredients: [],
+      instructions: [],
+      prepTime: string,
+      cookTime: string,
+      servings: number
+    }
+  ]
+}</pre>
+
+        <hr>
+
+        <h2 id="ai">5. AI Integration</h2>
+
+        <h3>Primary: Google Gemini 2.5 Flash</h3>
+        <pre>// Vertex AI Configuration
+const model = 'gemini-2.5-flash';
+
+// Image Analysis Prompt Structure
+const prompt = `
+Analyze this food image and return JSON:
+{
+  "items": [
+    {
+      "name": "specific product name",
+      "quantity": number,
+      "unit": "pcs/kg/L/g",
+      "category": "Dairy|Meat|Fruits|Vegetables|...",
+      "expiryDate": "YYYY-MM-DD or null",
+      "confidence": 0-100
+    }
+  ]
+}
+
+Rules:
+- Be specific (e.g., "Sheep Milk" not just "Milk")
+- Detect form (Fresh, Dried, Ground, Whole)
+- Extract expiry dates from labels via OCR
+- Support multiple date formats
+`;</pre>
+
+        <h3>Fallback: Google Cloud Vision API</h3>
+        <pre>// Vision API Features Used
+const features = [
+  { type: 'TEXT_DETECTION' },      // OCR for expiry dates
+  { type: 'LABEL_DETECTION' },     // Product identification
+  { type: 'OBJECT_LOCALIZATION' }  // Multi-item detection
+];</pre>
+
+        <hr>
+
+        <h2 id="revenuecat">6. RevenueCat Implementation</h2>
+
+        <h3>Setup & Configuration</h3>
+        <pre>// contexts/PurchaseContext.js
+
+import Purchases from 'react-native-purchases';
+
+// Initialize RevenueCat
+const initializePurchases = async () => {
+  Purchases.setLogLevel(Purchases.LOG_LEVEL.DEBUG);
+  
+  if (Platform.OS === 'ios') {
+    await Purchases.configure({ 
+      apiKey: 'appl_XXXXXXXXXXXXXXXX' 
+    });
+  } else if (Platform.OS === 'android') {
+    await Purchases.configure({ 
+      apiKey: 'goog_XXXXXXXXXXXXXXXX' 
+    });
+  }
+};</pre>
+
+        <h3>Product Configuration</h3>
+        <table>
+            <tr><th>Product ID</th><th>Type</th><th>Price</th><th>Description</th></tr>
+            <tr><td><code>shelfze_premium_monthly</code></td><td>Subscription</td><td>$2/month</td><td>Premium Monthly</td></tr>
+            <tr><td><code>shelfze_premium_annual</code></td><td>Subscription</td><td>$20/year</td><td>Premium Annual</td></tr>
+        </table>
+
+        <h3>Purchase Flow</h3>
+        <pre>// PremiumPlansScreen.js
+
+const purchasePremium = async (packageType) => {
+  try {
+    // 1. Get available offerings
+    const offerings = await Purchases.getOfferings();
+    const package = offerings.current.availablePackages
+      .find(p => p.identifier === packageType);
+    
+    // 2. Make purchase
+    const { customerInfo } = await Purchases.purchasePackage(package);
+    
+    // 3. Check entitlement
+    if (customerInfo.entitlements.active['premium']) {
+      // Update user tier in Firestore
+      await updateUserTier(userId, 'premium');
+      
+      // Update local state
+      setIsPremium(true);
+    }
+  } catch (error) {
+    if (!error.userCancelled) {
+      Alert.alert('Purchase Failed', error.message);
+    }
+  }
+};</pre>
+
+        <h3>Subscription Status Check</h3>
+        <pre>// Check subscription on app launch
+const checkSubscriptionStatus = async () => {
+  try {
+    const customerInfo = await Purchases.getCustomerInfo();
+    const isPremium = customerInfo.entitlements.active['premium'] !== undefined;
+    
+    return {
+      isPremium,
+      expirationDate: customerInfo.entitlements.active['premium']?.expirationDate,
+      willRenew: customerInfo.entitlements.active['premium']?.willRenew
+    };
+  } catch (error) {
+    console.error('Failed to check subscription:', error);
+    return { isPremium: false };
+  }
+};</pre>
+
+        <h3>Restore Purchases</h3>
+        <pre>const restorePurchases = async () => {
+  try {
+    const customerInfo = await Purchases.restorePurchases();
+    
+    if (customerInfo.entitlements.active['premium']) {
+      await updateUserTier(userId, 'premium');
+      Alert.alert('Success', 'Your premium subscription has been restored!');
+    } else {
+      Alert.alert('No Subscription', 'No active subscription found.');
+    }
+  } catch (error) {
+    Alert.alert('Error', 'Failed to restore purchases.');
+  }
+};</pre>
+
+        <hr>
+
+        <h2 id="database">7. Database Schema</h2>
+
+        <h3>Firestore Collections</h3>
+        <pre>/users/{userId}
+  ├── /pantry/{itemId}
+  │     ├── name: string
+  │     ├── quantity: number
+  │     ├── unit: string
+  │     ├── category: string
+  │     ├── expiryDate: timestamp
+  │     ├── addedAt: timestamp
+  │     ├── source: "scan" | "manual"
+  │     └── confidence: number
+  │
+  ├── /shoppingList/{itemId}
+  │     ├── name: string
+  │     ├── checked: boolean
+  │     └── addedAt: timestamp
+  │
+  ├── /savedRecipes/{recipeId}
+  │     ├── title: string
+  │     ├── ingredients: array
+  │     ├── instructions: array
+  │     └── savedAt: timestamp
+  │
+  └── /usage
+        ├── tier: "free" | "premium"
+        ├── scansUsed: number
+        ├── recipesUsed: number
+        ├── scansLimit: number
+        ├── recipesLimit: number
+        └── lastResetDate: timestamp
+
+/households/{householdId}
+  ├── ownerId: string
+  ├── inviteCode: string
+  ├── members: array&lt;userId&gt;
+  ├── /pantry/{itemId}
+  ├── /shoppingList/{itemId}
+  └── /savedRecipes/{recipeId}</pre>
+
+        <hr>
+
+        <h2 id="auth">8. Authentication Flow</h2>
+
+        <h3>Supported Methods</h3>
+        <ul>
+            <li><strong>Anonymous</strong> - Guest mode with limited features</li>
+            <li><strong>Email/Password</strong> - Standard registration</li>
+            <li><strong>Google Sign-In</strong> - OAuth 2.0</li>
+            <li><strong>Apple Sign-In</strong> - iOS only, required for App Store</li>
+        </ul>
+
+        <h3>Auth State Management</h3>
+        <pre>// App.js
+useEffect(() => {
+  const unsubscribe = onAuthStateChanged(auth, async (user) => {
+    if (user) {
+      setUser(user);
+      
+      // Check legal consent
+      const hasConsent = await checkUserLegalConsent(user.uid);
+      setHasLegalConsent(hasConsent);
+      
+      // Initialize usage tracking
+      await initializeUsageTracking(user.uid, 
+        user.isAnonymous ? 'anonymous' : 'free');
+      
+      // Check subscription status via RevenueCat
+      const { isPremium } = await checkSubscriptionStatus();
+      if (isPremium) {
+        await updateUserTier(user.uid, 'premium');
+      }
+    } else {
+      setShowWelcome(true);
+    }
+  });
+  
+  return () => unsubscribe();
+}, []);</pre>
+
+        <hr>
+
+        <p style="text-align: center; color: #888; margin-top: 40px;">
+            <em>Documentation last updated: January 2026</em>
+        </p>
+    </div>
+</body>
+</html>
